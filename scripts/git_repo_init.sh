@@ -53,4 +53,11 @@ git remote set-url --push template DISABLE
 BRANCH="$(git branch --show-current)"
 git push -u origin "$BRANCH"
 
+git branch -m main
+
+git push -u origin main
+
+git add .
+git commit -m "chore: initialize ${REPO_NAME} repository"
+
 echo "[OK] New project repository '$REPO_NAME' is ready."
