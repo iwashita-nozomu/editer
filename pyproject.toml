@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jax_util"
+version = "0.1.0"
+description = "Common Python module: jax_util"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "ruff>=0.5",
+  "scipy-stubs",
+  "pydocstyle>=6.3",
+]
+
+[tool.setuptools]
+package-dir = {"" = "python"}
+
+[tool.setuptools.packages.find]
+where = ["python"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "D", "UP"]
+# D: docstring チェック
+# UP: Python 最新構文への自動升格
+
+[tool.pyright]
+# 型検査は strict を基本方針とします。
+typeCheckingMode = "strict"
+
+# 既定の baseline は通常運用する実装モジュールに限定します。
+include = ["./python/jax_util", "./python/experiment_runner"]
+exclude = [
+  "**/.*",
+  "**/node_modules",
+  "**/__pycache__",
+  "**/build",
+  "**/dist",
+  "**/reports",
+  "**/experiments",
+  "**/*.egg-info",
+  "./python/jax_util/solvers/archive",
+  "./references",
+  "./notes",
+  "./diary",
+  "./includes",
+  "./lib",
+  "./src",
+  "./scripts",
+  "./.worktrees",
+]
+ignore = ["./python/tests"]
+
+# ローカルパッケージ解決のため、python を追加します。
+extraPaths = ["./python", "./python/jax_util", "./python/experiment_runner"]
+stubPath = "./python/typings"
+
+
+reportUnusedVariable = "warning"
+reportConstantRedefinition = "warning"
+reportMissingTypeStubs = "warning"
+
+[tool.pydocstyle]
+# Docstring 規約の設定
+# D100: モジュール docstring 必須
+# D101: クラス docstring 必須
+# D102: パブリックメソッド docstring 必須
+# D103: 関数 docstring 必須
+# D104-D105: パッケージ/Magic method は除外
+match = "python/(jax_util|experiment_runner)/.*\\.py"
+match_dir = "python"
+# プライベート関数 (_prefix) の docstring チェックは除外
+ignore = ["D104", "D105", "D107"]
+
+[tool.pytest.ini_options]
+testpaths = ["python/tests"]
