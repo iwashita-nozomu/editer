@@ -14,7 +14,7 @@
 - [run_comprehensive_review.sh](/mnt/l/workspace/project_template/scripts/run_comprehensive_review.sh)
   - repo 全体の確認用です。
 
-### Python を使う場合
+### Python
 
 - [run_pytest_with_logs.sh](/mnt/l/workspace/project_template/scripts/run_pytest_with_logs.sh)
   - pytest をログ付きで実行します。
@@ -37,6 +37,9 @@
 make ci-quick
 make ci
 bash scripts/run_comprehensive_review.sh
+python3 -m pyright python/
+python3 -m pytest python/tests/ -q --tb=short
+python3 -m ruff check python/ --select D,E,F,I,UP
 python3 scripts/tools/check_markdown_lint.py documents
 python3 scripts/tools/audit_and_fix_links.py documents
 ```
@@ -45,7 +48,7 @@ python3 scripts/tools/audit_and_fix_links.py documents
 
 - shell スクリプトは `python3` を優先します。
 - Python 依存を使う場合は `docker/` 側の定義を更新します。
-- repo 全体の入口は言語非限定ですが、Python 用補助スクリプトは `python/` 構成を前提にしています。
+- この template は Python 実装と Markdown 文書を前提にしています。
 
 ## 参照先
 

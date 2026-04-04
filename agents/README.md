@@ -2,6 +2,7 @@
 
 このディレクトリは、repo におけるエージェント運用の人間向け正本ハブです。
 個別エージェント向けの runtime entrypoint は薄く保ち、詳細はここへ集約します。
+この template では、Python 実装、pytest/pyright/ruff、Markdown 文書と report review を常設前提にします。
 
 ## 正本
 
@@ -21,6 +22,12 @@
   - agent ごとの入口差分と bootstrap 入口
 - [canonical/CODEX_WORKFLOW.md](/mnt/l/workspace/project_template/agents/canonical/CODEX_WORKFLOW.md)
   - Codex の標準 task 実行フロー
+- [canonical/CODEX_SUBAGENTS.md](/mnt/l/workspace/project_template/agents/canonical/CODEX_SUBAGENTS.md)
+  - Codex の subagent routing
+- [skills/README.md](/mnt/l/workspace/project_template/agents/skills/README.md)
+  - 人間向け skill 正本
+- [skills/catalog.yaml](/mnt/l/workspace/project_template/agents/skills/catalog.yaml)
+  - skill family の機械可読カタログ
 
 ## Runtime Entry Points
 
@@ -38,6 +45,7 @@
 - Canonical project skills: `.agents/skills/`
 - Claude compatibility mirror: `.claude/skills/`
 - Claude subagents: `.claude/agents/`
+- Codex runtime config: `.codex/`
 
 ## 運用ルール
 

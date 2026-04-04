@@ -7,8 +7,11 @@
 
 1. `AGENTS.md` を読む
 1. `agents/README.md` を読む
+1. `agents/skills/README.md` を読む
+1. `documents/coding-conventions-python.md` を読む
 1. `agents/TASK_WORKFLOWS.md` で task family を決める
 1. `agents/canonical/ARTIFACT_PLACEMENT.md` で文書の置き場を決める
+1. specialist が必要なら `agents/canonical/CODEX_SUBAGENTS.md` を読む
 1. 必要なら `.agents/skills/` から該当 skill を読む
 
 ## Task Classification
@@ -27,7 +30,7 @@
 
 ## Minimal Skill Set
 
-Codex では、必要最小限の skill だけ使います。
+Codex では、まず `agents/skills/README.md` から必要最小限の skill だけ選びます。
 
 - repo 入口確認:
   - `repo-onboarding`
@@ -39,8 +42,14 @@ Codex では、必要最小限の skill だけ使います。
   - `subagent-bootstrap`
 - validation:
   - `static-validation`
+- Python diff:
+  - `python-review`
+- Markdown diff:
+  - `md-style-check`
 - review:
   - `change-review`
+- experiment report:
+  - `report-review`
 
 ## Execution Flow
 
@@ -67,6 +76,7 @@ Codex では、必要最小限の skill だけ使います。
 - specialist handoff を明示したい
 - review artifact を残したい
 - 長めの task で run 単位の記録が必要
+- subagent と parent の責務を分けたい
 
 コマンド:
 
@@ -86,7 +96,9 @@ python3 scripts/agent_tools/bootstrap_agent_run.py \
 
 - まず `make ci-quick`
 - 必要に応じて `make ci`
-- 文書変更では markdown / link check も使う
+- Python 変更では `pyright python/`、`pytest python/tests/`、`ruff check python/ --select D,E,F,I,UP` を確認する
+- 文書変更では markdown / link check を使う
+- report を閉じる前には `documents/experiment-report-style.md` を確認する
 
 ### 7. Closeout
 

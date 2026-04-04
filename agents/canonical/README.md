@@ -27,12 +27,20 @@
   - Codex / Claude / Copilot の入口差分
 - `agents/canonical/CODEX_WORKFLOW.md`
   - Codex の context-independent workflow
+- `agents/canonical/CODEX_SUBAGENTS.md`
+  - Codex の subagent routing
+- `agents/skills/README.md`
+  - 人間向け skill 正本
+- `agents/skills/catalog.yaml`
+  - skill family の機械可読カタログ
 - `.agents/skills/`
   - Codex / Copilot 向け canonical skill path
 - `.claude/skills/`
   - Claude compatibility mirror
 - `.claude/agents/`
   - Claude-native subagents
+- `.codex/`
+  - Codex project-scoped runtime config
 
 ## 保守ルール
 

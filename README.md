@@ -1,7 +1,7 @@
 # Project Template
 
 実装、実験、文書、エージェント運用を 1 つの repo で扱うためのテンプレートです。
-特定言語の専用テンプレートではありません。`python/` は任意の実装スロットの 1 つであり、必要に応じて `src/`、`include/`、`lib/`、`experiments/` を使い分けます。
+このテンプレートは、Python 実装と Markdown 文書を必ず使う研究開発 repo を前提にしています。
 
 この README は人間向けの入口です。エージェント向けの入口は `agents/README.md` です。
 
@@ -19,8 +19,10 @@
   - 共通開発環境の定義です。
 - `experiments/`
   - 実験コード、run ごとの生成物、report を置く場所です。使わないプロジェクトでは空でも構いません。
-- `python/`, `src/`, `include/`, `lib/`
-  - 言語や実装形態に応じて使う実装スロットです。全部を埋める必要はありません。
+- `python/`
+  - 実装本体、共通 runtime、テスト対象コードの主置き場です。
+- `python/tests/`
+  - pytest ベースのテストを置く場所です。
 
 ## 基本方針
 
@@ -29,13 +31,14 @@
 - `documents/` には正本だけを置きます。履歴説明や日付付きの途中報告は置きません。
 - 実装変更では、必要なテストと文書更新を同じ変更でそろえます。
 - 実験は 1 回の run を fresh 実行として扱い、途中停止 run を正式結果として継ぎ足しません。
-- 言語固有の規約は補足として置きますが、repo 全体の入口は言語非限定で保ちます。
+- Python の静的解析とテスト、Markdown の体裁とリンク確認を日常運用に含めます。
 
 ## まず読むもの
 
 - `QUICK_START.md`
 - `documents/README.md`
 - `documents/conventions/README.md`
+- `documents/coding-conventions-python.md`
 - 開発環境を触る場合は `docker/`
 - 実験を行う場合は `documents/experiment-workflow.md`
 - エージェントを使う場合は `agents/README.md`
@@ -43,7 +46,7 @@
 ## 日常の進め方
 
 1. 何を変えるかを決めます。実装だけか、実験まで含むか、環境や文書更新が必要かを最初に切ります。
-2. 変更前に `make ci-quick` を流して、壊れている前提を持ち込まないようにします。
+2. 変更前に `make ci-quick` を流して、Python と Markdown の基準が壊れていないことを確認します。
 3. 実装、実験コード、文書、必要なら `docker/` を更新します。
 4. 仕上げに `make ci` か必要な個別チェックを流します。
 5. 長期に残す判断や実験知見は `notes/` に移し、正本ルールは `documents/` に反映します。
@@ -75,6 +78,11 @@ experiments/
 ```bash
 make ci-quick
 make ci
+python3 -m pyright python/
+python3 -m pytest python/tests/ -q --tb=short
+python3 -m ruff check python/ --select D,E,F,I,UP
+python3 scripts/tools/check_markdown_lint.py documents
+python3 scripts/tools/audit_and_fix_links.py documents
 make tools-help
 ```
 

@@ -1,0 +1,71 @@
+version: 1
+
+skill_families:
+  - id: repo-onboarding
+    purpose: Fast safe entry path for an unfamiliar repository or subdirectory.
+    canonical_doc: agents/skills/repo-onboarding.md
+    shim: .agents/skills/repo-onboarding/SKILL.md
+  - id: agent-orchestration
+    purpose: Choose one workflow family and align handoff, review, and runtime entrypoints.
+    canonical_doc: agents/skills/agent-orchestration.md
+    shim: .agents/skills/agent-orchestration/SKILL.md
+  - id: artifact-placement
+    purpose: Decide where task documents, reports, notes, and repo-wide canon belong.
+    canonical_doc: agents/skills/artifact-placement.md
+    shim: .agents/skills/artifact-placement/SKILL.md
+  - id: subagent-bootstrap
+    purpose: Bootstrap run bundles and specialist delegation without breaking write-scope rules.
+    canonical_doc: agents/skills/subagent-bootstrap.md
+    shim: .agents/skills/subagent-bootstrap/SKILL.md
+  - id: codex-cli
+    purpose: Follow the repository-specific Codex startup path and read order.
+    canonical_doc: agents/skills/codex-cli.md
+    shim: .agents/skills/codex-cli/SKILL.md
+  - id: codex-task-workflow
+    purpose: Execute repository tasks with a context-independent Codex flow.
+    canonical_doc: agents/skills/codex-task-workflow.md
+    shim: .agents/skills/codex-task-workflow/SKILL.md
+  - id: claude-code-cli
+    purpose: Use the Claude Code adapter and Claude-native skill/subagent paths correctly.
+    canonical_doc: agents/skills/claude-code-cli.md
+    shim: .agents/skills/claude-code-cli/SKILL.md
+  - id: copilot-cli
+    purpose: Use the Copilot adapter and avoid stale GitHub-specific command assumptions.
+    canonical_doc: agents/skills/copilot-cli.md
+    shim: .agents/skills/copilot-cli/SKILL.md
+  - id: static-validation
+    purpose: Run appropriate quality gates for code, docs, links, and scripts.
+    canonical_doc: agents/skills/static-validation.md
+    shim: .agents/skills/static-validation/SKILL.md
+  - id: python-review
+    purpose: Review Python diffs with pyright, pytest, ruff, and type-boundary awareness.
+    canonical_doc: agents/skills/python-review.md
+    shim: .agents/skills/python-review/SKILL.md
+  - id: md-style-check
+    purpose: Check Markdown formatting, heading structure, and link hygiene.
+    canonical_doc: agents/skills/md-style-check.md
+    shim: .agents/skills/md-style-check/SKILL.md
+  - id: docs-consistency-review
+    purpose: Review contradictions, stale routes, and duplicated truth across docs.
+    canonical_doc: agents/skills/docs-consistency-review.md
+    shim: .agents/skills/docs-consistency-review/SKILL.md
+  - id: change-review
+    purpose: Review diffs for regressions, missing validation, and stale docs.
+    canonical_doc: agents/skills/change-review.md
+    shim: .agents/skills/change-review/SKILL.md
+  - id: experiment-workflow
+    purpose: Plan, run, and report experiments with clear protocol and result boundaries.
+    canonical_doc: agents/skills/experiment-workflow.md
+    shim: .agents/skills/experiment-workflow/SKILL.md
+  - id: critical-review
+    purpose: Challenge evidence quality, comparison fairness, and overclaim risk.
+    canonical_doc: agents/skills/critical-review.md
+    shim: .agents/skills/critical-review/SKILL.md
+  - id: report-review
+    purpose: Review experiment reports for evidence traceability and reader-facing clarity.
+    canonical_doc: agents/skills/report-review.md
+    shim: .agents/skills/report-review/SKILL.md
+  - id: environment-maintenance
+    purpose: Update Docker, CI, dependencies, and runtime guidance coherently.
+    canonical_doc: agents/skills/environment-maintenance.md
+    shim: .agents/skills/environment-maintenance/SKILL.md

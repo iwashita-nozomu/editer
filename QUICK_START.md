@@ -7,6 +7,7 @@
 - [README.md](/mnt/l/workspace/project_template/README.md)
 - [documents/README.md](/mnt/l/workspace/project_template/documents/README.md)
 - [documents/conventions/README.md](/mnt/l/workspace/project_template/documents/conventions/README.md)
+- [documents/coding-conventions-python.md](/mnt/l/workspace/project_template/documents/coding-conventions-python.md)
 
 実験を扱う場合は追加で次を見ます。
 
@@ -23,12 +24,14 @@ agent を使う場合は次を見ます。
 - 既定の統合先は `main` です。
 - 短期 branch は必要なときだけ切り、長期の分岐運用は避けます。
 - 変更の前に、対象ディレクトリと必要な更新を先に決めます。
+- Python と Markdown は常に対象に含まれる前提で確認します。
 
 最低限の確認:
 
 ```bash
 git status --short
 make ci-quick
+python3 -m pyright python/
 ```
 
 ## 3. 実装前の確認
@@ -37,6 +40,8 @@ make ci-quick
 bash scripts/guide.sh
 bash scripts/view_conventions.sh
 make ci-quick
+python3 -m pytest python/tests/ -q --tb=short
+python3 scripts/tools/check_markdown_lint.py documents
 ```
 
 フルチェック:
@@ -66,6 +71,7 @@ python3 scripts/tools/audit_and_fix_links.py documents
 
 - 共通開発環境は `docker/` を基準にします。
 - Python 依存を追加する場合は `docker/Dockerfile` と `docker/requirements.txt` を同時に更新します。
+- Markdown の体裁ルールは `.markdownlint.json` と `documents/conventions/common/05_docs.md` を基準にします。
 
 ## 7. 終了時の整理
 

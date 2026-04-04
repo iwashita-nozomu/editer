@@ -8,6 +8,8 @@
 - 人間向けハブ: `agents/README.md`
 - canonical layout: `agents/canonical/README.md`
 - skill registry: `agents/canonical/skills.md`
+- human skill canon: `agents/skills/README.md`
+- machine-readable skill catalog: `agents/skills/catalog.yaml`
 - artifact placement canon: `agents/canonical/ARTIFACT_PLACEMENT.md`
 - CLI entrypoint canon: `agents/canonical/CLI_ENTRYPOINTS.md`
 - Codex workflow canon: `agents/canonical/CODEX_WORKFLOW.md`
