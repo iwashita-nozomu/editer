@@ -1,58 +1,27 @@
-# 🤖 エージェント用ガイド（日本語）
+# エージェント利用ガイド
 
-> GitHub Copilot や Cursor などの AI エージェントが jax_util プロジェクトで作業するためのガイド集
+## どこから読むか
 
-______________________________________________________________________
+1. [agents/README.md](/mnt/l/workspace/project_template/agents/README.md)
+1. [agents/canonical/README.md](/mnt/l/workspace/project_template/agents/canonical/README.md)
+1. [agents/TASK_WORKFLOWS.md](/mnt/l/workspace/project_template/agents/TASK_WORKFLOWS.md)
 
-## 📚 3 回のクリックで目的到達
+## 入口の使い分け
 
-### **あなたは何をしたいですか？**
+- Codex / Copilot agent mode:
+  - [AGENTS.md](/mnt/l/workspace/project_template/AGENTS.md)
+- Claude Code:
+  - [CLAUDE.md](/mnt/l/workspace/project_template/CLAUDE.md)
+- GitHub Copilot custom instructions:
+  - [.github/copilot-instructions.md](/mnt/l/workspace/project_template/.github/copilot-instructions.md)
 
-#### 🔹 **「新しい実装を追加したい」**
-1. [agents/README.md](./README.md) — チームロール・権限を確認
-2. [TASK_WORKFLOWS.md](./TASK_WORKFLOWS.md) — 実装タスクの workflow を選択
-3. [documents/AGENT_TASK_MAP.md](../documents/AGENT_TASK_MAP.md#💻-実装者向けtask-11-20) — Task 11-20 を実行
+## skill の使い方
 
-#### 🔹 **「実験・検証をしたい」**
-1. [agents/README.md](./README.md) — experimenter ロール確認
-2. [TASK_WORKFLOWS.md](./TASK_WORKFLOWS.md) — 実験タスクの workflow を選択  
-3. [documents/research-workflow.md](../documents/research-workflow.md) — 実験設計・比較・改造ガイド
+- 共通 skill の正本は `.agents/skills/` にあります。
+- Claude では `.claude/skills/` の mirror を使います。
+- どの skill を使うか迷う場合は、まず `repo-onboarding` か `agent-orchestration` を見ます。
 
-#### 🔹 **「コードレビューをしたい」**
-1. [agents/COMMUNICATION_PROTOCOL.md](./COMMUNICATION_PROTOCOL.md) — review メッセージの書き方
-2. [documents/REVIEW_PROCESS.md](../documents/REVIEW_PROCESS.md) — レビュー項目・チェックリスト
-3. [reviews/](../reviews/) — 既存レビュー報告を参照
+## subagent の使い方
 
-#### 🔹 **「タスク全体を管理したい」**
-1. [agents/README.md](./README.md) — manager ロール確認
-2. [TASK_WORKFLOWS.md](./TASK_WORKFLOWS.md) — タスク引き継ぎ workflow
-3. [documents/AGENT_TASK_CHECKLIST.md](../documents/AGENT_TASK_CHECKLIST.md) — 管理者向けチェックリスト
-
-#### 🔹 **「全タスク 50 個を把握したい」**
-1. [documents/AGENT_TASK_INDEX_GUIDE.md](../documents/AGENT_TASK_INDEX_GUIDE.md) — ドキュメント 3つ の役割説明
-2. [documents/AGENT_TASK_MAP.md](../documents/AGENT_TASK_MAP.md) — 50 タスク詳細マップ
-3. [documents/AGENT_TASK_VALIDATION_REPORT.md](../documents/AGENT_TASK_VALIDATION_REPORT.md) — テスト・リソース検証
-
-______________________________________________________________________
-
-## 🎯 エージェント向けスキル別ガイド
-
-### 📋 **コーディング・実装スキル**
-
-| タスク | ファイル | ロール | 時間 |
-|--------|---------|--------|------|
-| 新規モジュール実装 | [TASK_WORKFLOWS.md](./TASK_WORKFLOWS.md#-モジュール実装workflow) | implementer | 2-3h |
-| テスト追加 | [coding-conventions-testing.md](../documents/coding-conventions-testing.md) | implementer | 1-2h |
-| ドキュメント更新 | [TASK_WORKFLOWS.md](./TASK_WORKFLOWS.md#-ドキュメント更新workflow) | implementer | 30min-1h |
-| 型エラー削減 | [task.md](../task.md) | implementer | 2-3h |
-
-**参考規約:**
-- [Python コーディング規約](../documents/coding-conventions-python.md)
-- [テスト規約](../documents/coding-conventions-testing.md)
-- [Markdown 記法](../documents/coding-conventions.md)
-
-______________________________________________________________________
-
-**最後に更新:** 2026-04-01  
-**対象:** GitHub Copilot, Cursor, Claude, その他 AI エージェント  
-**言語:** 日本語 (Japanese)
+- Claude 専用 subagent は `.claude/agents/` にあります。
+- subagent は task 固有に使い、repo 全体の正本は `agents/` 側に置きます。

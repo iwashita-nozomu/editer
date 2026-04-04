@@ -1,28 +1,25 @@
-日本語で対応してください。
-複雑な分岐は避け、シンプルで追いやすい実装を優先してください。
+# GitHub Copilot Repository Instructions
 
-# GitHub Copilot Instructions
+## Read First
 
-## 基本方針
+- `AGENTS.md`
+- `agents/README.md`
+- `documents/README.md`
 
-- repo 全体の入口は言語非限定です。
-- 既定の統合先は `main` です。
-- 長期に残すルールは `documents/`、補助知見は `notes/` に置きます。
-- agent の使い方や workflow は `agents/` と `documents/AGENTS_COORDINATION.md` を参照します。
+## Defaults
 
-## 規約
+- 日本語で対応してください。
+- repo 全体の正本は `documents/` と `agents/` にあります。
+- 長期に残す agent ルールは `agents/` 側を更新し、このファイルは薄く保ってください。
 
-- `documents/` の規約に従ってください。
-- 最初に `documents/coding-conventions-project.md` を確認してください。
-- 言語固有の補足は、その言語を触るときだけ参照してください。
+## Skills
 
-## 開発環境
+- Project skills are curated under `.agents/skills/`.
+- If a task matches a project skill, use the skill before inventing a new local workflow.
 
-- 共通開発環境は `docker/` を基準にします。
-- Python を使う場合は `docker/Dockerfile` と `docker/requirements.txt` を依存の正本にします。
-- 環境更新時は関連 README や運用文書も同じ変更で更新してください。
+## Validation
 
-## ドキュメント
-
-- Markdown の入口リンクを壊さないでください。
-- 実験手法やワークフローの一般論は残し、個別プロジェクト固有の記録は混ぜないでください。
+```bash
+make ci-quick
+make ci
+```

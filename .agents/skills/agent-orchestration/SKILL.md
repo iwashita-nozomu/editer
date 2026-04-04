@@ -1,0 +1,12 @@
+---
+name: agent-orchestration
+description: Use when you need to choose a workflow family, route work across roles, or align Codex, Claude, and Copilot entrypoints with the same canonical docs.
+---
+
+# Agent Orchestration
+
+1. Start from `agents/TASK_WORKFLOWS.md`.
+1. Choose one workflow family instead of inventing a one-off process.
+1. Use `agents/COMMUNICATION_PROTOCOL.md` for handoff and review structure.
+1. Keep human-maintained canon in `agents/`.
+1. Keep runtime entrypoints thin: `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`.
