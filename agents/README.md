@@ -47,7 +47,7 @@
 ## Skills And Subagents
 
 - Canonical project skills: `.agents/skills/`
-- Claude compatibility mirror: `.claude/skills/`
+- Claude compatibility mirror: `.claude/skills/` (generated from `.agents/skills/`)
 - Claude subagents: `.claude/agents/`
 - Codex runtime config: `.codex/`
 

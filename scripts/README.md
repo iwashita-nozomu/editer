@@ -35,6 +35,8 @@
 - [tools/audit_and_fix_links.py](/mnt/l/workspace/project_template/scripts/tools/audit_and_fix_links.py)
 - [tools/fix_markdown_docs.py](/mnt/l/workspace/project_template/scripts/tools/fix_markdown_docs.py)
 - [tools/find_similar_documents.py](/mnt/l/workspace/project_template/scripts/tools/find_similar_documents.py)
+- [tools/mirror_skill_shims.py](/mnt/l/workspace/project_template/scripts/tools/mirror_skill_shims.py)
+  - `.agents/skills/` から runtime 用 mirror を同期します。
 
 ### agent 補助
 
@@ -54,6 +56,7 @@ pipdeptree --warn fail
 deptry python
 python3 scripts/tools/check_markdown_lint.py documents
 python3 scripts/tools/audit_and_fix_links.py documents
+python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune
 ```
 
 ## 実行環境

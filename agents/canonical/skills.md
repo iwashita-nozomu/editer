@@ -46,7 +46,7 @@
 - Codex / Copilot:
   - `.agents/skills/<skill>/SKILL.md`
 - Claude:
-  - `.claude/skills/<skill>/SKILL.md`
+  - `.claude/skills/<skill>/SKILL.md` (generated mirror from `.agents/skills/`)
 
 ## Human Canon
 

@@ -36,7 +36,7 @@
 - `.agents/skills/`
   - Codex / Copilot 向け canonical skill path
 - `.claude/skills/`
-  - Claude compatibility mirror
+  - Claude compatibility mirror generated from `.agents/skills/`
 - `.claude/agents/`
   - Claude-native subagents
 - `.codex/`

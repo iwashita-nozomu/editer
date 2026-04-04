@@ -14,7 +14,7 @@
 - CLI entrypoint canon: `agents/canonical/CLI_ENTRYPOINTS.md`
 - Codex workflow canon: `agents/canonical/CODEX_WORKFLOW.md`
 - Codex / Copilot discovery path: `.agents/skills/`
-- Claude compatibility path: `.claude/skills/`
+- Claude compatibility path: `.claude/skills/` (generated mirror)
 
 ## 方針
 
@@ -22,6 +22,7 @@
 - numbered skill catalog は増やしません。
 - skill ごとの instructions は `SKILL.md` に集約します。
 - 再利用可能な workflow は skill にし、repo 全体の恒久ルールは `documents/` または `agents/` に置きます。
+- shared discovery shim は `.agents/skills/` を正本にし、互換 path は同期スクリプトで更新します。
 
 ## 推奨 skill directory
 
@@ -50,4 +51,4 @@
 ## 整理ルール
 
 - 新しい skill を追加するときは `agents/canonical/skills.md` を更新します。
-- Claude mirror が必要なら `.claude/skills/` に対応 skill を追加します。
+- Claude mirror が必要なら `python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune` を実行します。

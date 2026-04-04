@@ -1,14 +1,14 @@
 # Shared Skill Canon
 
 このディレクトリは、Codex を主 runtime としつつ、Claude や Copilot でも共有する skill 文書の人間向け正本です。
-機械 discovery 用の `SKILL.md` は `.agents/skills/` と `.claude/skills/` に置き、判断基準と使い分けはここに集約します。
+機械 discovery 用の `SKILL.md` は `.agents/skills/` を正本にし、`.claude/skills/` などの互換 path へ mirror します。判断基準と使い分けはここに集約します。
 
 ## Rules
 
 - skill の目的、使う場面、関連正本は `agents/skills/` に書きます。
 - `AGENTS.md` や `CLAUDE.md` には長い skill 説明を複製しません。
 - `.agents/skills/` は Codex / Copilot の auto-discovery path です。
-- `.claude/skills/` は Claude 互換 mirror です。
+- `.claude/skills/` は `.agents/skills/` から生成する Claude 互換 mirror です。
 - 新しい skill を追加するときは `catalog.yaml` と対応文書を同時に更新します。
 - この template では Python と Markdown を常に前提にするため、`python-review` と `md-style-check` は頻出 skill です。
 
@@ -48,5 +48,5 @@
 1. `agents/skills/<family>.md` を更新する
 1. `agents/skills/catalog.yaml` を更新する
 1. `.agents/skills/<family>/SKILL.md` を更新する
-1. Claude mirror が必要なら `.claude/skills/<family>/SKILL.md` も更新する
+1. Claude mirror が必要なら `python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune` を実行する
 1. 必要なら `agents/canonical/CODEX_WORKFLOW.md` と `agents/canonical/CODEX_SUBAGENTS.md` の routing を更新する

@@ -25,4 +25,4 @@
 ## Skills
 
 - Canonical path: `.agents/skills/`
-- Claude compatibility: `.claude/skills/`
+- Claude compatibility: `.claude/skills/` (generated from `.agents/skills/`)

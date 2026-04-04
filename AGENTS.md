@@ -38,7 +38,7 @@ Use this file as the runtime entrypoint for Codex and GitHub Copilot agents.
 ## Skills
 
 - Canonical project skills for Codex/Copilot agent mode live in `.agents/skills/`.
-- Claude-compatible mirrors live in `.claude/skills/`.
+- Claude-compatible mirrors live in `.claude/skills/` and are synced from `.agents/skills/`.
 
 ## Codex Runtime
 

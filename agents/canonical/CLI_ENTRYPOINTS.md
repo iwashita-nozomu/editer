@@ -38,6 +38,7 @@
 - Claude-native subagent の呼び出し
 
 補足:
+- `.claude/skills/` は `.agents/skills/` から生成する互換 mirror
 - shared rules は `AGENTS.md` を参照し、Claude 固有差分だけを `CLAUDE.md` に置く
 - subagent 管理は Claude Code の `/agents` を前提にする
 

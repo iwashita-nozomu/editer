@@ -19,7 +19,7 @@
 ## skill の使い方
 
 - 共通 skill の正本は `.agents/skills/` にあります。
-- Claude では `.claude/skills/` の mirror を使います。
+- Claude では `.claude/skills/` の generated mirror を使います。正本は `.agents/skills/` です。
 - どの skill を使うか迷う場合は、まず `repo-onboarding` か `agent-orchestration` を見ます。
 - Codex で毎回同じ手順を踏みたい場合は `codex-task-workflow` を見ます。
 - Python 差分では `python-review` を既定で使います。
