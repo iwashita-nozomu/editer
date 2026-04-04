@@ -10,6 +10,7 @@
 - skill registry: `agents/canonical/skills.md`
 - artifact placement canon: `agents/canonical/ARTIFACT_PLACEMENT.md`
 - CLI entrypoint canon: `agents/canonical/CLI_ENTRYPOINTS.md`
+- Codex workflow canon: `agents/canonical/CODEX_WORKFLOW.md`
 - Codex / Copilot discovery path: `.agents/skills/`
 - Claude compatibility path: `.claude/skills/`
 
@@ -48,4 +49,3 @@
 
 - 新しい skill を追加するときは `agents/canonical/skills.md` を更新します。
 - Claude mirror が必要なら `.claude/skills/` に対応 skill を追加します。
-- 古い agent-specific skill artifacts は `agents/legacy/` に退避します。

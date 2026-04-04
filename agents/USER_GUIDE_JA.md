@@ -20,6 +20,7 @@
 - 共通 skill の正本は `.agents/skills/` にあります。
 - Claude では `.claude/skills/` の mirror を使います。
 - どの skill を使うか迷う場合は、まず `repo-onboarding` か `agent-orchestration` を見ます。
+- Codex で毎回同じ手順を踏みたい場合は `codex-task-workflow` を見ます。
 - 文書の置き場で迷う場合は `artifact-placement` を見ます。
 - CLI 差分で迷う場合は `codex-cli`、`claude-code-cli`、`copilot-cli` を見ます。
 

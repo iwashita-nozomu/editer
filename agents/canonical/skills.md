@@ -22,6 +22,8 @@
   - Docker, CI, dependency, runtime 更新
 - `codex-cli`
   - Codex 用の入口と skill path
+- `codex-task-workflow`
+  - Codex の context-independent task 実行フロー
 - `claude-code-cli`
   - Claude Code 用の入口と subagent path
 - `copilot-cli`
@@ -33,7 +35,3 @@
   - `.agents/skills/<skill>/SKILL.md`
 - Claude:
   - `.claude/skills/<skill>/SKILL.md`
-
-## Legacy
-
-旧 `.github/skills/` 系は `agents/legacy/github-skills-legacy/` へ退避しました。

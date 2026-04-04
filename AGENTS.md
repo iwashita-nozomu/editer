@@ -9,6 +9,7 @@ Use this file as the runtime entrypoint for Codex and GitHub Copilot agents.
 - `documents/README.md`
 - `agents/README.md`
 - `agents/canonical/README.md`
+- `agents/canonical/CODEX_WORKFLOW.md`
 
 ## Repo Defaults
 
@@ -33,7 +34,15 @@ Use this file as the runtime entrypoint for Codex and GitHub Copilot agents.
 
 - Canonical project skills for Codex/Copilot agent mode live in `.agents/skills/`.
 - Claude-compatible mirrors live in `.claude/skills/`.
-- Legacy GitHub-specific skill artifacts were moved to `agents/legacy/`.
+
+## Codex Default Flow
+
+1. Read `agents/canonical/CODEX_WORKFLOW.md`.
+1. Pick one workflow family from `agents/TASK_WORKFLOWS.md`.
+1. Use `agents/canonical/ARTIFACT_PLACEMENT.md` before creating new task documents.
+1. Load only the skills needed for the task from `.agents/skills/`.
+1. If handoff or review artifacts matter, bootstrap `reports/agents/<run-id>/`.
+1. Validate with `make ci-quick`, then broader checks if the change warrants them.
 
 ## Validation Commands
 

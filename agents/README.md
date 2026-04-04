@@ -19,6 +19,8 @@
   - task 文書と run artifact の置き分け
 - [canonical/CLI_ENTRYPOINTS.md](/mnt/l/workspace/project_template/agents/canonical/CLI_ENTRYPOINTS.md)
   - agent ごとの入口差分と bootstrap 入口
+- [canonical/CODEX_WORKFLOW.md](/mnt/l/workspace/project_template/agents/canonical/CODEX_WORKFLOW.md)
+  - Codex の標準 task 実行フロー
 
 ## Runtime Entry Points
 
@@ -36,7 +38,6 @@
 - Canonical project skills: `.agents/skills/`
 - Claude compatibility mirror: `.claude/skills/`
 - Claude subagents: `.claude/agents/`
-- Legacy GitHub-specific artifacts: `agents/legacy/`
 
 ## 運用ルール
 

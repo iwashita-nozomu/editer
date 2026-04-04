@@ -22,6 +22,7 @@
 
 補足:
 - skill の discovery path は `.agents/skills/<skill>/SKILL.md`
+- task 実行の標準順序は `agents/canonical/CODEX_WORKFLOW.md`
 - repo-wide の正本変更は `agents/` を先に更新する
 
 ## Claude Code
