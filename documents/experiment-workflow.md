@@ -25,10 +25,8 @@
   - [experiment-report-style.md](/workspace/documents/experiment-report-style.md)
 - 批判的レビューの観点と手順
   - [experiment-critical-review.md](/workspace/documents/experiment-critical-review.md)
-- `experiment_runner`、scheduler、monitor の使い分け
-  - [experiment_runner_usage.md](/workspace/notes/experiments/experiment_runner_usage.md)
 - エージェントごとの task workflow
-  - [TASK_WORKFLOWS.md](/workspace/agents/TASK_WORKFLOWS.md)
+  - [TASK_WORKFLOWS.md](/mnt/l/workspace/project_template/agents/TASK_WORKFLOWS.md)
 
 ## 2. 段階別手順
 
@@ -50,17 +48,15 @@
   - 実験ディレクトリ、`result/<run_name>/` の出力先、`experiments/report/<run_name>.md` の置き場を先に固定します。
 - `Naming Plan:`
   - topic 名、run_name、result ディレクトリ名、report 名の規則を先に決め、topic README か対応する正本文書へ残します。
-- `Branch Plan:`
-  - 同じ branch で進めるか、必要があれば別 branch / worktree を使うかを先に決めます。既定は同じ branch です。
+- `Execution Plan:`
+  - `main` で進めるか、隔離が必要な場合だけ短期 branch を使うかを先に決めます。既定は `main` です。
 
-次に、branch / worktree の分離要否を決めます。
+次に、隔離の要否を決めます。
 
 - 通常の実験
-  - 既存の branch 上で、そのまま進めます。
+  - `main` 上で、そのまま進めます。
 - 隔離が必要な実験
-  - 長時間 run、巨大生成物、破壊的な試行がある場合に限って別 branch / worktree の使用を許可します。
-- action log
-  - 詳細な作業ログが必要な場合は `notes/worktrees/worktree_<topic>_YYYY-MM-DD.md` を使います。
+  - 長時間 run、巨大生成物、破壊的な試行がある場合に限って短期 branch / worktree の使用を許可します。
 
 準備段階で固定する置き場は次です。
 

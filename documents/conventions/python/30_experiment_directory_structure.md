@@ -27,7 +27,7 @@
 ### 3. 推奨レイアウト
 
 ```text
-experiments/smolyak_experiment/
+experiments/<topic>/
 ├── README.md
 ├── cases.py
 ├── experimentcode.py
@@ -74,8 +74,8 @@ experiments/report/
 
 ### 6. `main` への統合
 
-- worktree から `main` へ持ち帰るときは、コードだけでなく test と document を同時に統合します。
-- worktree 側で削除された冗長ファイルは、`main` 側でも不要なら削除します。
+- `main` へ統合するときは、コードだけでなく test と document を同時にそろえます。
+- 隔離環境で削除した冗長ファイルは、`main` 側でも不要なら削除します。
 - 実行結果そのものは raw のまま全部を `main` へ戻さず、必要な最終 JSON と note を残します。
 - `main` へ持ち帰るのは完走 run の `result/<run_name>/` と report だけにします。partial run は診断用に留めます。
 

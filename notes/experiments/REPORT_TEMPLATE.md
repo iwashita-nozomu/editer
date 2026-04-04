@@ -30,7 +30,7 @@
 
 ### Environment
 
-<!-- Branch, commit, worktree, hardware, software versions, timeout, seeds. -->
+<!-- Commit, optional branch, hardware, software versions, timeout, seeds. -->
 
 ### Fairness Notes
 
@@ -84,14 +84,14 @@
 
 - Branch:
 - Commit:
-- Worktree:
+- Optional isolated workspace:
 - Final JSON:
 - Raw JSONL:
 - Renderer / plot command:
 
 ## Artifacts and Carry-Over
 
-<!-- Which outputs stay on results branch and which artifacts are carried back to main. -->
+<!-- Which outputs stay in the run directory and which artifacts are carried back to main. -->
 
 ## Critical Review
 

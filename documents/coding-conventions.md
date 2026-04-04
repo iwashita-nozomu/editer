@@ -39,7 +39,7 @@ mdformat --check path/to/file.md
 - `documents/` 配下の全 `.md` ファイル
 - `scripts/` 配下の全 `.md` ファイル
 - `.github/` 配下の全 `.md` ファイル
-- `README.md` / `WORKTREE_SCOPE.md` など
+- `README.md` や各種運用ドキュメント
 
 ### ツール設定
 

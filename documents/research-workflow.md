@@ -68,7 +68,7 @@
 - branch は既定では分けません。
 - 長時間 run の隔離や破壊的な試行が必要な場合に限って、別 branch / worktree の使用を許可します。
 - topic README に、`result/<run_name>/` と `experiments/report/<run_name>.md` の置き方を書きます。
-- 詳細な作業ログが必要な場合に限って `notes/worktrees/worktree_<topic>_YYYY-MM-DD.md` を作ります。
+- 詳細な作業ログが必要な場合だけ、実験 note か別の補助メモに分けて残します。
 
 ### Step 5. prototype を作る
 
@@ -133,7 +133,7 @@
 
 - `main` へ戻すときは、code だけでなく test、document、`result/<run_name>/`、`experiments/report/<run_name>.md` を同時に持ち帰ります。
 - 複数 run をまたぐ結論だけを `notes/experiments/` にまとめます。
-- 判断の流れが必要な場合だけ `notes/worktrees/` に残します。
+- 判断の流れが必要な場合だけ、`notes/` 側に補助メモとして残します。
 
 ## 5. マルチエージェント実験ループ
 
@@ -310,8 +310,7 @@ review artifact では、次のラベルで切り分けます。
 - worktree 規約: `documents/worktree-lifecycle.md`
 - 1 run の report: `experiments/report/<run_name>.md`
 - 実験 note: `notes/experiments/<topic>.md`
-- worktree action log: `notes/worktrees/worktree_<topic>_YYYY-MM-DD.md`
-- branch summary: `notes/branches/<branch_topic>.md`
+- supporting notes: `notes/experiments/<topic>.md` または `notes/themes/<topic>.md`
 - 一般化知見: `notes/themes/<topic>.md`
 
 ## 13. 参考文献
