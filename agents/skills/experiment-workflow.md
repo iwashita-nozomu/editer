@@ -14,3 +14,8 @@ question、protocol、run、report を分けて実験を扱います。
 
 - `documents/experiment-workflow.md`
 - `documents/research-workflow.md`
+
+## Boundary
+
+- 外側の反復設計は `research-workflow` を使います。
+- methodology、artifact、reporting policy の大きい review は `research-perspective-review` を追加します。

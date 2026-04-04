@@ -24,3 +24,9 @@
 - `project_reviewer`
 - `python_reviewer`
 - `report_reviewer`
+- `reproducibility_reviewer`
+- `scientific_computing_reviewer`
+- `benchmark_reviewer`
+- `artifact_reviewer`
+- `fair_data_reviewer`
+- `ml_science_reviewer`

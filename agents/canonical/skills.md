@@ -22,10 +22,14 @@
   - findings-first review
 - `experiment-workflow`
   - question, protocol, run, report の整理
+- `research-workflow`
+  - 外部調査、比較設計、run loop、decision state の整理
 - `critical-review`
   - fairness, overclaim, missing evidence の確認
 - `report-review`
   - experiment report の reader-facing review
+- `research-perspective-review`
+  - 研究系変更を複数視点で並列レビュー
 - `environment-maintenance`
   - Docker, CI, dependency, runtime 更新
 - `codex-cli`

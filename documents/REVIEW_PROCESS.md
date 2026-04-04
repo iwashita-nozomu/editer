@@ -19,6 +19,7 @@
 - `ruff`、`pyright`、`black` を実行し、重大な警告がないこと。
 - ドキュメント変更がある場合は `documents/` に追記します。図・ユースケースが必要な変更では、それらも含めます。
 - worktree を使う場合だけ、そのスコープ文書や補助メモが不足していないことを確認します。
+- 研究・実験 scope の変更では、`critical-review` と `report-review` を既定にし、methodology、benchmark protocol、artifact policy、reporting policy を大きく変える場合は `research-perspective-review` も検討します。
 
 ## PR フロー
 

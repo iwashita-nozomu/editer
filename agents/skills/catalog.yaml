@@ -57,6 +57,10 @@ skill_families:
     purpose: Plan, run, and report experiments with clear protocol and result boundaries.
     canonical_doc: agents/skills/experiment-workflow.md
     shim: .agents/skills/experiment-workflow/SKILL.md
+  - id: research-workflow
+    purpose: Manage the outer loop of question framing, external research, iterative changes, runs, and explicit review decisions.
+    canonical_doc: agents/skills/research-workflow.md
+    shim: .agents/skills/research-workflow/SKILL.md
   - id: critical-review
     purpose: Challenge evidence quality, comparison fairness, and overclaim risk.
     canonical_doc: agents/skills/critical-review.md
@@ -65,6 +69,10 @@ skill_families:
     purpose: Review experiment reports for evidence traceability and reader-facing clarity.
     canonical_doc: agents/skills/report-review.md
     shim: .agents/skills/report-review/SKILL.md
+  - id: research-perspective-review
+    purpose: Run independent research-focused reviews across reproducibility, benchmarking, artifacts, FAIR-style data, and reporting.
+    canonical_doc: agents/skills/research-perspective-review.md
+    shim: .agents/skills/research-perspective-review/SKILL.md
   - id: environment-maintenance
     purpose: Update Docker, CI, dependencies, and runtime guidance coherently.
     canonical_doc: agents/skills/environment-maintenance.md

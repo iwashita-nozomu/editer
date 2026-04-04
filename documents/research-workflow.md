@@ -25,6 +25,33 @@
 - run は fresh 実行で完走させます。途中停止 run を resume の正本にせず、停止理由を記録して 0 からやり直します。
 - claim は evidence に合わせます。実験範囲を越えた一般化を避け、仮定と限界を本文で明示します。
 
+## 2.5 Research-Driven Change の canonical loop
+
+外部調査つき実装、性能改善、比較検証では、次の outer loop を正本にします。
+
+1. 問い、比較対象、exit criteria を固定する
+1. 外部調査を行い、採用候補と反証候補を残す
+1. 比較プロトコルと run layout を固定する
+1. baseline または current state を記録する
+1. 1 つの code change を入れる
+1. 同じ protocol で run する
+1. `experiment_reviewer` が evidence sufficiency と overclaim を批判的にレビューする
+1. `report_reviewer` が user-facing report をレビューする
+1. decision に応じて loop を戻す
+
+decision は次の 4 つに固定します。
+
+- `report_rewrite_required`
+  - 同じ result を使って report だけを書き直します
+- `extra_validation_required`
+  - 同じ仮説のまま追加 case、追加 figure、追加集計を行います
+- `rerun_required`
+  - fresh `run_name` で rerun します。必要なら code か protocol を修正します
+- `approved`
+  - exit criteria を満たしていれば loop を閉じます。満たしていなければ次の change を設計します
+
+この loop は 1 回で終える前提にしません。`report_rewrite_required`、`extra_validation_required`、`rerun_required` が残る限り、結論を閉じることを禁止します。
+
 ## 3. 文献ベースの要点
 
 以下は外部文献からの要点整理です。
@@ -35,6 +62,34 @@
 - Weber らは、benchmark は scope、datasets、metrics、parameters、reproducibility を一体で設計し、baseline と neutral comparison を意識すべきだと整理しています。
 - Bartz-Beielstein らは、benchmark では goal、problem instance、algorithm instance、performance measure、analysis を先に定義し、問題クラスを越えた一般化に慎重であるべきだと述べています。
 - NeurIPS checklist は、claim を実験範囲に合わせ、assumptions と limitations を明示し、再現に必要な code、data、command、environment を示すことを求めています。
+
+## 3.5 参照する外部規範
+
+研究 workflow の review 観点は、少なくとも次を参照します。
+
+- Sandve et al., Ten Simple Rules for Reproducible Computational Research
+  - https://doi.org/10.1371/journal.pcbi.1003285
+- Wilson et al., Best Practices for Scientific Computing
+  - https://doi.org/10.1371/journal.pbio.1001745
+- van der Kouwe et al., Benchmarking Crimes
+  - https://doi.org/10.48550/arXiv.1801.02381
+- ACM Artifact Review and Badging
+  - https://www.acm.org/publications/policies/artifact-review-and-badging-current
+- FAIR Guiding Principles
+  - https://doi.org/10.1038/sdata.2016.18
+- NeurIPS Paper Checklist
+  - https://nips.cc/public/guides/PaperChecklist
+- REFORMS
+  - https://reforms.cs.princeton.edu/
+
+これらは同じ観点ではありません。少なくとも次の独立視点として扱います。
+
+- reproducibility
+- scientific-computing
+- benchmark
+- artifact
+- fair-data
+- ml-science-reporting
 
 ## 4. 標準 workflow
 
@@ -202,6 +257,25 @@
 - case 数が少ない場合や分布が歪む場合は、中央値や rank ベースの比較を優先します。
 - 有意差検定を必須にはしませんが、ばらつきが大きいときは effect size、分位点、再現 run の差を少なくとも言葉で扱います。
 - 「改善なし」も結果です。改善が見えなかった場合は、その条件帯と failure pattern を残します。
+
+## 6.8 観点別に必要になる補助 workflow
+
+研究 scope が大きい場合は、通常の `Research-Driven Change` loop に加えて次の補助 workflow を使います。
+
+- `reproducibility-hardening`
+  - provenance、seed、command、environment、rerunability を固める
+- `scientific-computing-hardening`
+  - incremental change、testing、automation、prototype discipline を固める
+- `benchmark-design-and-fairness`
+  - baseline、case mix、measurement rule、confounder を固める
+- `artifact-readiness-and-packaging`
+  - code、script、raw result、environment、rerun bundle を固める
+- `fair-data-packaging`
+  - metadata、result path、naming、再利用性を固める
+- `ml-science-reporting-checklist`
+  - assumptions、limitations、uncertainty、reader-facing reporting を固める
+
+これらは top-level family を増やすのではなく、`Research-Driven Change` の niche workflow として使います。
 
 ## 7. 実験コードを書くときのコツ
 

@@ -55,6 +55,12 @@ Use this file as the runtime entrypoint for Codex and GitHub Copilot agents.
 1. If handoff, specialist delegation, or review artifacts matter, check `agents/canonical/CODEX_SUBAGENTS.md` and bootstrap `reports/agents/<run-id>/`.
 1. Validate with `make ci-quick`, then broader checks if the change warrants them.
 
+## Research Defaults
+
+- Research-driven tasks should normally use `research-workflow` as the outer loop.
+- Claim-heavy experiment work should normally pass both `critical-review` and `report-review`.
+- If methodology, benchmark protocol, artifact policy, or reporting policy changes substantially, add `research-perspective-review`.
+
 ## Python And Markdown Baseline
 
 - Python changes should normally pass `pyright python/`, `pytest python/tests/`, and `ruff check python/ --select D,E,F,I,UP`.
