@@ -42,10 +42,13 @@
 
 - [agent_tools/bootstrap_agent_run.py](/mnt/l/workspace/project_template/scripts/agent_tools/bootstrap_agent_run.py)
 - [agent_tools/validate_role_write_scope.py](/mnt/l/workspace/project_template/scripts/agent_tools/validate_role_write_scope.py)
+- [agent_tools/smoke_test_research_perspective_pack.py](/mnt/l/workspace/project_template/scripts/agent_tools/smoke_test_research_perspective_pack.py)
+  - research perspective review pack の runtime と bundle を smoke test します。
 
 ## よく使うコマンド
 
 ```bash
+make agent-checks
 make ci-quick
 make ci
 bash scripts/run_comprehensive_review.sh
@@ -57,6 +60,7 @@ deptry python
 python3 scripts/tools/check_markdown_lint.py documents
 python3 scripts/tools/audit_and_fix_links.py documents
 python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune
+python3 scripts/agent_tools/smoke_test_research_perspective_pack.py
 ```
 
 ## 実行環境

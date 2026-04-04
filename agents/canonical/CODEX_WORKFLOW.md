@@ -98,6 +98,7 @@ python3 scripts/agent_tools/bootstrap_agent_run.py \
 
 ### 6. Validation
 
+- agent runtime / skill 変更では `make agent-checks`
 - まず `make ci-quick`
 - 必要に応じて `make ci`
 - Python 変更では `pyright python/`、`pytest python/tests/`、`ruff check python/ --select D,E,F,I,UP` を確認する

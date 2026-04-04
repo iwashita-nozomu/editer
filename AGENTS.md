@@ -71,6 +71,7 @@ Use this file as the runtime entrypoint for Codex and GitHub Copilot agents.
 ## Validation Commands
 
 ```bash
+make agent-checks
 make ci-quick
 make ci
 bash scripts/run_comprehensive_review.sh

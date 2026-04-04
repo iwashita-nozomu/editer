@@ -31,6 +31,12 @@ jobs:
       - name: Install package
         run: pip install -e python
 
+      - name: Check skill mirror drift
+        run: python scripts/tools/mirror_skill_shims.py --target .claude/skills --prune --check
+
+      - name: Smoke test research perspective pack
+        run: python scripts/agent_tools/smoke_test_research_perspective_pack.py
+
       - name: Run pytest with coverage
         run: python -m pytest python/tests/ \
           --cov=python/jax_util \

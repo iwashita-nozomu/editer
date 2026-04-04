@@ -1,4 +1,4 @@
-.PHONY: git_init ci dev-setup tools-help
+.PHONY: git_init ci ci-quick dev-setup tools-help agent-checks
 
 # Git 初期化（初回のみ）
 git_init:
@@ -12,6 +12,11 @@ ci:
 # CI 高速モード（ruff skip）
 ci-quick:
 	bash scripts/ci/run_all_checks.sh --quick
+
+# agent runtime / skill drift checks
+agent-checks:
+	python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune --check
+	python3 scripts/agent_tools/smoke_test_research_perspective_pack.py
 
 # 開発環境初期化
 dev-setup: git_init

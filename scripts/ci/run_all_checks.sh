@@ -80,6 +80,22 @@ echo ""
 
 EXIT_CODE=0
 
+# 0. agent/runtime sync checks
+echo "0️⃣  agent/runtime sync checks を実行中..."
+if "$PYTHON_BIN" scripts/tools/mirror_skill_shims.py --target .claude/skills --prune --check 2>&1; then
+  echo "✅ skill mirror sync 成功"
+else
+  echo "❌ skill mirror sync 失敗"
+  EXIT_CODE=1
+fi
+if "$PYTHON_BIN" scripts/agent_tools/smoke_test_research_perspective_pack.py 2>&1; then
+  echo "✅ research perspective pack smoke test 成功"
+else
+  echo "❌ research perspective pack smoke test 失敗"
+  EXIT_CODE=1
+fi
+echo ""
+
 # 1. pytest 実行
 echo "1️⃣  pytest を実行中..."
 if "$PYTHON_BIN" -m pytest python/tests/ -q --tb=short 2>&1; then

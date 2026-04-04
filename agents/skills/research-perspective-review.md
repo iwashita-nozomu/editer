@@ -18,10 +18,13 @@
 - `documents/experiment-critical-review.md`
 - `documents/REVIEW_PROCESS.md`
 
-## Mandatory Perspectives
+## Default Perspective Pack
+
+repo-wide な research cleanup や methodology / artifact / reporting policy の変更では、まず 6 視点すべてを使います。
+scope が狭い場合だけ、使わない視点を明示して subset に落とします。
 
 1. `reproducibility`
-   - provenance、seed、command、environment、rerunability
+  - provenance、seed、command、environment、rerunability
 1. `scientific-computing`
    - incremental change、testing、automation、prototype discipline
 1. `benchmark`
@@ -47,3 +50,4 @@
 - findings-first の perspective review
 - perspective ごとの findings と follow-up
 - `fix now`、`follow-up`、`delete-ok` の切り分け
+- runtime smoke test が必要なときは `python3 scripts/agent_tools/smoke_test_research_perspective_pack.py`

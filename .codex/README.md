@@ -30,3 +30,11 @@
 - `artifact_reviewer`
 - `fair_data_reviewer`
 - `ml_science_reviewer`
+
+## Smoke Test
+
+subagent inventory や research perspective pack を触ったら、次で bundle と runtime surface を確認します。
+
+```bash
+python3 scripts/agent_tools/smoke_test_research_perspective_pack.py
+```

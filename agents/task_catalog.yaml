@@ -38,9 +38,16 @@ workflow_families:
         - research_reviewer
         - experimenter
         - experiment_reviewer
+        - reproducibility_reviewer
+        - scientific_computing_reviewer
+        - benchmark_reviewer
+        - artifact_reviewer
+        - fair_data_reviewer
+        - ml_science_reviewer
     tasks:
       - T4
       - T5
+      - T9
 
   - id: large_delivery
     name: Large Delivery
@@ -104,6 +111,8 @@ tasks:
       - research_reviewer
       - experimenter
       - experiment_reviewer
+    optional_review_packs:
+      - research_perspective_review
   - id: T5
     name: benchmark or experiment-driven optimization
     family: research_driven_change
@@ -112,6 +121,8 @@ tasks:
       - research_reviewer
       - experimenter
       - experiment_reviewer
+    optional_review_packs:
+      - research_perspective_review
   - id: T6
     name: large refactor
     family: large_delivery
@@ -132,3 +143,34 @@ tasks:
       - infra_reviewer
       - scheduler
       - schedule_reviewer
+  - id: T9
+    name: research workflow, artifact policy, or reporting policy change
+    family: research_driven_change
+    specialists:
+      - researcher
+      - research_reviewer
+      - experimenter
+      - experiment_reviewer
+      - reproducibility_reviewer
+      - scientific_computing_reviewer
+      - benchmark_reviewer
+      - artifact_reviewer
+      - fair_data_reviewer
+      - ml_science_reviewer
+
+review_packs:
+  - id: research_perspective_review
+    name: Research Perspective Review
+    specialists:
+      - reproducibility_reviewer
+      - scientific_computing_reviewer
+      - benchmark_reviewer
+      - artifact_reviewer
+      - fair_data_reviewer
+      - ml_science_reviewer
+    default_for_tasks:
+      - T9
+    optional_for_tasks:
+      - T4
+      - T5
+    when: methodology, artifact policy, benchmark protocol, or reporting policy changes substantially
