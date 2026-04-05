@@ -56,6 +56,7 @@ Markdown 整形とリンク監査は `mdformat` や `scripts/tools/audit_and_fix
 
 ## Python 実装向けの追加規約
 
+- [ハウススタイル規約](./coding-conventions-house-style.md)
 - [Python 規約](./coding-conventions-python.md)
 - [ソルバー規約](./coding-conventions-solvers.md)
 - [テスト規約](./coding-conventions-testing.md)

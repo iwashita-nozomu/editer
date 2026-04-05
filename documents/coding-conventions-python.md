@@ -2,6 +2,7 @@
 
 この文書は、`python/jax_util/` 配下の Python 実装向け規約の目次です。
 規約本文の見取り図を示しつつ、この文書単体でも対象範囲が分かるように保ちます。
+厳格な実装と文書の書きぶりは `documents/coding-conventions-house-style.md` を併読してください。
 
 ## 🚀 クイックスタート
 

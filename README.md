@@ -79,6 +79,7 @@ experiments/
 ```bash
 make ci-quick
 make ci
+make docker-build-check
 python3 -m pyright python/
 python3 -m pytest python/tests/ -q --tb=short
 python3 -m ruff check python/ --select D,E,F,I,UP
@@ -87,6 +88,27 @@ deptry python
 python3 scripts/tools/check_markdown_lint.py documents
 python3 scripts/tools/audit_and_fix_links.py documents
 make tools-help
+```
+
+## Docker で Codex を使う
+
+`docker/Dockerfile` には Codex CLI を同梱します。コンテナに入ったあと、認証は各自の OpenAI アカウントで行います。
+
+`docker/Dockerfile` か `docker/requirements.txt` を更新した変更では、`make docker-build-check` を通して build 可否を確認します。ローカルに `docker` / `podman` がない場合は、GitHub Actions の `Docker Build` workflow を使います。
+
+container 内では `PYTHONPATH=/workspace/python` を前提にします。
+
+```bash
+docker build -t project-template -f docker/Dockerfile .
+docker run --rm -it -v $(pwd):/workspace -w /workspace project-template bash
+codex --version
+codex login
+```
+
+build 確認だけを行う場合は次です。
+
+```bash
+make docker-build-check
 ```
 
 ## 詳細入口

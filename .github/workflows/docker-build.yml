@@ -1,0 +1,26 @@
+name: Docker Build
+
+on:
+  pull_request:
+    paths:
+      - "docker/**"
+      - "scripts/ci/check_docker_build.sh"
+      - ".github/workflows/docker-build.yml"
+      - "Makefile"
+  push:
+    branches: [ main, master ]
+    paths:
+      - "docker/**"
+      - "scripts/ci/check_docker_build.sh"
+      - ".github/workflows/docker-build.yml"
+      - "Makefile"
+  workflow_dispatch:
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Docker build check
+        run: bash scripts/ci/check_docker_build.sh --pull --tag project-template:ci

@@ -21,6 +21,7 @@
 
 - [conventions/README.md](/mnt/l/workspace/project_template/documents/conventions/README.md)
 - [coding-conventions-project.md](/mnt/l/workspace/project_template/documents/coding-conventions-project.md)
+- [coding-conventions-house-style.md](/mnt/l/workspace/project_template/documents/coding-conventions-house-style.md)
 - [coding-conventions-testing.md](/mnt/l/workspace/project_template/documents/coding-conventions-testing.md)
 - [coding-conventions-reviews.md](/mnt/l/workspace/project_template/documents/coding-conventions-reviews.md)
 - 言語補足が必要な場合だけ `coding-conventions-python.md` や `coding-conventions-cpp.md` を読みます。
@@ -29,6 +30,8 @@
 
 - [AGENTS_COORDINATION.md](/mnt/l/workspace/project_template/documents/AGENTS_COORDINATION.md)
 - [REVIEW_PROCESS.md](/mnt/l/workspace/project_template/documents/REVIEW_PROCESS.md)
+- [BRANCH_SCOPE.md](/mnt/l/workspace/project_template/documents/BRANCH_SCOPE.md)
+- [WORKTREE_SCOPE_TEMPLATE.md](/mnt/l/workspace/project_template/documents/WORKTREE_SCOPE_TEMPLATE.md)
 - [workflow-references.md](/mnt/l/workspace/project_template/documents/workflow-references.md)
 - [tools/README.md](/mnt/l/workspace/project_template/documents/tools/README.md)
 - [tools/TOOLS_DIRECTORY.md](/mnt/l/workspace/project_template/documents/tools/TOOLS_DIRECTORY.md)

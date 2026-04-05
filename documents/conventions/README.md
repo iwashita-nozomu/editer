@@ -12,6 +12,7 @@ repo 全体で先に見るのは、言語非依存の規約です。
 
 ## 補足規約
 
+- [coding-conventions-house-style.md](/mnt/l/workspace/project_template/documents/coding-conventions-house-style.md)
 - [coding-conventions-python.md](/mnt/l/workspace/project_template/documents/coding-conventions-python.md)
 - [coding-conventions-cpp.md](/mnt/l/workspace/project_template/documents/coding-conventions-cpp.md)
 - [coding-conventions-logging.md](/mnt/l/workspace/project_template/documents/coding-conventions-logging.md)

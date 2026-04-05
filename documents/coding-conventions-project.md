@@ -28,6 +28,7 @@
 
 - 共通実行環境が必要な場合は `docker/` を基準にします。
 - Python 依存を追加する場合は `docker/Dockerfile` と `docker/requirements.txt` を同時に更新します。
+- `docker/Dockerfile` または `docker/requirements.txt` を更新した変更では、`make docker-build-check` を必須にします。
 - 開発環境の更新では、必要な README と運用文書も同じ変更で更新します。
 - Python を使う場合でも、repo 全体の入口を Python 専用にはしません。
 

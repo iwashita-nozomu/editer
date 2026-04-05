@@ -84,7 +84,7 @@
 
 - Branch:
 - Commit:
-- Optional isolated workspace:
+- Worktree:
 - Final JSON:
 - Raw JSONL:
 - Renderer / plot command:

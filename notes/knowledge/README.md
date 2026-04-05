@@ -9,11 +9,17 @@
 - 短い箇条書き中心でよい
 - できるだけ複数 topic にまたがる知識を書く
 - 詳細な背景は `notes/themes/` や `notes/experiments/` に分ける
+- `path resolution`、`environment setup`、`experiment operations` のような広い主語を使う
+- 実務メモであっても、文献で支えられる部分はできるだけ出典を付ける
 
 ## 典型トピック
 
-- experiment directory planning
-- experiment operations
-- benchmark vs experiment
-- literature intake
-- environment setup
+- [environment_setup.md](./environment_setup.md)
+- [experiment_directory_planning.md](./experiment_directory_planning.md)
+- [experiment_operations.md](./experiment_operations.md)
+- [benchmark_vs_experiment.md](./benchmark_vs_experiment.md)
+- [benchmark_levels_analysis.md](./benchmark_levels_analysis.md)
+- [path_resolution.md](./path_resolution.md)
+- [pyright_operations.md](./pyright_operations.md)
+- [literature_intake.md](./literature_intake.md)
+- [git_mirroring.md](./git_mirroring.md)

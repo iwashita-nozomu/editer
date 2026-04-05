@@ -6,6 +6,8 @@
 
 - `scripts/ci/run_all_checks.sh`
   - 主要な静的チェックとテストをまとめて実行します。
+- `scripts/ci/check_docker_build.sh`
+  - Dockerfile の build 可否と最小限の runtime smoke check を確認します。
 - `scripts/run_pytest_with_logs.sh`
   - Python テストのログ付き実行入口です。Python を使う場合だけ使います。
 - `scripts/run_comprehensive_review.sh`
@@ -36,5 +38,6 @@
 
 - 日常の確認は `make ci-quick`
 - 仕上げ前の確認は `make ci`
+- Docker 変更の確認は `make docker-build-check`
 - repo 全体の点検は `bash scripts/run_comprehensive_review.sh`
 - 実験運用は `documents/experiment-workflow.md`

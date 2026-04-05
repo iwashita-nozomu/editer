@@ -158,10 +158,32 @@ class MarkdownLinter:
             lines = f.readlines()
 
         issues = []
+        in_fence = False
+        fence_char = ""
+        fence_len = 0
+
         for i, line in enumerate(lines, 1):
-            # Opening ``` without language specification
-            if re.match(r"^```\s*$", line):
-                issues.append((i, "Fenced code block should specify language"))
+            stripped = line.rstrip("\n")
+
+            if not in_fence:
+                match = re.match(r"^([`~]{3,})([^\n]*)$", stripped)
+                if not match:
+                    continue
+
+                fence = match.group(1)
+                info = match.group(2).strip()
+                fence_char = fence[0]
+                fence_len = len(fence)
+                in_fence = True
+
+                if not info:
+                    issues.append((i, "Fenced code block should specify language"))
+                continue
+
+            if re.match(rf"^{re.escape(fence_char)}{{{fence_len},}}\s*$", stripped):
+                in_fence = False
+                fence_char = ""
+                fence_len = 0
 
         return issues
 

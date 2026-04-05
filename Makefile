@@ -1,4 +1,4 @@
-.PHONY: git_init ci ci-quick dev-setup tools-help agent-checks
+.PHONY: git_init ci ci-quick dev-setup tools-help agent-checks docker-check docker-build-check
 
 # Git 初期化（初回のみ）
 git_init:
@@ -17,6 +17,14 @@ ci-quick:
 agent-checks:
 	python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune --check
 	python3 scripts/agent_tools/smoke_test_research_perspective_pack.py
+
+# Dockerfile と requirements の整合
+docker-check:
+	python3 scripts/docker_dependency_validator.py
+
+# Docker イメージ build 可否の確認
+docker-build-check:
+	bash scripts/ci/check_docker_build.sh
 
 # 開発環境初期化
 dev-setup: git_init

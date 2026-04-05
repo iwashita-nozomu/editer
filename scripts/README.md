@@ -11,6 +11,8 @@
   - 入口確認に使います。
 - [ci/run_all_checks.sh](/mnt/l/workspace/project_template/scripts/ci/run_all_checks.sh)
   - 主要なチェックをまとめて実行します。
+- [ci/check_docker_build.sh](/mnt/l/workspace/project_template/scripts/ci/check_docker_build.sh)
+  - `docker/Dockerfile` の build 可否と最小限の runtime smoke check を確認します。
 - [run_comprehensive_review.sh](/mnt/l/workspace/project_template/scripts/run_comprehensive_review.sh)
   - repo 全体の確認用です。
 
@@ -51,6 +53,7 @@
 make agent-checks
 make ci-quick
 make ci
+make docker-build-check
 bash scripts/run_comprehensive_review.sh
 python3 -m pyright python/
 python3 -m pytest python/tests/ -q --tb=short

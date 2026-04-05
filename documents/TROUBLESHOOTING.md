@@ -8,6 +8,12 @@
 - Python 関連なら `docker/requirements.txt` と設定ファイルの不整合を確認します。
 - 文書関連なら `scripts/tools/check_markdown_lint.py` と `scripts/tools/audit_and_fix_links.py` を流します。
 
+## Docker build が通らない
+
+- `make docker-build-check` を実行して、build と container 起動のどちらで落ちるかを切り分けます。
+- `docker` / `podman` がない環境では、GitHub Actions の `Docker Build` workflow を使います。
+- `docker/Dockerfile` と `docker/requirements.txt` の更新漏れがないか確認します。
+
 ## import や依存が壊れる
 
 - Python を使う場合は `docker/Dockerfile` と `docker/requirements.txt` を正本にします。

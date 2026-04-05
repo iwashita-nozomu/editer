@@ -56,6 +56,7 @@ make ci
 ```bash
 make ci-quick
 make ci
+make docker-build-check
 bash scripts/run_comprehensive_review.sh
 python3 scripts/tools/check_markdown_lint.py documents
 python3 scripts/tools/audit_and_fix_links.py documents
@@ -72,8 +73,25 @@ python3 scripts/tools/audit_and_fix_links.py documents
 
 - 共通開発環境は `docker/` を基準にします。
 - Python 依存を追加する場合は `docker/Dockerfile` と `docker/requirements.txt` を同時に更新します。
+- `docker/Dockerfile` か `docker/requirements.txt` を更新したら `make docker-build-check` を流します。
+- container 内では `PYTHONPATH=/workspace/python` を前提にします。
 - Markdown の体裁ルールは `.markdownlint.json` と `documents/conventions/common/05_docs.md` を基準にします。
 - 依存棚卸しは `pipdeptree` と `deptry` を baseline にします。
+
+Codex CLI は `docker/Dockerfile` に同梱します。コンテナ内で使うときは次です。
+
+```bash
+docker build -t project-template -f docker/Dockerfile .
+docker run --rm -it -v $(pwd):/workspace -w /workspace project-template bash
+codex --version
+codex login
+```
+
+build 可否だけを確認したい場合は次です。
+
+```bash
+make docker-build-check
+```
 
 ## 7. 終了時の整理
 
