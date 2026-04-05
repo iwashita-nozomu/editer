@@ -24,6 +24,7 @@
 - Codex で毎回同じ手順を踏みたい場合は `codex-task-workflow` を見ます。
 - Python 差分では `python-review` を既定で使います。
 - Markdown / report 差分では `md-style-check` と必要なら `report-review` を使います。
+- 文献調査や関連研究整理では `literature-survey` を使います。
 - 研究系 task では `research-workflow` を外側の loop に使います。
 - 研究設計や artifact 方針まで大きく触る場合は `research-perspective-review` を追加します。
 - 文書の置き場で迷う場合は `artifact-placement` を見ます。

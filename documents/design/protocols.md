@@ -191,7 +191,7 @@ class NeuralNetworkProblem(Protocol):
 ### 独立プロトコル（他に依存しない）
 
 ```python
-class Scheduler[T](Protocol):
+class Scheduler(Protocol[T]):
     """実験スケジューラー。
     
     T: スケジュール対象のタイプ（関数、パラメータなど）
@@ -201,7 +201,7 @@ class Scheduler[T](Protocol):
         """各ステップでの値を返す。"""
         ...
 
-class Worker[T, U](Protocol):
+class Worker(Protocol[T, U]):
     """分散ワーカー。
     
     T: 入力タイプ, U: 出力タイプ
@@ -211,7 +211,7 @@ class Worker[T, U](Protocol):
         """タスクを実行。"""
         ...
 
-class Runner[T, U](Protocol):
+class Runner(Protocol[T, U]):
     """実験実行エンジン。
     
     T: 入力スペック, U: 結果フォーマット

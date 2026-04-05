@@ -29,6 +29,7 @@
 
 - [AGENTS_COORDINATION.md](/mnt/l/workspace/project_template/documents/AGENTS_COORDINATION.md)
 - [REVIEW_PROCESS.md](/mnt/l/workspace/project_template/documents/REVIEW_PROCESS.md)
+- [workflow-references.md](/mnt/l/workspace/project_template/documents/workflow-references.md)
 - [tools/README.md](/mnt/l/workspace/project_template/documents/tools/README.md)
 - [tools/TOOLS_DIRECTORY.md](/mnt/l/workspace/project_template/documents/tools/TOOLS_DIRECTORY.md)
 

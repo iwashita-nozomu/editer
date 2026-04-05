@@ -1,11 +1,11 @@
 # 実験の批判的レビュー手順
 
 この文書は、実験コード、結果レポート、図表、結論の妥当性を批判的にレビューするための正本です。
-個別の実験 topic に依存しない review 観点をまとめ、`experiment_reviewer` と `change_reviewer` が共通に参照できる形にします。
+個別の実験 topic に依存しない review 観点をまとめ、`experiment_reviewer`、`report_reviewer`、`change_reviewer` が共通に参照できる形にします。
 
-実験全体の標準手順は [experiment-workflow.md](/workspace/documents/experiment-workflow.md) を参照してください。
-レポート本文の構成は [experiment-report-style.md](/workspace/documents/experiment-report-style.md) を参照してください。
-問い、比較対象、逐次改造の流れは [research-workflow.md](/workspace/documents/research-workflow.md) を参照してください。
+実験全体の標準手順は [experiment-workflow.md](experiment-workflow.md) を参照してください。
+レポート本文の構成は [experiment-report-style.md](experiment-report-style.md) を参照してください。
+問い、比較対象、逐次改造の流れは [research-workflow.md](research-workflow.md) を参照してください。
 
 ## 1. 目的
 
@@ -29,6 +29,9 @@
 - `experiment_reviewer`
   - protocol、結果、図表、解釈、結論をまとめて見る。
   - 特に、比較公平性、evidence の十分性、overclaim、図表の妥当性を見る。
+- `report_reviewer`
+  - user-facing report を独立に見る。
+  - 特に、概要、主要数値の見せ方、figure / table の読みやすさ、結論と根拠の対応、rewrite / 追加検証 / rerun の判定を見る。
 
 数学的妥当性は code だけでは完結しないため、
 
@@ -185,6 +188,8 @@ AI に要約や論点抽出を補助させても、math validity、figure validi
 
 レポート review では、少なくとも次を順に確認します。
 
+この section は `report_reviewer` が必ず読みます。
+
 ### 6.1 Question-Claim Alignment
 
 - 問いに答える構造になっているか
@@ -212,6 +217,17 @@ AI に要約や論点抽出を補助させても、math validity、figure validi
 
 - 核となる計算式が本文か補足にあるか
 - 変数定義、仮定、boundary condition が省略されていないか
+
+### 6.6 Review Outcome
+
+- `report_rewrite_required`
+  - evidence は足りているが、説明順、数値の見せ方、図表導線、結論の書き方が弱い
+- `extra_validation_required`
+  - 同じコードと比較方針のまま、追加 table、追加 figure、追加 narrow run が必要
+- `rerun_required`
+  - case set 不一致、条件変更、partial run 混入、protocol 汚染がある
+- `approved`
+  - reader-facing report として閉じてよい
 
 ## 7. レビュー結果の書き方
 
@@ -242,58 +258,56 @@ review コメントの粒度は次を目安にします。
 
 次をそのまま埋めてもよいです。
 
-```md
-## Critical Review
+    ## Critical Review
 
-### Mathematical Validity
-- 
+    ### Mathematical Validity
+    - <fill here>
 
-### Literature Connection
-- 
+    ### Literature Connection
+    - <fill here>
 
-### Evidence Sufficiency
-- 
+    ### Evidence Sufficiency
+    - <fill here>
 
-### Figure Validity
-- 
+    ### Figure Validity
+    - <fill here>
 
-### Equation Visibility
-- 
+    ### Equation Visibility
+    - <fill here>
 
-### Overclaim Risk
-- 
+    ### Overclaim Risk
+    - <fill here>
 
-### Missing Evidence
-- 
+    ### Missing Evidence
+    - <fill here>
 
-### Alternative Explanation
-- 
+    ### Alternative Explanation
+    - <fill here>
 
-### Next Check
-- 
-```
+    ### Next Check
+    - <fill here>
 
 ## 9. 参考文献
 
-ローカルで読める索引は次です。
+ローカルの入口は次です。
 
-- [experiment_workflow/README.md](/workspace/references/experiment_workflow/README.md)
-- [generative_ai/README.md](/workspace/references/generative_ai/README.md)
+- [references/README.md](/mnt/l/workspace/project_template/references/README.md)
+- [workflow-references.md](/mnt/l/workspace/project_template/documents/workflow-references.md)
 
 ### 批判的レビュー・再現性
 
-- [Minocher et al. (2023), Implementing Code Review in the Scientific Workflow](/workspace/references/experiment_workflow/Minocher_2023_Implementing_Code_Review_in_the_Scientific_Workflow.html)
-- [Tiwari et al. (2021), Reproducibility in Systems Biology Modelling](/workspace/references/experiment_workflow/Tiwari_2021_Reproducibility_in_Systems_Biology_Modelling.pdf)
-- [Bartz-Beielstein et al. (2020), Benchmarking in Optimization: Best Practice and Open Issues](/workspace/references/experiment_workflow/Bartz-Beielstein_2020_Benchmarking_in_Optimization_Best_Practice_and_Open_Issues.pdf)
-- [Rougier et al. (2014), Ten Simple Rules for Better Figures](/workspace/references/experiment_workflow/Rougier_2014_Ten_Simple_Rules_for_Better_Figures.pdf)
-- [Nature, Guidance on Reproducibility for Papers Using Computational Tools](/workspace/references/experiment_workflow/Nature_Guidance_on_Reproducibility_for_Papers_Using_Computational_Tools.pdf)
-- [NeurIPS Paper Checklist Guidelines](/workspace/references/generative_ai/NeurIPS_Paper_Checklist_Guidelines.html)
-- [Sandve et al. (2013), Ten Simple Rules for Reproducible Computational Research](/workspace/references/experiment_workflow/Sandve_2013_Ten_Simple_Rules_for_Reproducible_Computational_Research.pdf)
-- [Wilson et al. (2017), Good Enough Practices in Scientific Computing](/workspace/references/experiment_workflow/Wilson_2017_Good_Enough_Practices_in_Scientific_Computing.pdf)
+- [Minocher et al. (2023), Implementing Code Review in the Scientific Workflow](https://doi.org/10.12688/f1000research.27137.2)
+- Tiwari et al. (2021), Reproducibility in Systems Biology Modelling
+- [Bartz-Beielstein et al. (2020), Benchmarking in Optimization: Best Practice and Open Issues](https://doi.org/10.48550/arXiv.2007.03488)
+- [Rougier et al. (2014), Ten Simple Rules for Better Figures](https://doi.org/10.1371/journal.pcbi.1003833)
+- [Nature, Guidance on Reproducibility for Papers Using Computational Tools](https://www.nature.com/articles/d41586-022-00563-z)
+- [NeurIPS Paper Checklist Guidelines](https://nips.cc/public/guides/PaperChecklist)
+- [Sandve et al. (2013), Ten Simple Rules for Reproducible Computational Research](https://doi.org/10.1371/journal.pcbi.1003285)
+- [Wilson et al. (2017), Good Enough Practices in Scientific Computing](https://doi.org/10.1371/journal.pcbi.1005510)
 
 ### 生成AIによるレビュー・workflow 支援
 
-- [Rethinking the AI Scientist: Interactive Multi-Agent Workflows for Scientific Discovery](/workspace/references/generative_ai/Rethinking_the_AI_Scientist_Interactive_Multi-Agent_Workflows_for_Scientific_Discovery.pdf)
-- [Towards Scientific Discovery with Generative AI: Progress, Opportunities and Challenges](/workspace/references/generative_ai/Towards_Scientific_Discovery_with_Generative_AI_Progress_Opportunities_and_Challenges.pdf)
-- [Wu et al. (2025), Automated Literature Research and Review-Generation Method Based on Large Language Models](/workspace/references/generative_ai/Wu_2025_Automated_Literature_Research_and_Review_Generation_Method_Based_on_LLMs.html)
-- [OpenReviewer: A Specialized Large Language Model for Generating Critical Scientific Paper Reviews](/workspace/references/generative_ai/OpenReviewer_A_Specialized_Large_Language_Model_for_Generating_Critical_Scientific_Paper_Reviews.pdf)
+- Rethinking the AI Scientist: Interactive Multi-Agent Workflows for Scientific Discovery
+- Towards Scientific Discovery with Generative AI: Progress, Opportunities and Challenges
+- Wu et al. (2025), Automated Literature Research and Review-Generation Method Based on Large Language Models
+- OpenReviewer: A Specialized Large Language Model for Generating Critical Scientific Paper Reviews

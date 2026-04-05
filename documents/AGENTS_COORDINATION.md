@@ -26,3 +26,34 @@
 
 - Canonical path: `.agents/skills/`
 - Claude compatibility: `.claude/skills/` (generated from `.agents/skills/`)
+
+## 実行入口
+
+標準の run bundle を作るときは次を使います。
+
+    python3 scripts/agent_tools/bootstrap_agent_run.py \
+      --task "short task summary" \
+      --owner "codex-or-human"
+
+artifact-only role や review role の write scope を確認するときは、`validate_role_write_scope.py` を使います。
+
+    python3 scripts/agent_tools/validate_role_write_scope.py \
+      --report-dir reports/agents/<run-id> \
+      --workspace-root "$PWD" \
+      --report-snapshot-out /tmp/agent-report-before.json \
+      --workspace-snapshot-out /tmp/agent-workspace-before.json
+
+    python3 scripts/agent_tools/validate_role_write_scope.py \
+      --role change_reviewer \
+      --report-dir reports/agents/<run-id> \
+      --report-snapshot-in /tmp/agent-report-before.json \
+      --workspace-snapshot-in /tmp/agent-workspace-before.json \
+      --workspace-root "$PWD"
+
+## repo 側の運用ルール
+
+- role 定義と write policy は `agents/agents_config.json` を正本にします。
+- handoff、review、response、escalation の書式は `agents/COMMUNICATION_PROTOCOL.md` を正本にします。
+- 共通 workflow と skill routing は `agents/` 側で保守し、runtime entrypoint へ role 一覧を重複記載しません。
+- `implementer` 以外が repo ファイルを直接編集する運用を正本にしません。
+- run 固有の artifact は `reports/agents/<run-id>/` に寄せ、repo-wide の正本と混ぜません。

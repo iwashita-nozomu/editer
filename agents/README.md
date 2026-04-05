@@ -28,6 +28,8 @@
   - 人間向け skill 正本
 - [skills/catalog.yaml](/mnt/l/workspace/project_template/agents/skills/catalog.yaml)
   - skill family の機械可読カタログ
+- [skills/literature-survey.md](/mnt/l/workspace/project_template/agents/skills/literature-survey.md)
+  - 文献調査と先行研究整理の入口
 - [skills/research-workflow.md](/mnt/l/workspace/project_template/agents/skills/research-workflow.md)
   - 研究系変更の outer loop
 - [skills/research-perspective-review.md](/mnt/l/workspace/project_template/agents/skills/research-perspective-review.md)

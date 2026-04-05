@@ -22,6 +22,8 @@
   - findings-first review
 - `experiment-workflow`
   - question, protocol, run, report の整理
+- `literature-survey`
+  - 先行研究、関連文献、反証候補の整理
 - `research-workflow`
   - 外部調査、比較設計、run loop、decision state の整理
 - `critical-review`

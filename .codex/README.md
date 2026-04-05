@@ -22,6 +22,7 @@
 - `worker`
 - `docs_workflow_steward`
 - `project_reviewer`
+- `literature_researcher`
 - `python_reviewer`
 - `report_reviewer`
 - `reproducibility_reviewer`

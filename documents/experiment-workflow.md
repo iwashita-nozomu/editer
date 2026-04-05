@@ -11,20 +11,20 @@
 1. 実験実行
 1. 結果レポート
 
-さらに、実験を進めながらコード自体を改造する必要がある場合は、結果とレポートを毎回生成し、サブエージェントによる批判的レビューを挟んで反復する workflow を標準にします。
+さらに、実験を進めながらコード自体を改造する必要がある場合は、結果とレポートを毎回生成し、サブエージェントによる批判的レビューを挟んで反復する workflow を標準にします。外部調査つき実装、性能改善、比較検証では、この文書を `Research-Driven Change` の inner loop として使います。outer loop の正本は [research-workflow.md](research-workflow.md) です。
 
 ## 1. この文書の役割
 
 この文書は実験実務の入口です。詳細は次に分けます。
 
 - 問い、定式化、比較設計、claim の更新
-  - [research-workflow.md](/workspace/documents/research-workflow.md)
+  - [research-workflow.md](research-workflow.md)
 - 実験コードと生成物の運用規約
-  - [coding-conventions-experiments.md](/workspace/documents/coding-conventions-experiments.md)
+  - [coding-conventions-experiments.md](coding-conventions-experiments.md)
 - レポート本文の構成と figure / table の書き方
-  - [experiment-report-style.md](/workspace/documents/experiment-report-style.md)
+  - [experiment-report-style.md](experiment-report-style.md)
 - 批判的レビューの観点と手順
-  - [experiment-critical-review.md](/workspace/documents/experiment-critical-review.md)
+  - [experiment-critical-review.md](experiment-critical-review.md)
 - エージェントごとの task workflow
   - [TASK_WORKFLOWS.md](/mnt/l/workspace/project_template/agents/TASK_WORKFLOWS.md)
 
@@ -242,7 +242,8 @@ host 側で worker 状態や GPU 利用状況を見たい場合は、`RuntimeMon
 ### 5. 結果レポート
 
 run 後は、必ず結果を report と note に整理します。
-批判的レビューの観点は [experiment-critical-review.md](/workspace/documents/experiment-critical-review.md) を正本にします。
+批判的レビューの観点は [experiment-critical-review.md](experiment-critical-review.md) を正本にします。
+user-facing report の体裁と根拠導線は [experiment-report-style.md](experiment-report-style.md) を正本にし、`report_reviewer` の独立レビューを必須にします。
 
 最低限残すものは次です。
 
@@ -253,6 +254,7 @@ run 後は、必ず結果を report と note に整理します。
 - `Quantitative Summary:`
 - `Comparison Table:`
 - `Critical Review:`
+- `Report Review:`
 
 report 本文は次の構成を基本にします。
 
@@ -300,19 +302,27 @@ carry-over のルールは次です。
    - コード変更を入れる。
 1. `change_reviewer`
    - code diff を批判的にレビューする。
-   - 数学的妥当性や報告内容も確認する場合は [experiment-critical-review.md](/workspace/documents/experiment-critical-review.md) の `Mathematical Validity` と `As Reported` を使う。
+   - 数学的妥当性や報告内容も確認する場合は [experiment-critical-review.md](experiment-critical-review.md) の `Mathematical Validity` と `As Reported` を使う。
 1. `implementer`
    - review を反映し、静的チェックを通す。
 1. `experimenter`
    - 同じ protocol で fresh run を実行する。
 1. `experimenter`
-   - `summary.json`、`cases.jsonl`、report を生成する。`notes/` を使う場合は対応する experiment note も生成する。
+   - `summary.json`、`cases.jsonl`、draft report を生成する。`notes/` を使う場合は対応する experiment note も生成する。
 1. `experiment_reviewer`
    - report と結果の読み方を批判的にレビューする。
-   - [experiment-critical-review.md](/workspace/documents/experiment-critical-review.md) を使って、math validity、evidence sufficiency、figure validity、overclaim を確認する。
+   - [experiment-critical-review.md](experiment-critical-review.md) を使って、math validity、evidence sufficiency、figure validity、overclaim を確認する。
+1. `report_reviewer`
+   - user-facing report を独立にレビューする。
+   - 実験の概要、主要数値、figure / table、結論と根拠の対応、limitations を確認する。
+   - review outcome を `report_rewrite_required`、`extra_validation_required`、`rerun_required`、`approved` のいずれかで返す。
+1. `experimenter`
+   - `report_rewrite_required` の場合、同じ result を使って report を書き直す。
+   - `extra_validation_required` の場合、同じ比較方針で追加検証を行う。
+   - `rerun_required` の場合、新しい run_name で fresh rerun を行う。
 1. `implementer`
-   - 必要な修正を入れる。
-1. 4-8 を終了条件まで反復する。
+   - code や protocol の修正が必要な場合だけ修正を入れる。
+1. 4-10 を終了条件まで反復する。
 1. `final_reviewer`
    - 最終 code と最終 claim を独立にレビューする。
 1. `verifier`
@@ -322,9 +332,12 @@ carry-over のルールは次です。
 
 - 毎回の実験で、結果とレポートを必ず生成する
 - code review と report review を分ける
+- `experiment_reviewer` と `report_reviewer` を分ける
 - 同じ protocol で再実行し、都合のよい subset に逃げない
 - 修正のたびに静的チェックを挟む
 - 良い結果だけでなく、失敗例、悪化例、未解決点も同じ note に残す
+- report review の outcome を `rewrite`、`extra validation`、`rerun` のどれかに明示する
+- 対処順は `rerun` → `extra validation` → `rewrite` → `approved` に固定する
 
 ### 3.1 各サイクルで必ず残すもの
 
@@ -339,6 +352,7 @@ carry-over のルールは次です。
 - report の所在
 - 置き場と命名規則の変更有無
 - `Critical Review:`
+- `Report Review:`
 - `Decision:`
 - `Next Idea:`
 
@@ -366,28 +380,28 @@ carry-over のルールは次です。
 
 ## 5. References
 
-ローカルで読める索引は次です。
+ローカルの入口は次です。
 
-- [experiment_workflow/README.md](/workspace/references/experiment_workflow/README.md)
-- [generative_ai/README.md](/workspace/references/generative_ai/README.md)
+- [references/README.md](/mnt/l/workspace/project_template/references/README.md)
+- [workflow-references.md](/mnt/l/workspace/project_template/documents/workflow-references.md)
 
 ### 実験手順・再現性
 
-- [Sandve et al. (2013), Ten Simple Rules for Reproducible Computational Research](/workspace/references/experiment_workflow/Sandve_2013_Ten_Simple_Rules_for_Reproducible_Computational_Research.pdf)
-- [Wilson et al. (2014), Best Practices for Scientific Computing](/workspace/references/experiment_workflow/Wilson_2014_Best_Practices_for_Scientific_Computing.pdf)
-- [Wilson et al. (2017), Good Enough Practices in Scientific Computing](/workspace/references/experiment_workflow/Wilson_2017_Good_Enough_Practices_in_Scientific_Computing.pdf)
-- [Nature, Guidance on Reproducibility for Papers Using Computational Tools](/workspace/references/experiment_workflow/Nature_Guidance_on_Reproducibility_for_Papers_Using_Computational_Tools.pdf)
-- [Bartz-Beielstein et al. (2020), Benchmarking in Optimization: Best Practice and Open Issues](/workspace/references/experiment_workflow/Bartz-Beielstein_2020_Benchmarking_in_Optimization_Best_Practice_and_Open_Issues.pdf)
+- [Sandve et al. (2013), Ten Simple Rules for Reproducible Computational Research](https://doi.org/10.1371/journal.pcbi.1003285)
+- [Wilson et al. (2014), Best Practices for Scientific Computing](https://doi.org/10.1371/journal.pbio.1001745)
+- [Wilson et al. (2017), Good Enough Practices in Scientific Computing](https://doi.org/10.1371/journal.pcbi.1005510)
+- [Nature, Guidance on Reproducibility for Papers Using Computational Tools](https://www.nature.com/articles/d41586-022-00563-z)
+- [Bartz-Beielstein et al. (2020), Benchmarking in Optimization: Best Practice and Open Issues](https://doi.org/10.48550/arXiv.2007.03488)
 
 ### 批判的レビュー・図表
 
-- [Minocher et al. (2023), Implementing Code Review in the Scientific Workflow](/workspace/references/experiment_workflow/Minocher_2023_Implementing_Code_Review_in_the_Scientific_Workflow.html)
-- [Tiwari et al. (2021), Reproducibility in Systems Biology Modelling](/workspace/references/experiment_workflow/Tiwari_2021_Reproducibility_in_Systems_Biology_Modelling.pdf)
-- [Rougier et al. (2014), Ten Simple Rules for Better Figures](/workspace/references/experiment_workflow/Rougier_2014_Ten_Simple_Rules_for_Better_Figures.pdf)
+- [Minocher et al. (2023), Implementing Code Review in the Scientific Workflow](https://doi.org/10.12688/f1000research.27137.2)
+- Tiwari et al. (2021), Reproducibility in Systems Biology Modelling
+- [Rougier et al. (2014), Ten Simple Rules for Better Figures](https://doi.org/10.1371/journal.pcbi.1003833)
 
 ### 生成AIの活用
 
-- [Rethinking the AI Scientist: Interactive Multi-Agent Workflows for Scientific Discovery](/workspace/references/generative_ai/Rethinking_the_AI_Scientist_Interactive_Multi-Agent_Workflows_for_Scientific_Discovery.pdf)
-- [Towards Scientific Discovery with Generative AI: Progress, Opportunities and Challenges](/workspace/references/generative_ai/Towards_Scientific_Discovery_with_Generative_AI_Progress_Opportunities_and_Challenges.pdf)
-- [Wu et al. (2025), Automated Literature Research and Review-Generation Method Based on Large Language Models](/workspace/references/generative_ai/Wu_2025_Automated_Literature_Research_and_Review_Generation_Method_Based_on_LLMs.html)
-- [OpenReviewer: A Specialized Large Language Model for Generating Critical Scientific Paper Reviews](/workspace/references/generative_ai/OpenReviewer_A_Specialized_Large_Language_Model_for_Generating_Critical_Scientific_Paper_Reviews.pdf)
+- Rethinking the AI Scientist: Interactive Multi-Agent Workflows for Scientific Discovery
+- Towards Scientific Discovery with Generative AI: Progress, Opportunities and Challenges
+- Wu et al. (2025), Automated Literature Research and Review-Generation Method Based on Large Language Models
+- OpenReviewer: A Specialized Large Language Model for Generating Critical Scientific Paper Reviews

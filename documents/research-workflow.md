@@ -2,9 +2,9 @@
 
 この文書は、数式を伴うアルゴリズム研究、比較実験、段階的なコード改造を 1 つの workflow にまとめた正本です。
 対象は、`python/` 配下の実装改造、`experiments/` 配下の比較実験、`notes/` への知見整理を含みます。
-準備、実装、静的チェック、実行、結果レポートを通した実務上の統合入口は [experiment-workflow.md](/workspace/documents/experiment-workflow.md) を参照してください。
+準備、実装、静的チェック、実行、結果レポートを通した実務上の統合入口は [experiment-workflow.md](experiment-workflow.md) を参照してください。
 この文書は、とくに問い、定式化、比較設計、段階的改造、claim 更新の正本を担います。
-批判的レビューの具体的な観点は [experiment-critical-review.md](/workspace/documents/experiment-critical-review.md) を参照してください。
+批判的レビューの具体的な観点は [experiment-critical-review.md](experiment-critical-review.md) を参照してください。
 
 ## 1. 目的
 
@@ -201,17 +201,25 @@ decision は次の 4 つに固定します。
 1. `designer` が数式、実装方針、比較プロトコルを定める
 1. `experimenter` が baseline または現状 run を実行する
 1. `experiment_reviewer` が結果を批判的にレビューする
-1. `implementer` が必要な修正を入れる
+1. ここから `Research-Driven Change` の loop を開始する
+1. `implementer` が 1 つの change を入れる
 1. `change_reviewer` が code diff をレビューする
 1. `implementer` が review を反映する
 1. `experimenter` が同一プロトコルで再実行する
 1. `experiment_reviewer` が比較の妥当性と overclaim を再レビューする
-1. 終了条件を満たすまで 6-10 を反復する
+1. `experimenter` が user-facing report draft を作る
+1. `report_reviewer` が report の概要、主要数値、figure / table、limitations、結論と根拠の対応をレビューする
+1. `experimenter` が `report_rewrite_required` を受けた場合、同じ result を使って report を書き直す
+1. `experimenter` が `extra_validation_required` を受けた場合、同じ仮説のまま追加検証を行う
+1. `implementer` が `rerun_required` または protocol 修正要求を受けた場合、code か protocol を修正して fresh rerun に戻す
+1. 両 review が通り、終了条件を満たすまで 6-14 を反復する
 1. `final_reviewer` が最終的な claim と diff を独立にレビューする
 1. `verifier` が gate を実行する
 
 この loop では、`experimenter` は code を直しません。code を直すのは常に `implementer` です。
-逆に、`implementer` は「良さそうに見える結果」を根拠に勝手に claim を広げません。比較の妥当性と解釈の厳しさは `experiment_reviewer` が担います。
+逆に、`implementer` は「良さそうに見える結果」を根拠に勝手に claim を広げません。比較の妥当性と解釈の厳しさは `experiment_reviewer` が担い、reader-facing な report の厳しさは `report_reviewer` が担います。
+
+この loop の内側で、1 回の run、report 生成、rewrite / extra validation / rerun 分岐を扱う実務手順は [experiment-workflow.md](experiment-workflow.md) を正本にします。
 
 ## 6. 各プロセスで必須の記録項目
 
@@ -326,7 +334,7 @@ spot run は次の用途での使用を禁止します。
 ## 8.5 考察に対する批判的レビュー
 
 `experiment_reviewer` は、数字そのものだけでなく、数字の読み方を批判的に見ます。
-最低限の review 観点は [experiment-critical-review.md](/workspace/documents/experiment-critical-review.md) に従います。
+最低限の review 観点は [experiment-critical-review.md](experiment-critical-review.md) に従います。
 
 最低でも次を確認します。
 

@@ -1,154 +1,92 @@
 # レビュー手順とポリシー
 
-目的: コード/ドキュメント変更の品質を担保し、安全に main へ反映するための標準手順を定める。
+この文書は、コード、文書、workflow、環境設定の変更を main-first 運用で安全に閉じるための review 手順を定めます。
+現行の agent canon、skill canon、artifact placement に合わせて、必要な review family と evidence の残し方を固定します。
 
 ## 適用範囲
 
 - 既定の統合先は `main` です。
 - レビューが必要な変更では、コード、テスト、文書、必要なら環境設定をまとめて確認します。
+- repo-wide な workflow 改造、agent system の変更、研究系の完了判定にも適用します。
 
-## 役割
+## 変更前に固定すること
 
-- レビュワー (Reviewer): 技術的妥当性、スタイル、テストを確認。
-- インテグレータ (Integrator): レビュー完了後の統合・マージ担当（自動化可、ただしポリシーを満たす場合のみ）。
-- 監査者 (Auditor): 証跡・結果（reports/）の確認と保管。
+- 変更スコープ
+- 受け入れ条件
+- 必要な review family
+- 必要な validation
+- evidence の保存先
 
-## レビュー前チェックリスト（PR 作成時）
+run-local の review artifact は `reports/agents/<run-id>/` を正本にします。
+repo-wide の恒久ルールは `documents/` と `agents/` に残し、run 固有メモを混ぜません。
 
-- `pytest` の該当テストを追加・更新し、ローカルで通ること。
-- `ruff`、`pyright`、`black` を実行し、重大な警告がないこと。
-- ドキュメント変更がある場合は `documents/` に追記します。図・ユースケースが必要な変更では、それらも含めます。
-- worktree を使う場合だけ、そのスコープ文書や補助メモが不足していないことを確認します。
-- 研究・実験 scope の変更では、`critical-review` と `report-review` を既定にし、methodology、benchmark protocol、artifact policy、reporting policy を大きく変える場合は `research-perspective-review` も検討します。
+## Review Family の選び方
 
-## PR フロー
+- 局所実装の review
+  - `change-review`
+- Python 差分の review
+  - `python-review`
+- Markdown / 文書差分の review
+  - `md-style-check`
+  - 必要なら `docs-consistency-review`
+- 研究・実験 scope の review
+  - `critical-review`
+  - `report-review`
+- methodology、benchmark protocol、artifact policy、reporting policy を大きく変える review
+  - `research-perspective-review`
+- repo-wide な棚卸しや canon 整理
+  - `change-review` を基底にし、必要なら `docs-consistency-review` と `research-perspective-review` を追加
 
-2. コマンドファースト：まず再現コマンド（`scripts/ci/*`）を作成し、README に手順を記載。
-1. 自動チェックを実行（`scripts/ci/run_static_checks.sh` 等）。出力は `reports/` に保管。
-1. PR を作成し、テンプレートに以下を記載：目的、変更点、再現手順、チェック結果のリンク。
-1. レビュワーをアサイン、CI が成功するまで対応。
-1. 承認後、インテグレータがマージ。ただし以下はマージ禁止/制限:
-   - main への直接コード修正は禁止（ドキュメントは可）。
-   - 自動修正は `safe_file_extractor.py` により安全判定されたファイルのみを対象とする。
+## 実行チェック
 
-## ブランチスコープ
+- 通常の軽い検証は `make ci-quick` を使います。
+- agent runtime / skill / canon 変更では `make agent-checks` を先に見ます。
+- Python 差分を含む場合は、必要に応じて次を追加します。
+  - `python3 -m pyright python/`
+  - `python3 -m pytest python/tests/ -q --tb=short`
+  - `python3 -m ruff check python/ --select D,E,F,I,UP`
+- Markdown 差分を含む場合は、少なくとも次を実行します。
+  - `python3 scripts/tools/check_markdown_lint.py documents`
+  - リンクが変わった場合は `python3 scripts/tools/audit_and_fix_links.py documents`
+- 実験結果や user-facing report を含む場合は、`critical-review` と `report-review` を省略しません。
 
-- PR の説明に `変更スコープ` を明記し、変更が複数サブモジュールにまたがる場合は分割を検討すること。
+## Review Flow
 
-## 詳細設計の配置
-
-- PR で設計文書を追加/更新する場合、`documents/design/<submodule>/README.md` に変更の要約を追記すること。
+1. 変更スコープと必要な review family を先に決めます。
+1. 再現コマンドと evidence の保存先を先に決めます。
+1. 変更を実装し、対象に応じた validation を実行します。
+1. findings-first で review し、必要なら追加検証、再実行、書き直しを行います。
+1. run 固有の review artifact は `reports/agents/<run-id>/` に残します。
+1. repo-wide の恒久ルール変更がある場合は、対応する `documents/` または `agents/` の正本を同じ変更で更新します。
 
 ## マージ条件
 
-- 少なくとも1名の承認（重要箇所は2名推奨）
+- 必要な review family が完了していること
+- 対象に応じた validation 結果が確認されていること
+- 変更理由と影響範囲が追えること
 - コンフリクトがないこと
-- 変更ログ（CHANGELOG または PR 説明）あり
-
-## 自動化と自動修正ポリシー
-
-- SAFE_COUNT が 0 の場合、手動でブランチ所有者と調整し、再実行する。
-- 自動化エージェントは PR を作成できるが、main へのマージは人間の承認を必要とする（ドキュメント例外あり）。
-
-## レビュー期限・優先度
-
-- マイナー修正: 3 営業日以内にレビュー。
-
-## レビューテンプレート（PR に貼る）
-
-2. 変更内容(一覧):
-1. 再現手順 / コマンド:
-1. テスト: 追加/更新したテスト列挙
-1. 影響範囲: モジュール、API、ユーザー影響
-1. 関連 Issue / 設計ドキュメント:
-1. artifacts/reports へのリンク:
 
 ## エビデンス保存
 
-- 重大なレビュー結果は `reviews/` 配下に記録する（`CONFLICT_REPORT.md` 等）。
+- run 固有の intake、design、review、verification、retrospective は `reports/agents/<run-id>/` に置きます。
+- project-wide な分析や再利用する長文 report は `reports/` に置きます。
+- 一時メモや cross-run の補助知見は `notes/` に置きます。
+- dated な completion summary や古い review 文書を `documents/` や repo root に残すことを禁止します。
 
-______________________________________________________________________
+## Findings の扱い
 
-## レビュー履歴管理 — 最新のみ保持
+findings は少なくとも次に分けます。
 
-`reviews/` ディレクトリに蓄積したレビュー結果を整理する手順。定期的（月 1 回）に実施してください。
+- `fix now`
+  - この変更で直さないと回帰や矛盾が残るもの
+- `follow-up`
+  - 今回の受け入れを阻害しないが、後続で管理すべきもの
+- `delete-ok`
+  - stale asset や重複導線のように安全に削除できるもの
 
-### 手順
+## 関連正本
 
-#### **1. 現在のレビューファイルを確認**
-
-```bash
-# reviews/ 配下の全ファイルリスト
-ls -lt reviews/*.md | head -20
-
-# 古さルー確認（3ヶ月以上前のファイル）
-find reviews/ -type f -name "*.md" -mtime +90 | sort
-```
-
-#### **2. git 履歴で保存確認**
-
-`reviews/` ファイルは Git の履歴に保存されるため、削除しても参照可能：
-
-```bash
-# 特定レビュー の全バージョンを表示
-git log --follow --oneline -- reviews/COMPREHENSIVE_CODE_REVIEW_20260321.md
-
-# 過去バージョンを表示
-git show HEAD~5:reviews/COMPREHENSIVE_CODE_REVIEW_20260321.md
-
-# 削除前に確認
-git log --all --full-history -- reviews/DETAILED_THOROUGH_CODE_REVIEW_20260321.md
-```
-
-#### **3. 古いレビューを削除**
-
-```bash
-# 確認済みなら削除
-rm reviews/COMPREHENSIVE_CODE_REVIEW_20260321.md
-rm reviews/DETAILED_THOROUGH_CODE_REVIEW_20260321.md
-
-# git で追跡削除
-git rm reviews/COMPREHENSIVE_CODE_REVIEW_20260321.md
-git rm reviews/DETAILED_THOROUGH_CODE_REVIEW_20260321.md
-
-# コミット
-git commit -m "chore: archive old reviews to git history
-
-Remove stale review reports:
-- COMPREHENSIVE_CODE_REVIEW_20260321.md (3+ months old, kept in git log)
-- DETAILED_THOROUGH_CODE_REVIEW_20260321.md (3+ months old, kept in git log)
-
-Reference: git log --follow -- reviews/<filename>"
-
-# Push
-git push origin main
-```
-
-### **保持ポリシー**
-
-| ファイル | 保持期間 | 処理 |
-|---------|--------|------|
-| 最新のレビュー | 常時 | 保持 |
-| 参照中のレビュー | 実行中 | 保持 |
-| 過去レビュー（1-3ヶ月）| 3ヶ月 | **保持** |
-| 古いレビュー（3ヶ月+） | 3ヶ月以上 | **git 履歴に移動** |
-| テンプレート・ガイド | 常時 | 保持 |
-
-### **Git 履歴からの復元**
-
-削除後に必要になった場合：
-
-```bash
-# 削除ファイルの最後のバージョンを復元
-git show HEAD@{n}:reviews/FILENAME.md > /tmp/FILENAME.md
-
-# または、git log で特定コミット を検索
-git log -p -- reviews/ | grep -B5 -A5 "削除内容"
-
-# 復元ブランチを作成
-git checkout <commit> -- reviews/FILENAME.md
-```
-
-______________________________________________________________________
-
-## 例外と逸脱の扱い
+- [agents/TASK_WORKFLOWS.md](/mnt/l/workspace/project_template/agents/TASK_WORKFLOWS.md)
+- [agents/canonical/ARTIFACT_PLACEMENT.md](/mnt/l/workspace/project_template/agents/canonical/ARTIFACT_PLACEMENT.md)
+- [agents/skills/README.md](/mnt/l/workspace/project_template/agents/skills/README.md)
+- [documents/workflow-references.md](/mnt/l/workspace/project_template/documents/workflow-references.md)

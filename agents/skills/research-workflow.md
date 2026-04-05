@@ -12,6 +12,7 @@
 
 ## Core References
 
+- `agents/skills/literature-survey.md`
 - `documents/research-workflow.md`
 - `documents/experiment-workflow.md`
 - `documents/experiment-critical-review.md`
@@ -19,7 +20,7 @@
 ## Canonical Loop
 
 1. 問い、比較対象、exit criteria を固定する
-1. 外部調査を行い、採用候補と反証候補を残す
+1. `literature-survey` を使って外部調査を行い、採用候補と反証候補を残す
 1. 比較プロトコルと run layout を固定する
 1. baseline または current state を記録する
 1. 1 つの code change を入れる
@@ -30,4 +31,5 @@
 ## Boundary
 
 - 単一 run の設計と出力整理は `experiment-workflow` を使います。
+- 文献探索そのものは `literature-survey` を使います。
 - 大きい methodology / artifact / reporting policy 変更の独立レビューは `research-perspective-review` を使います。
