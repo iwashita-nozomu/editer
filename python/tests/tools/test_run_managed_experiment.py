@@ -7,15 +7,27 @@ import subprocess
 import sys
 from pathlib import Path
 
+CHECK_SCRIPT = (
+    Path(__file__).resolve().parents[3]
+    / "scripts"
+    / "ci"
+    / "check_experiment_registry.py"
+)
 SCRIPT = (
     Path(__file__).resolve().parents[3]
     / "scripts"
     / "experiments"
     / "run_managed_experiment.py"
 )
-MARKER_COMMAND = (
-    "from pathlib import Path; "
-    "Path(r'{run_dir}/marker.txt').write_text('ok', encoding='utf-8')"
+CANONICAL_ENTRYPOINT = "experiments/demo_topic/experimentcode.py"
+SMOKE_INNER_COMMAND = (
+    f"python3 {CANONICAL_ENTRYPOINT} --run-dir {{run_dir}} --mode smoke"
+)
+FORMAL_INNER_COMMAND = (
+    f"python3 {CANONICAL_ENTRYPOINT} --run-dir {{run_dir}} --mode formal"
+)
+RECURSIVE_RUNNER_COMMAND = (
+    "python3 scripts/experiments/run_managed_experiment.py --topic demo_topic"
 )
 
 
@@ -24,12 +36,67 @@ def build_repo(tmp_path: Path) -> Path:
     repo_root = tmp_path / "repo"
     (repo_root / "experiments" / "demo_topic" / "result").mkdir(parents=True)
     (repo_root / "experiments" / "report").mkdir(parents=True)
+    (repo_root / "scripts" / "experiments").mkdir(parents=True)
+    (repo_root / "experiments" / "demo_topic" / "README.md").write_text(
+        "# Demo Topic\n",
+        encoding="utf-8",
+    )
+    (repo_root / "scripts" / "experiments" / "run_managed_experiment.py").write_text(
+        "# placeholder\n",
+        encoding="utf-8",
+    )
+    (repo_root / "experiments" / "demo_topic" / "experimentcode.py").write_text(
+        "\n".join(
+            [
+                "from __future__ import annotations",
+                "",
+                "import argparse",
+                "from pathlib import Path",
+                "",
+                'parser = argparse.ArgumentParser()',
+                'parser.add_argument("--run-dir", required=True)',
+                'parser.add_argument("--mode", required=True)',
+                "args = parser.parse_args()",
+                "run_dir = Path(args.run_dir)",
+                "run_dir.mkdir(parents=True, exist_ok=True)",
+                "(run_dir / 'marker.txt').write_text(args.mode, encoding='utf-8')",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (repo_root / "experiments" / "registry.toml").write_text(
+        "\n".join(
+            [
+                "schema_version = 1",
+                "",
+                "[defaults]",
+                'managed_runner = "scripts/experiments/run_managed_experiment.py"',
+                'report_root = "experiments/report"',
+                'integration_branch = "main"',
+                "",
+                "[[topics]]",
+                'name = "demo_topic"',
+                'status = "active"',
+                'topic_dir = "experiments/demo_topic"',
+                'topic_readme = "experiments/demo_topic/README.md"',
+                f'canonical_entrypoint = "{CANONICAL_ENTRYPOINT}"',
+                'result_root = "experiments/demo_topic/result"',
+                'report_root = "experiments/report"',
+                'default_variant = "formal"',
+                f'smoke_inner_command = "{SMOKE_INNER_COMMAND}"',
+                f'formal_inner_command = "{FORMAL_INNER_COMMAND}"',
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
     subprocess.run(["git", "init"], cwd=repo_root, check=True, capture_output=True, text=True)
     return repo_root
 
 
-def test_run_managed_experiment_writes_manifest_log_and_report(tmp_path: Path) -> None:
-    """The helper should create canonical files for one successful run."""
+def test_run_managed_experiment_uses_registered_command_and_writes_manifest(tmp_path: Path) -> None:
+    """The helper should create canonical files for one successful registered run."""
     repo_root = build_repo(tmp_path)
     run_name = "demo_topic_smoke_20260406T000000Z"
 
@@ -43,10 +110,8 @@ def test_run_managed_experiment_writes_manifest_log_and_report(tmp_path: Path) -
             "demo_topic",
             "--run-name",
             run_name,
-            "--",
-            sys.executable,
-            "-c",
-            MARKER_COMMAND,
+            "--use-registered-command",
+            "smoke",
         ],
         check=False,
         capture_output=True,
@@ -58,8 +123,11 @@ def test_run_managed_experiment_writes_manifest_log_and_report(tmp_path: Path) -
     manifest = json.loads((result_dir / "run_manifest.json").read_text(encoding="utf-8"))
     assert manifest["status"] == "completed"
     assert manifest["exit_code"] == 0
+    assert manifest["command_source"] == "registered:smoke"
+    assert manifest["registered_command_match"] == "smoke"
+    assert manifest["registry"]["canonical_entrypoint"] == CANONICAL_ENTRYPOINT
     assert (result_dir / "run.log").is_file()
-    assert (result_dir / "marker.txt").read_text(encoding="utf-8") == "ok"
+    assert (result_dir / "marker.txt").read_text(encoding="utf-8") == "smoke"
     report_path = repo_root / "experiments" / "report" / f"{run_name}.md"
     assert report_path.is_file()
     assert run_name in report_path.read_text(encoding="utf-8")
@@ -97,3 +165,50 @@ def test_run_managed_experiment_propagates_failure(tmp_path: Path) -> None:
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert manifest["status"] == "failed"
     assert manifest["exit_code"] == 7
+    assert manifest["command_source"] == "manual"
+
+
+def test_check_experiment_registry_accepts_valid_registry(tmp_path: Path) -> None:
+    """The registry checker should pass for the generated demo registry."""
+    repo_root = build_repo(tmp_path)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(CHECK_SCRIPT),
+            "--repo-root",
+            str(repo_root),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 0
+    assert "OK: experiment registry is valid" in result.stdout
+
+
+def test_check_experiment_registry_rejects_recursive_runner_command(tmp_path: Path) -> None:
+    """The checker should fail when an inner command recursively calls the wrapper."""
+    repo_root = build_repo(tmp_path)
+    registry_path = repo_root / "experiments" / "registry.toml"
+    registry_text = registry_path.read_text(encoding="utf-8").replace(
+        f'smoke_inner_command = "{SMOKE_INNER_COMMAND}"',
+        f'smoke_inner_command = "{RECURSIVE_RUNNER_COMMAND}"',
+    )
+    registry_path.write_text(registry_text, encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(CHECK_SCRIPT),
+            "--repo-root",
+            str(repo_root),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "must not call the managed runner recursively" in result.stdout

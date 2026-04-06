@@ -16,6 +16,7 @@
 ## 実験・研究
 
 - [experiment-workflow.md](/mnt/l/workspace/project_template/documents/experiment-workflow.md)
+- [experiment-registry.md](/mnt/l/workspace/project_template/documents/experiment-registry.md)
 - [research-workflow.md](/mnt/l/workspace/project_template/documents/research-workflow.md)
 - [experiment-critical-review.md](/mnt/l/workspace/project_template/documents/experiment-critical-review.md)
 - [experiment-report-style.md](/mnt/l/workspace/project_template/documents/experiment-report-style.md)

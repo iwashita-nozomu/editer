@@ -20,6 +20,7 @@ worktree の作成と carry-over の流れは [worktree-lifecycle.md](/mnt/l/wor
 
 - branch を切ったら、必要に応じて対応する worktree root に `WORKTREE_SCOPE.md` を置きます。
 - `WORKTREE_SCOPE.md` には editable directories、carry-over target、action log を明記します。
+- branch で experiment topic を継続的に触る場合は、`experiments/registry.toml` の `active_branch` と必要なら `scope_file` を更新します。
 - branch の入口が必要な場合は `notes/branches/<branch_topic>.md` に置き、scope と関連 note をそこから辿れるようにします。
 
 ## 4. コミット・プッシュ

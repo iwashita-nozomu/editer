@@ -1,4 +1,4 @@
-.PHONY: git_init ci ci-quick docs-check dev-setup tools-help agent-checks docker-check docker-build-check docker-build-check-host-docker server-check docker-shell docker-codex docker-codex-host-docker
+.PHONY: git_init ci ci-quick docs-check dev-setup tools-help agent-checks docker-check docker-build-check docker-build-check-host-docker server-check experiment-check docker-shell docker-codex docker-codex-host-docker
 
 # Git 初期化（初回のみ）
 git_init:
@@ -37,6 +37,10 @@ docker-build-check-host-docker:
 # main server host readiness
 server-check:
 	python3 scripts/ci/check_server_readiness.py --layout documents/templates/server_runtime_layout.template.toml
+
+# experiment registry validation
+experiment-check:
+	python3 scripts/ci/check_experiment_registry.py
 
 # 既定 pack の shell を起動
 docker-shell:

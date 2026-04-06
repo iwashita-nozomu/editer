@@ -14,7 +14,13 @@ import subprocess
 import sys
 import time
 from datetime import datetime
+from datetime import timezone
 from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python 3.10 fallback
+    import tomli as tomllib  # type: ignore[no-redef]
 
 
 def repo_root_from_script() -> Path:
@@ -24,12 +30,12 @@ def repo_root_from_script() -> Path:
 
 def utc_now() -> str:
     """Return the current UTC timestamp in ISO-8601 form."""
-    return datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def compact_timestamp() -> str:
     """Return the compact timestamp used for run names."""
-    return datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
 
 
 def parse_args() -> argparse.Namespace:
@@ -57,6 +63,15 @@ def parse_args() -> argparse.Namespace:
         help="Variant label used when --run-name is omitted.",
     )
     parser.add_argument(
+        "--registry",
+        help="Optional registry path. Defaults to <repo-root>/experiments/registry.toml when present.",
+    )
+    parser.add_argument(
+        "--use-registered-command",
+        choices=("smoke", "formal"),
+        help="Execute the canonical inner command from experiments/registry.toml for this topic.",
+    )
+    parser.add_argument(
         "--report-path",
         help="Optional report path. Defaults to experiments/report/<run_name>.md.",
     )
@@ -68,7 +83,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Create paths and manifest metadata but do not execute the command.",
+        help="Resolve run paths and command metadata but do not write files or execute the command.",
     )
     parser.add_argument(
         "command",
@@ -76,6 +91,46 @@ def parse_args() -> argparse.Namespace:
         help="Command to run. Tokens may use {run_dir}, {run_name}, {report_path}, {manifest_path}.",
     )
     return parser.parse_args()
+
+
+def load_registry(path: Path) -> dict[str, object]:
+    """Load one experiment registry TOML file."""
+    with path.open("rb") as handle:
+        data = tomllib.load(handle)
+    if not isinstance(data, dict):
+        raise ValueError("experiment registry TOML root must be a table")
+    return data
+
+
+def find_registry_topic(registry: dict[str, object], topic_name: str) -> dict[str, object] | None:
+    """Return one topic entry from the registry."""
+    raw_topics = registry.get("topics", [])
+    if not isinstance(raw_topics, list):
+        raise ValueError("experiment registry must contain [[topics]]")
+    for raw_topic in raw_topics:
+        if not isinstance(raw_topic, dict):
+            continue
+        name = raw_topic.get("name")
+        if name == topic_name:
+            return raw_topic
+    return None
+
+
+def load_registry_entry(
+    repo_root: Path, registry_path: Path | None, topic_name: str
+) -> tuple[Path | None, dict[str, object] | None, dict[str, object]]:
+    """Load one topic entry from the registry when available."""
+    resolved_registry = registry_path or (repo_root / "experiments" / "registry.toml")
+    if not resolved_registry.is_file():
+        return None, None, {}
+    registry = load_registry(resolved_registry)
+    entry = find_registry_topic(registry, topic_name)
+    if entry is None:
+        raise ValueError(f"topic {topic_name!r} is missing from {resolved_registry}")
+    defaults = registry.get("defaults", {})
+    if not isinstance(defaults, dict):
+        raise ValueError("experiment registry defaults must be a table")
+    return resolved_registry, entry, defaults
 
 
 def command_version(name: str) -> str | None:
@@ -122,17 +177,20 @@ def render_report_stub(
     created_at: str,
     branch: str | None,
     commit: str | None,
+    registry_path: Path | None,
 ) -> str:
     """Render one initial run report."""
     command_text = shlex.join(command) if command else "(dry-run)"
     branch_text = branch or "(unknown)"
     commit_text = commit or "(unknown)"
+    registry_text = str(registry_path) if registry_path is not None else "(none)"
     return f"""# {run_name}
 
 - Topic: {topic}
 - Created At (UTC): {created_at}
 - Result Dir: {result_dir}
 - Run Manifest: {manifest_path}
+- Registry: {registry_text}
 - Branch: {branch_text}
 - Commit: {commit_text}
 
@@ -178,12 +236,16 @@ def build_manifest(
     command: list[str],
     created_at: str,
     status: str,
+    registry_path: Path | None,
+    registry_entry: dict[str, object] | None,
+    command_source: str,
+    registered_command_match: str | None,
 ) -> dict[str, object]:
     """Build one manifest dictionary."""
     branch = git_value(repo_root, "branch", "--show-current")
     commit = git_value(repo_root, "rev-parse", "HEAD")
     git_dirty = git_value(repo_root, "status", "--short")
-    return {
+    manifest: dict[str, object] = {
         "topic": topic,
         "run_name": run_name,
         "status": status,
@@ -205,6 +267,8 @@ def build_manifest(
             "codex": command_version("codex"),
             "docker": command_version("docker"),
         },
+        "command_source": command_source,
+        "registered_command_match": registered_command_match,
         "git": {
             "branch": branch,
             "commit": commit,
@@ -212,6 +276,11 @@ def build_manifest(
             "status_short": git_dirty.splitlines() if git_dirty else [],
         },
     }
+    if registry_path is not None and registry_entry is not None:
+        registry_snapshot = dict(registry_entry)
+        registry_snapshot["registry_path"] = str(registry_path)
+        manifest["registry"] = registry_snapshot
+    return manifest
 
 
 def write_manifest(path: Path, manifest: dict[str, object]) -> None:
@@ -224,6 +293,37 @@ def format_command(command: list[str], placeholders: dict[str, str]) -> list[str
     if command and command[0] == "--":
         command = command[1:]
     return [token.format(**placeholders) for token in command]
+
+
+def command_from_registry(
+    registry_entry: dict[str, object],
+    command_kind: str,
+    placeholders: dict[str, str],
+) -> list[str]:
+    """Return one formatted command from the registry."""
+    command_key = f"{command_kind}_inner_command"
+    raw_command = registry_entry.get(command_key)
+    if not isinstance(raw_command, str) or not raw_command.strip():
+        raise ValueError(f"registry entry is missing {command_key}")
+    return [token.format(**placeholders) for token in shlex.split(raw_command)]
+
+
+def matched_registered_command(
+    registry_entry: dict[str, object] | None,
+    command: list[str],
+    placeholders: dict[str, str],
+) -> str | None:
+    """Return the matching registered command kind when one exists."""
+    if registry_entry is None:
+        return None
+    for command_kind in ("smoke", "formal"):
+        try:
+            registered_command = command_from_registry(registry_entry, command_kind, placeholders)
+        except ValueError:
+            continue
+        if registered_command == command:
+            return command_kind
+    return None
 
 
 def stream_command(command: list[str], *, cwd: Path, env: dict[str, str], log_path: Path) -> int:
@@ -260,23 +360,41 @@ def main() -> int:
     """Run the CLI."""
     args = parse_args()
     repo_root = Path(args.repo_root).resolve()
-    topic_dir = repo_root / "experiments" / args.topic
+    registry_arg = Path(args.registry).resolve() if args.registry else None
+    try:
+        registry_path, registry_entry, registry_defaults = load_registry_entry(
+            repo_root, registry_arg, args.topic
+        )
+    except (OSError, ValueError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 2
+
+    if registry_entry is not None:
+        topic_dir_raw = registry_entry.get("topic_dir")
+        if not isinstance(topic_dir_raw, str):
+            print(f"registry entry for {args.topic!r} is missing topic_dir", file=sys.stderr)
+            return 2
+        topic_dir = repo_root / topic_dir_raw
+    else:
+        topic_dir = repo_root / "experiments" / args.topic
     if not topic_dir.is_dir():
         print(f"topic directory does not exist: {topic_dir}", file=sys.stderr)
         return 2
 
     run_name = args.run_name or f"{args.topic}_{args.variant}_{compact_timestamp()}"
     result_dir = topic_dir / "result" / run_name
-    report_path = (
-        Path(args.report_path).resolve()
-        if args.report_path
-        else (repo_root / "experiments" / "report" / f"{run_name}.md")
-    )
+    if args.report_path:
+        report_path = Path(args.report_path).resolve()
+    elif registry_entry is not None:
+        registry_report_root = registry_entry.get("report_root") or registry_defaults.get("report_root")
+        if isinstance(registry_report_root, str):
+            report_path = (repo_root / registry_report_root / f"{run_name}.md").resolve()
+        else:
+            report_path = (repo_root / "experiments" / "report" / f"{run_name}.md").resolve()
+    else:
+        report_path = (repo_root / "experiments" / "report" / f"{run_name}.md").resolve()
     manifest_path = result_dir / "run_manifest.json"
     log_path = result_dir / "run.log"
-
-    result_dir.mkdir(parents=True, exist_ok=True)
-    report_path.parent.mkdir(parents=True, exist_ok=True)
 
     created_at = utc_now()
     placeholders = {
@@ -288,7 +406,24 @@ def main() -> int:
         "manifest_path": str(manifest_path),
         "log_path": str(log_path),
     }
-    command = format_command(args.command, placeholders)
+
+    if args.use_registered_command and args.command:
+        print("do not pass both a manual command and --use-registered-command", file=sys.stderr)
+        return 2
+    if args.use_registered_command:
+        if registry_entry is None:
+            print("--use-registered-command requires experiments/registry.toml", file=sys.stderr)
+            return 2
+        try:
+            command = command_from_registry(registry_entry, args.use_registered_command, placeholders)
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+        command_source = f"registered:{args.use_registered_command}"
+    else:
+        command = format_command(args.command, placeholders)
+        command_source = "manual"
+    registered_match = matched_registered_command(registry_entry, command, placeholders)
 
     manifest = build_manifest(
         repo_root=repo_root,
@@ -301,7 +436,28 @@ def main() -> int:
         command=command,
         created_at=created_at,
         status="initialized" if args.dry_run else "running",
+        registry_path=registry_path,
+        registry_entry=registry_entry,
+        command_source=command_source,
+        registered_command_match=registered_match,
     )
+
+    if args.dry_run:
+        print(f"run_name={run_name}")
+        print(f"result_dir={result_dir}")
+        print(f"report_path={report_path}")
+        print(f"manifest_path={manifest_path}")
+        print(f"command_source={command_source}")
+        if command:
+            print("command=" + shlex.join(command))
+        return 0
+
+    if not command:
+        print("a command is required unless --dry-run is used", file=sys.stderr)
+        return 2
+
+    result_dir.mkdir(parents=True, exist_ok=True)
+    report_path.parent.mkdir(parents=True, exist_ok=True)
     write_manifest(manifest_path, manifest)
 
     if not args.skip_report_init and not report_path.exists():
@@ -319,20 +475,10 @@ def main() -> int:
                 created_at=created_at,
                 branch=git_info.get("branch") if isinstance(git_info.get("branch"), str) else None,
                 commit=git_info.get("commit") if isinstance(git_info.get("commit"), str) else None,
+                registry_path=registry_path,
             ),
             encoding="utf-8",
         )
-
-    if args.dry_run:
-        print(f"run_name={run_name}")
-        print(f"result_dir={result_dir}")
-        print(f"report_path={report_path}")
-        print(f"manifest_path={manifest_path}")
-        return 0
-
-    if not command:
-        print("a command is required unless --dry-run is used", file=sys.stderr)
-        return 2
 
     env = dict(os.environ)
     env.update(

@@ -11,6 +11,7 @@
 - `scripts/ci/run_python_in_dockerfile.py`
 - `scripts/ci/run_codex_in_repo_container.py`
 - `scripts/ci/check_server_readiness.py`
+- `scripts/ci/check_experiment_registry.py`
 - `scripts/experiments/run_managed_experiment.py`
 - `scripts/run_comprehensive_review.sh`
 - `scripts/run_pytest_with_logs.sh`

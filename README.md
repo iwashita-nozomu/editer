@@ -44,6 +44,7 @@
 - 開発環境を触る場合は `docker/`
 - 実験を行う場合は `documents/experiment-workflow.md`
 - 実験 topic を作る場合は `experiments/README.md`
+- topic registry を触る場合は `documents/experiment-registry.md`
 - エージェントを使う場合は `agents/README.md`
 
 ## 日常の進め方
@@ -60,6 +61,7 @@
 
 ```text
 experiments/
+├── registry.toml
 ├── report/
 │   └── <run_name>.md
 └── <topic>/
@@ -76,7 +78,7 @@ experiments/
 
 実験方法論そのものは `documents/experiment-workflow.md` と `documents/research-workflow.md` を正本にします。
 agent に実験つき改造 loop を回させる場合は `agents/skills/experiment-change-loop.md` を入口にし、記録は `agents/templates/experiment_change_loop.md` を使います。
-server で回す実験コードの実体テンプレは `experiments/_template/`、run metadata を残す入口は `scripts/experiments/run_managed_experiment.py` です。
+server で回す実験コードの実体テンプレは `experiments/_template/`、topic 正本は `experiments/registry.toml`、run metadata を残す入口は `scripts/experiments/run_managed_experiment.py` です。
 
 ## よく使うコマンド
 
@@ -84,6 +86,7 @@ server で回す実験コードの実体テンプレは `experiments/_template/`
 make ci-quick
 make ci
 make docs-check
+make experiment-check
 make docker-build-check
 python3 -m pyright
 python3 -m pytest python/tests/ -q --tb=short

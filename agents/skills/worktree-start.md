@@ -41,6 +41,7 @@
 - `Required References Before Editing` に broad directory 名ではなく concrete file や確認対象 command を書く
 - `Main Carry-Over Targets` と `Working Notes During Execution` に action log path、branch summary path、主な result の置き場を書く
 - `notes/worktrees/worktree_<topic>_YYYY-MM-DD.md` の path を決め、最初の kickoff entry を追記する
+- この worktree が experiment topic を持つ場合は、`experiments/registry.toml` の `active_branch` と必要なら `scope_file` / `active_worktree` を更新する
 - branch が複数 session 続く、または handoff する場合は `notes/branches/<branch_topic>.md` を作るか更新する
 - この branch で必要な pre-commit check を `WORKTREE_SCOPE.md` に固定する
 - `git status --short --branch` を確認し、unexpected dirty state があれば action log に残す
@@ -54,6 +55,7 @@
 
 1. `bash scripts/worktree_start.sh <branch-name> [worktree-path]` か `python3 scripts/agent_tools/worktree_start.py --current` で worktree の kickoff summary を出し、`WORKTREE_SCOPE.md` と action log の不足を洗います。
 1. `documents/WORKTREE_SCOPE_TEMPLATE.md` を基に `WORKTREE_SCOPE.md` を current state へ合わせて更新し、`python3 scripts/agent_tools/worktree_scope_lint.py --current` で placeholder や stale field を確認します。
+1. experiment topic を持つ branch なら `experiments/registry.toml` の entry を見て、`active_branch`、必要なら `active_worktree` と `scope_file` を current state に合わせます。
 1. `notes/worktrees/WORKTREE_LOG_TEMPLATE.md` を基に action log を作るか更新し、最初の kickoff entry を書きます。
 1. `notes/guardrails/README.md` と `notes/failures/README.md` を見て、今回の task で避けるべき既知 pattern を拾います。
 1. `git status --short --branch`、`git worktree list --porcelain`、必要なら `bash scripts/tools/check_worktree_scopes.sh` を実行します。

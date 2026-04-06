@@ -50,6 +50,8 @@ agent がこの反復を自律実行する場合の skill 入口は `agents/skil
   - 実験ディレクトリ、`result/<run_name>/` の出力先、`experiments/report/<run_name>.md` の置き場を先に固定します。
 - `Naming Plan:`
   - topic 名、run_name、result ディレクトリ名、report 名の規則を先に決め、topic README か対応する正本文書へ残します。
+- `Registry Plan:`
+  - `experiments/registry.toml` の topic entry、canonical entrypoint、formal command、必要なら `active_branch` を先に固定します。
 - `Execution Plan:`
   - `main` で進めるか、隔離が必要な場合だけ短期 branch を使うかを先に決めます。既定は `main` です。
 - `Server Run Surface:`
@@ -93,6 +95,7 @@ top-level の `reports/` は project-wide な review、automation、management r
 準備段階で確認するものは次です。
 
 - topic の `README.md`
+- `experiments/registry.toml`
 - 直近の experiment report
 - `summary.json` / `cases.jsonl` の schema
 - `git status --short`
@@ -237,13 +240,10 @@ main server host で formal run を回す場合は、次を推奨します。
 ```bash
 python3 scripts/experiments/run_managed_experiment.py \
   --topic <topic> \
-  --variant formal \
-  -- \
-  python3 experiments/<topic>/experimentcode.py \
-    --run-dir {run_dir}
+  --use-registered-command formal
 ```
 
-この wrapper は `result/<run_name>/`、`run_manifest.json`、`run.log`、`experiments/report/<run_name>.md` の初期 stub をそろえます。
+この wrapper は `experiments/registry.toml` の `formal_inner_command` を見て `result/<run_name>/`、`run_manifest.json`、`run.log`、`experiments/report/<run_name>.md` の初期 stub をそろえます。
 
 #### 4.4 long run のルール
 

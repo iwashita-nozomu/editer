@@ -18,11 +18,7 @@ smoke:
 ```bash
 python3 scripts/experiments/run_managed_experiment.py \
   --topic <topic> \
-  --variant smoke \
-  -- \
-  python3 experiments/<topic>/experimentcode.py \
-    --run-dir {run_dir} \
-    --limit 4
+  --use-registered-command smoke
 ```
 
 formal run:
@@ -30,11 +26,7 @@ formal run:
 ```bash
 python3 scripts/experiments/run_managed_experiment.py \
   --topic <topic> \
-  --variant formal \
-  -- \
-  python3 experiments/<topic>/experimentcode.py \
-    --run-dir {run_dir} \
-    --limit 32
+  --use-registered-command formal
 ```
 
 ## Expected Outputs
@@ -49,4 +41,5 @@ python3 scripts/experiments/run_managed_experiment.py \
 
 - `cases.py` は case 列の定義に集中させます。
 - `experimentcode.py` は CLI、orchestration、summary 出力に集中させます。
+- `experiments/registry.toml` に topic entry を追加し、`smoke_inner_command` と `formal_inner_command` を正本にします。
 - formal run では `run_name` と protocol を固定した fresh 実行にします。

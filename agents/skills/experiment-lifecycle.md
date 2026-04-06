@@ -16,6 +16,7 @@
 
 - `agents/skills/experiment-workflow.md`
 - `documents/experiment-workflow.md`
+- `documents/experiment-registry.md`
 - `documents/research-workflow.md`
 - `scripts/experiments/run_managed_experiment.py`
 
@@ -29,4 +30,5 @@
 
 - この repo の実験運用正本は `experiment-workflow` です。
 - 実験結果を見ながら code change まで含めた loop を回す場合は `experiment-change-loop` を追加します。
+- topic の entrypoint と formal command は `experiments/registry.toml` を正本にします。
 - main server host で formal run を回す場合は、`run_manifest.json` と `run.log` を残す wrapper を優先します。

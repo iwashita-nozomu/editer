@@ -22,6 +22,8 @@
   - main server host の path、mount、builder、Docker socket readiness を確認します。
 - `scripts/experiments/run_managed_experiment.py`
   - server 上の実験 run で `result/<run_name>/`、`run_manifest.json`、`run.log`、report stub を初期化します。
+- `scripts/ci/check_experiment_registry.py`
+  - `experiments/registry.toml` の entrypoint、command、branch metadata を確認します。
 - `scripts/run_pytest_with_logs.sh`
   - Python テストのログ付き実行入口です。Python を使う場合だけ使います。
 - `scripts/run_comprehensive_review.sh`
@@ -67,5 +69,6 @@
 - repo 全体の点検は `bash scripts/run_comprehensive_review.sh`
 - 実験運用は `documents/experiment-workflow.md`
 - server 上の実験 run 初期化は `python3 scripts/experiments/run_managed_experiment.py`
+- experiment registry の確認は `python3 scripts/ci/check_experiment_registry.py`
 - 実験つきの改造 loop は `agents/skills/experiment-change-loop.md`
 - 環境依存ツール導入案は `agents/skills/environment-maintenance.md` と `agents/templates/environment_change_proposal.md`

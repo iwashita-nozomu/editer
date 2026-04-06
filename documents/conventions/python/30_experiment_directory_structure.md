@@ -27,12 +27,14 @@
 ### 3. 推奨レイアウト
 
 ```text
-experiments/<topic>/
-├── README.md
-├── cases.py
-├── experimentcode.py
-└── result/
-    └── <run_name>/
+experiments/
+├── registry.toml
+└── <topic>/
+    ├── README.md
+    ├── cases.py
+    ├── experimentcode.py
+    └── result/
+        └── <run_name>/
 ```
 
 ```text
@@ -64,6 +66,7 @@ experiments/report/
   - `result/<run_name>/cases.jsonl`
   - `result/<run_name>/run.log`
 - topic README には、run_name 形式、report パス、result ディレクトリ構成を明記します。
+- topic の canonical entrypoint と smoke / formal command は `experiments/registry.toml` にも書きます。
 - server 実行では、`scripts/experiments/run_managed_experiment.py` のような wrapper で host / command / commit metadata を残すことを推奨します。
 
 ### 5. テスト

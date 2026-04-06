@@ -107,8 +107,18 @@ else
 fi
 echo ""
 
-# 2. pytest 実行
-echo "2️⃣  pytest を実行中..."
+# 2. experiment registry checks
+echo "2️⃣  experiment registry checks を実行中..."
+if "$PYTHON_BIN" scripts/ci/check_experiment_registry.py 2>&1; then
+  echo "✅ experiment registry checks 成功"
+else
+  echo "❌ experiment registry checks 失敗"
+  EXIT_CODE=1
+fi
+echo ""
+
+# 3. pytest 実行
+echo "3️⃣  pytest を実行中..."
 if "$PYTHON_BIN" -m pytest python/tests/ -q --tb=short 2>&1; then
   echo "✅ pytest 成功"
 else
@@ -117,8 +127,8 @@ else
 fi
 echo ""
 
-# 3. pyright 実行
-echo "3️⃣  pyright を実行中..."
+# 4. pyright 実行
+echo "4️⃣  pyright を実行中..."
 if "$PYTHON_BIN" -m pyright 2>&1; then
   echo "✅ pyright 成功"
 else
@@ -127,8 +137,8 @@ else
 fi
 echo ""
 
-# 4. pydocstyle 実行（Docstring 検証）
-echo "4️⃣  pydocstyle を実行中... (Docstring チェック)"
+# 5. pydocstyle 実行（Docstring 検証）
+echo "5️⃣  pydocstyle を実行中... (Docstring チェック)"
 if "$PYTHON_BIN" -m pydocstyle python/ 2>&1; then
   echo "✅ pydocstyle 成功"
 else
@@ -139,7 +149,7 @@ echo ""
 
 # 5. ruff (QUICK_MODE でスキップ可能)
 if [ $QUICK_MODE -eq 0 ]; then
-  echo "5️⃣  ruff を実行中..."
+  echo "6️⃣  ruff を実行中..."
   echo "   - E,F: コード品質（エラー・警告）"
   echo "   - I: Import 順序チェック"
   echo "   - D: Docstring 検証"

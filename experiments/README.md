@@ -7,6 +7,7 @@
 
 ```text
 experiments/
+├── registry.toml
 ├── report/
 │   ├── README.md
 │   └── <run_name>.md
@@ -22,6 +23,8 @@ experiments/
 
 - `_template/`
   - 新しい topic を始めるときの最小雛形です。
+- `registry.toml`
+  - topic、entrypoint、formal run command、active branch の集中管理ファイルです。
 - `report/README.md`
   - run report の置き方です。
 - `scripts/experiments/run_managed_experiment.py`
@@ -31,6 +34,7 @@ experiments/
 
 - fresh run は 1 つの `run_name` と 1 つの `result/<run_name>/` に閉じます。
 - server 上の formal run は、できるだけ `run_managed_experiment.py` 経由で実行します。
+- formal run でどの code を実行するかは `registry.toml` の `formal_inner_command` を正本にします。
 - 主要生成物は次を基準にします。
   - `result/<run_name>/run_manifest.json`
   - `result/<run_name>/run.log`
@@ -49,6 +53,7 @@ cp -R experiments/_template experiments/<topic>
 - `README.md`
 - `cases.py`
 - `experimentcode.py`
+- `registry.toml` の topic entry
 - 標準コマンド
 - `Question:`
 - `Comparison Target:`
@@ -58,11 +63,14 @@ cp -R experiments/_template experiments/<topic>
 ```bash
 python3 scripts/experiments/run_managed_experiment.py \
   --topic _template \
-  --variant smoke \
-  -- \
-  python3 experiments/_template/experimentcode.py \
-    --run-dir {run_dir} \
-    --limit 4
+  --use-registered-command smoke
 ```
 
-この wrapper は、command 実行前に result dir と report stub を初期化し、終了後に manifest を更新します。
+この wrapper は、`registry.toml` の topic entry を見て command 実行前に result dir と report stub を初期化し、終了後に manifest を更新します。
+
+## Registry Check
+
+```bash
+python3 scripts/ci/check_experiment_registry.py
+make experiment-check
+```

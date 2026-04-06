@@ -28,6 +28,16 @@
 - `experiments/<topic>/result/`
 - `experiments/<area>/<topic>/result/`
 
+## Experiment Registry Links
+
+- Registry file: `experiments/registry.toml`
+- Topics in scope:
+  - `<topic_name>`
+- Expected registry metadata to update:
+  - `active_branch`
+  - `active_worktree`
+  - `scope_file`
+
 ## Read-Only Or Avoid Directories
 
 - `path/to/avoid`

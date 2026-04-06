@@ -25,6 +25,8 @@
   - nested Codex を canonical container 内で起動します。
 - [ci/check_server_readiness.py](/mnt/l/workspace/project_template/scripts/ci/check_server_readiness.py)
   - main server host の path、mount、builder、Docker socket readiness を確認します。
+- [ci/check_experiment_registry.py](/mnt/l/workspace/project_template/scripts/ci/check_experiment_registry.py)
+  - `experiments/registry.toml` の topic entry と command surface を確認します。
 - [run_comprehensive_review.sh](/mnt/l/workspace/project_template/scripts/run_comprehensive_review.sh)
   - repo 全体の確認用です。
 
@@ -83,6 +85,7 @@ make docs-check
 make docker-build-check
 make docker-build-check-host-docker
 make server-check
+make experiment-check
 make docker-shell
 make docker-codex
 make docker-codex-host-docker
@@ -97,7 +100,8 @@ python3 scripts/ci/run_codex_in_repo_container.py --print-only
 python3 scripts/ci/check_server_readiness.py
 python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune
 python3 scripts/agent_tools/smoke_test_research_perspective_pack.py
-python3 scripts/experiments/run_managed_experiment.py --topic _template --variant smoke --dry-run
+python3 scripts/ci/check_experiment_registry.py
+python3 scripts/experiments/run_managed_experiment.py --topic _template --use-registered-command smoke --dry-run
 ```
 
 ## 実行環境
