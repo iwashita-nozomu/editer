@@ -11,6 +11,7 @@
 - [WORKFLOW_GUIDE.md](/mnt/l/workspace/project_template/documents/WORKFLOW_GUIDE.md)
 - [FILE_CHECKLIST_OPERATIONS.md](/mnt/l/workspace/project_template/documents/FILE_CHECKLIST_OPERATIONS.md)
 - [remote-execution-repo-contract.md](/mnt/l/workspace/project_template/documents/remote-execution-repo-contract.md)
+- [server-host-contract.md](/mnt/l/workspace/project_template/documents/server-host-contract.md)
 
 ## 実験・研究
 

@@ -99,6 +99,7 @@ build 可否だけを確認したい場合は次です。
 ```bash
 make docker-build-check
 make docker-build-check-host-docker
+make server-check
 python3 scripts/ci/run_container_pack.py --pack docker/packs/default.toml --print-only
 python3 scripts/ci/run_codex_in_repo_container.py --print-only
 ```

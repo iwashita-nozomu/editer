@@ -105,11 +105,14 @@ python3 scripts/ci/run_codex_in_repo_container.py --profile host-docker
 
 `safe.directory` は build 時に固定しません。entrypoint が run 時の `PWD` を自動登録し、追加 path は `GIT_SAFE_DIRECTORIES` で渡します。
 
+host に `docker` group が設定されていても、現在の shell がその group をまだ持っていない場合があります。`getent group docker` にユーザー名が出ても `id` に `docker` が無いときは、新しい login shell を開いてから `make docker-build-check` を実行します。一時確認だけなら `sg docker -c 'docker version'` で daemon 到達性を切り分けられます。
+
 ## Standard Commands
 
 ```bash
 make docker-build-check
 make docker-build-check-host-docker
+make server-check
 make docker-shell
 make docker-codex
 make docker-codex-host-docker

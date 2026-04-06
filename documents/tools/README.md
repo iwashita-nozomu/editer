@@ -15,6 +15,8 @@
   - repo workspace を mount した container command を実行します。
 - `scripts/ci/run_codex_in_repo_container.py`
   - nested Codex を canonical container 内で起動します。
+- `scripts/ci/check_server_readiness.py`
+  - main server host の readiness を確認します。
 - `scripts/run_comprehensive_review.sh`
   - repo 全体の確認をまとめて実行します。
 - `scripts/run_pytest_with_logs.sh`

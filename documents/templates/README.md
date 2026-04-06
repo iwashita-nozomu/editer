@@ -10,6 +10,13 @@
 - `remote_execution_repo.template.toml`
   - repo ごとの clone URL と runtime profile の template
 
+## Server Host
+
+- `server_host_inventory.template.md`
+  - main server host の inventory と readiness gap を記録する template
+- `server_runtime_layout.template.toml`
+  - main server host の path、mount、builder 前提を記録する template
+
 ## Rule
 
 - host 固有の実値は repo に置きません

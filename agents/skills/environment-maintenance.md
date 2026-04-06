@@ -20,6 +20,8 @@ Docker、CI、dependency、runtime guidance を同じ変更でそろえます。
 - `docker/packs/`
 - `docker/codex-container-profiles.toml`
 - `docker/python-execution-rules.toml`
+- `documents/server-host-contract.md`
+- `documents/templates/server_runtime_layout.template.toml`
 - `docker/`
 - `README.md`
 - `agents/templates/environment_change_proposal.md`
@@ -45,6 +47,7 @@ Docker、CI、dependency、runtime guidance を同じ変更でそろえます。
 
 - `make docker-build-check`
 - `make docker-build-check-host-docker`
+- `make server-check`
 - `make ci-quick`
 - 必要なら `make ci`
 - 文書更新を含む場合は `make docs-check`

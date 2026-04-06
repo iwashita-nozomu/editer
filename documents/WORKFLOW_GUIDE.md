@@ -28,6 +28,7 @@
 | Python 実装を直したい | `documents/coding-conventions-python.md` | `python/`, `python/tests/` | `make ci-quick` |
 | 文書だけ更新したい | `documents/README.md` | `documents/`, `notes/` | `make docs-check` |
 | Docker / 依存を更新したい | `docker/README.md` | `docker/`, `scripts/ci/` | `make docker-build-check` |
+| main server host の readiness を見たい | `documents/server-host-contract.md` | `documents/templates/`, `scripts/ci/` | `python3 scripts/ci/check_server_readiness.py` |
 | container で Python file を再現したい | `docker/README.md` | `docker/`, `scripts/ci/` | `python3 scripts/ci/run_python_in_dockerfile.py ... --print-only` |
 | nested Codex を container 内で動かしたい | `docker/README.md` | `docker/`, `scripts/ci/`, `.state/` | `python3 scripts/ci/run_codex_in_repo_container.py --print-only` |
 | 実験を進めたい | `documents/experiment-workflow.md` | `experiments/`, `notes/` | report と result の対応確認 |

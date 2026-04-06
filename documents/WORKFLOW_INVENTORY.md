@@ -18,6 +18,8 @@
   - Python file を rule ベースで container 実行します。
 - `scripts/ci/run_codex_in_repo_container.py`
   - nested Codex を canonical container 内で起動します。
+- `scripts/ci/check_server_readiness.py`
+  - main server host の path、mount、builder、Docker socket readiness を確認します。
 - `scripts/run_pytest_with_logs.sh`
   - Python テストのログ付き実行入口です。Python を使う場合だけ使います。
 - `scripts/run_comprehensive_review.sh`
@@ -59,6 +61,7 @@
 - 文書確認は `make docs-check`
 - Docker 変更の確認は `make docker-build-check`
 - host Docker socket 依存の確認は `make docker-build-check-host-docker`
+- main server host の確認は `make server-check`
 - repo 全体の点検は `bash scripts/run_comprehensive_review.sh`
 - 実験運用は `documents/experiment-workflow.md`
 - 実験つきの改造 loop は `agents/skills/experiment-change-loop.md`

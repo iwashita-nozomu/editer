@@ -23,6 +23,8 @@
   - Python file を rule ベースで container 実行します。
 - [ci/run_codex_in_repo_container.py](/mnt/l/workspace/project_template/scripts/ci/run_codex_in_repo_container.py)
   - nested Codex を canonical container 内で起動します。
+- [ci/check_server_readiness.py](/mnt/l/workspace/project_template/scripts/ci/check_server_readiness.py)
+  - main server host の path、mount、builder、Docker socket readiness を確認します。
 - [run_comprehensive_review.sh](/mnt/l/workspace/project_template/scripts/run_comprehensive_review.sh)
   - repo 全体の確認用です。
 
@@ -75,6 +77,7 @@ make ci
 make docs-check
 make docker-build-check
 make docker-build-check-host-docker
+make server-check
 make docker-shell
 make docker-codex
 make docker-codex-host-docker
@@ -86,6 +89,7 @@ pipdeptree --warn fail
 deptry python
 python3 scripts/ci/run_container_pack.py --pack docker/packs/default.toml --print-only
 python3 scripts/ci/run_codex_in_repo_container.py --print-only
+python3 scripts/ci/check_server_readiness.py
 python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune
 python3 scripts/agent_tools/smoke_test_research_perspective_pack.py
 ```
