@@ -29,6 +29,7 @@
 - 規約変更の正本反映
 - どの知見を `notes/` に残すかの取捨選択
 - 不要 branch や古い補助文書の削除判断
+- 環境依存ツールを repo 正本へ採用するかの判断
 
 ## 不足している自動化
 
@@ -44,3 +45,5 @@
 - Docker 変更の確認は `make docker-build-check`
 - repo 全体の点検は `bash scripts/run_comprehensive_review.sh`
 - 実験運用は `documents/experiment-workflow.md`
+- 実験つきの改造 loop は `agents/skills/experiment-change-loop.md`
+- 環境依存ツール導入案は `agents/skills/environment-maintenance.md` と `agents/templates/environment_change_proposal.md`

@@ -32,8 +32,12 @@
   - 文献調査と先行研究整理の入口
 - [skills/research-workflow.md](/mnt/l/workspace/project_template/agents/skills/research-workflow.md)
   - 研究系変更の outer loop
+- [skills/experiment-change-loop.md](/mnt/l/workspace/project_template/agents/skills/experiment-change-loop.md)
+  - 実験結果に基づく改造 loop の自律実行
 - [skills/research-perspective-review.md](/mnt/l/workspace/project_template/agents/skills/research-perspective-review.md)
   - 研究系変更の並列 review pack
+- [skills/environment-maintenance.md](/mnt/l/workspace/project_template/agents/skills/environment-maintenance.md)
+  - Docker、CI、tool 導入方針の正本
 
 ## Runtime Entry Points
 

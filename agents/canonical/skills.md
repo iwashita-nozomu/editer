@@ -22,6 +22,8 @@
   - findings-first review
 - `experiment-workflow`
   - question, protocol, run, report の整理
+- `experiment-change-loop`
+  - 実験結果で改造 loop を閉じるまで回す
 - `literature-survey`
   - 先行研究、関連文献、反証候補の整理
 - `research-workflow`

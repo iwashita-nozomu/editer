@@ -73,6 +73,7 @@ experiments/
 - 複数 run をまたぐ知見は `notes/experiments/` または `notes/themes/`
 
 実験方法論そのものは `documents/experiment-workflow.md` と `documents/research-workflow.md` を正本にします。
+agent に実験つき改造 loop を回させる場合は `agents/skills/experiment-change-loop.md` を入口にし、記録は `agents/templates/experiment_change_loop.md` を使います。
 
 ## よく使うコマンド
 
@@ -94,6 +95,8 @@ make tools-help
 `docker/Dockerfile` には Codex CLI を同梱します。コンテナに入ったあと、認証は各自の OpenAI アカウントで行います。対話認証は `codex login`、API key を使う場合は `printenv OPENAI_API_KEY | codex login --with-api-key` を使えます。
 
 `docker/Dockerfile` か `docker/requirements.txt` を更新した変更では、`make docker-build-check` を通して build 可否を確認します。ローカルに `docker` / `podman` がない場合は、GitHub Actions の `Docker Build` workflow を使います。
+
+repo-wide な tool 導入案は `agents/templates/environment_change_proposal.md` に理由、Docker 影響、validation、rollback を残します。
 
 container 内では `PYTHONPATH=/workspace/python` を前提にします。
 

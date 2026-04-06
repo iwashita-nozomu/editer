@@ -13,6 +13,8 @@
 
 さらに、実験を進めながらコード自体を改造する必要がある場合は、結果とレポートを毎回生成し、サブエージェントによる批判的レビューを挟んで反復する workflow を標準にします。外部調査つき実装、性能改善、比較検証では、この文書を `Research-Driven Change` の inner loop として使います。outer loop の正本は [research-workflow.md](research-workflow.md) です。
 
+agent がこの反復を自律実行する場合の skill 入口は `agents/skills/experiment-change-loop.md`、loop 記録テンプレートは `agents/templates/experiment_change_loop.md` です。
+
 ## 1. この文書の役割
 
 この文書は実験実務の入口です。詳細は次に分けます。
@@ -318,6 +320,8 @@ carry-over のルールは次です。
    - review outcome を `report_rewrite_required`、`extra_validation_required`、`rerun_required`、`approved` のいずれかで返す。
 1. `experimenter`
    - `report_rewrite_required` の場合、同じ result を使って report を書き直す。
+
+この反復を agent が自律実行する場合は、1 iteration ごとに `Change:`、`Validation Plan:`、`Run Name / Path:`、`Decision:`、`Next Action:` を `agents/templates/experiment_change_loop.md` に記録します。
    - `extra_validation_required` の場合、同じ比較方針で追加検証を行う。
    - `rerun_required` の場合、新しい run_name で fresh rerun を行う。
 1. `implementer`

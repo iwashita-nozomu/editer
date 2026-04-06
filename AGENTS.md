@@ -60,6 +60,7 @@ Use this file as the runtime entrypoint for Codex and GitHub Copilot agents.
 
 - Literature-heavy tasks should normally use `literature-survey`.
 - Research-driven tasks should normally use `research-workflow` as the outer loop.
+- Benchmark-driven code changes that should keep iterating until an explicit decision state should add `experiment-change-loop`.
 - Claim-heavy experiment work should normally pass both `critical-review` and `report-review`.
 - If methodology, benchmark protocol, artifact policy, or reporting policy changes substantially, add `research-perspective-review`.
 
@@ -80,6 +81,7 @@ Use this file as the runtime entrypoint for Codex and GitHub Copilot agents.
 ## Environment Notes
 
 - If you touch Python dependencies, update `docker/Dockerfile` and `docker/requirements.txt` together.
+- Repo-wide tool introduction proposals should follow `environment-maintenance` and `agents/templates/environment_change_proposal.md`.
 - Prefer repository docs and checked-in scripts over agent-specific guesses.
 - Keep runtime entrypoint files thin; update the canonical docs in `agents/` first.
 - If workflow or review policy changes are based on external sources, update `documents/workflow-references.md`.

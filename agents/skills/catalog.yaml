@@ -57,6 +57,10 @@ skill_families:
     purpose: Plan, run, and report experiments with clear protocol and result boundaries.
     canonical_doc: agents/skills/experiment-workflow.md
     shim: .agents/skills/experiment-workflow/SKILL.md
+  - id: experiment-change-loop
+    purpose: Run benchmark-driven code changes through implement, run, review, and explicit decision states until closure.
+    canonical_doc: agents/skills/experiment-change-loop.md
+    shim: .agents/skills/experiment-change-loop/SKILL.md
   - id: literature-survey
     purpose: Search for primary sources, prior art, contradictory evidence, and reusable bibliography structure.
     canonical_doc: agents/skills/literature-survey.md

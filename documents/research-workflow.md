@@ -52,6 +52,8 @@ decision は次の 4 つに固定します。
 
 この loop は 1 回で終える前提にしません。`report_rewrite_required`、`extra_validation_required`、`rerun_required` が残る限り、結論を閉じることを禁止します。
 
+agent がこの loop を自律実行する場合は、routing skill として `agents/skills/experiment-change-loop.md` を使い、iteration の記録は `agents/templates/experiment_change_loop.md` を起点にします。
+
 ## 3. 文献ベースの要点
 
 以下は外部文献からの要点整理です。
@@ -249,6 +251,8 @@ decision は次の 4 つに固定します。
 - どの commit と run directory で検証したか
 - どの結果や判断をどこへ反映したか
 - 例外的に branch / worktree を使った場合は、その理由と carry-over 方針
+
+agent が反復を自律実行する場合は、これに加えて iteration ごとの `Decision:` と `Next Action:` を `agents/templates/experiment_change_loop.md` に沿って残します。
 
 ## 6.5 集計と定量的考察の作法
 

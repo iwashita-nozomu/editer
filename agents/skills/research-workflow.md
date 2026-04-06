@@ -31,5 +31,6 @@
 ## Boundary
 
 - 単一 run の設計と出力整理は `experiment-workflow` を使います。
+- 実験結果を見ながら code change を継続反復する場合は `experiment-change-loop` を追加します。
 - 文献探索そのものは `literature-survey` を使います。
 - 大きい methodology / artifact / reporting policy 変更の独立レビューは `research-perspective-review` を使います。

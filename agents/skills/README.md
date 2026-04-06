@@ -30,6 +30,7 @@
 | `docs-consistency-review` | 文書間の矛盾と stale route の確認 | `agents/skills/docs-consistency-review.md` | `.agents/skills/docs-consistency-review/SKILL.md` |
 | `change-review` | findings-first review | `agents/skills/change-review.md` | `.agents/skills/change-review/SKILL.md` |
 | `experiment-workflow` | question, protocol, run, report の整理 | `agents/skills/experiment-workflow.md` | `.agents/skills/experiment-workflow/SKILL.md` |
+| `experiment-change-loop` | 実験結果で改造 loop を閉じるまで回す | `agents/skills/experiment-change-loop.md` | `.agents/skills/experiment-change-loop/SKILL.md` |
 | `literature-survey` | 先行研究、関連文献、反証候補の整理 | `agents/skills/literature-survey.md` | `.agents/skills/literature-survey/SKILL.md` |
 | `research-workflow` | 外部調査、比較設計、run loop、decision state の整理 | `agents/skills/research-workflow.md` | `.agents/skills/research-workflow/SKILL.md` |
 | `critical-review` | 過大主張、比較条件、根拠不足の確認 | `agents/skills/critical-review.md` | `.agents/skills/critical-review/SKILL.md` |
@@ -44,6 +45,8 @@
 - specialist を使う場合の Codex-specific routing は `agents/canonical/CODEX_SUBAGENTS.md` を見ます。
 - 文献調査が主タスクなら `literature-survey` を先に見ます。
 - 研究系の task では `research-workflow` を outer loop、`research-perspective-review` を大きい review pack として使います。
+- 実験結果を見ながら code change を継続反復する task では `experiment-change-loop` を使います。
+- repo-wide な tool 導入や Docker / CI 更新案では `environment-maintenance` と `agents/templates/environment_change_proposal.md` を使います。
 
 ## Updating Skills
 

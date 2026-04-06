@@ -67,12 +67,14 @@ bash scripts/run_comprehensive_review.sh
 - 実行ごとの生成物は `experiments/<topic>/result/<run_name>/` に置きます。
 - 1 回の実験 report は `experiments/report/<run_name>.md` に置きます。
 - partial run を正式結果として扱いません。
+- agent に実験つき改造 loop を回させる場合は `agents/skills/experiment-change-loop.md` と `agents/templates/experiment_change_loop.md` を使います。
 
 ## 6. 環境の基本
 
 - 共通開発環境は `docker/` を基準にします。
 - Python 依存を追加する場合は `docker/Dockerfile` と `docker/requirements.txt` を同時に更新します。
 - `docker/Dockerfile` か `docker/requirements.txt` を更新したら `make docker-build-check` を流します。
+- repo-wide な tool 導入案は `agents/templates/environment_change_proposal.md` に記録します。
 - container 内では `PYTHONPATH=/workspace/python` を前提にします。
 - Markdown の体裁ルールは `.markdownlint.json` と `documents/conventions/common/05_docs.md` を基準にします。
 - 依存棚卸しは `pipdeptree` と `deptry` を baseline にします。

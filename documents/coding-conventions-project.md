@@ -32,6 +32,25 @@
 - 開発環境の更新では、必要な README と運用文書も同じ変更で更新します。
 - Python を使う場合でも、repo 全体の入口を Python 専用にはしません。
 
+## 4.5 環境依存ツール導入提案のルール
+
+- repo-wide に使う環境依存ツールの導入提案では、`agents/templates/environment_change_proposal.md` を使って理由、影響範囲、validation、rollback を記録しなければなりません。
+- host-global install を repo の正本手順として採用することを禁止します。
+- repo-wide に必要な Python tool は、原則として `docker/requirements.txt` と `docker/Dockerfile` に同時反映しなければなりません。
+- CI でも使う tool を、手元だけの補助 install として導入することを禁止します。
+- 1 回限りの調査や個人補助にとどまる tool は、repo 正本へ追加する前に container 実行、checked-in script、既存依存で代替できないか確認しなければなりません。
+- 導入提案では、少なくとも次を明記しなければなりません。
+  - 何の workflow を支えるのか
+  - host / Docker / CI のどこを更新するのか
+  - `docker/Dockerfile` と `docker/requirements.txt` の更新要否
+  - どのコマンドで validate するのか
+  - 不採用または撤回するときの rollback 手順
+
+## 4.6 Docker 更新時の扱い
+
+- `docker/Dockerfile` を更新する変更では、依存追加の有無にかかわらず `README.md`、`QUICK_START.md`、関連する `documents/` の command や説明も同じ変更で見直さなければなりません。
+- Docker 変更で新しい tool を同梱する場合は、その tool の用途、呼び出し入口、不要になったときの削除方針を文書へ残しなければなりません。
+
 ## 5. テストとレビュー
 
 - 実装変更には、対応するテストまたは検証手順を同じ変更でそろえます。

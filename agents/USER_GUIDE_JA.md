@@ -26,9 +26,11 @@
 - Markdown / report 差分では `md-style-check` と必要なら `report-review` を使います。
 - 文献調査や関連研究整理では `literature-survey` を使います。
 - 研究系 task では `research-workflow` を外側の loop に使います。
+- 実験結果を見ながら code change を継続反復する場合は `experiment-change-loop` を使います。
 - 研究設計や artifact 方針まで大きく触る場合は `research-perspective-review` を追加します。
 - 文書の置き場で迷う場合は `artifact-placement` を見ます。
 - CLI 差分で迷う場合は `codex-cli`、`claude-code-cli`、`copilot-cli` を見ます。
+- Docker、CI、dependency、repo-wide tool 導入案では `environment-maintenance` を使います。
 
 ## subagent の使い方
 

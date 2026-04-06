@@ -35,6 +35,8 @@
       --task "short task summary" \
       --owner "codex-or-human"
 
+`experimenter` が有効な run では `experiment_change_loop.md`、`infra_steward` が有効な run では `environment_change_proposal.md` も bundle に含めます。
+
 artifact-only role や review role の write scope を確認するときは、`validate_role_write_scope.py` を使います。
 
     python3 scripts/agent_tools/validate_role_write_scope.py \
