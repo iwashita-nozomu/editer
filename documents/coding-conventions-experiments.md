@@ -17,6 +17,7 @@
 - topic ごとに `README.md`、`cases.*`、`experiment.*`、`result/` を基準にします。
 - 1 回の run の report は `experiments/report/<run_name>.md` に置きます。
 - 複数 run をまたぐ要約や知見は `notes/experiments/` や `notes/themes/` に置きます。
+- server 上の formal run では `result/<run_name>/run_manifest.json` と `run.log` を残します。
 
 ## 3. 実行原則
 
@@ -24,6 +25,7 @@
 - partial run を正式結果として継ぎ足しません。
 - 比較条件は run 開始前に固定します。
 - 巨大な生成物や raw ログを `main` の入口文書へ混ぜません。
+- main server host で実行する run は、topic README に exact command と wrapper の使い方を明記します。
 
 ## 4. report と notes
 

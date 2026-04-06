@@ -17,6 +17,8 @@
   - nested Codex を canonical container 内で起動します。
 - `scripts/ci/check_server_readiness.py`
   - main server host の readiness を確認します。
+- `scripts/experiments/run_managed_experiment.py`
+  - server 上の実験 run artifact を初期化します。
 - `scripts/run_comprehensive_review.sh`
   - repo 全体の確認をまとめて実行します。
 - `scripts/run_pytest_with_logs.sh`

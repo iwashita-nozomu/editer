@@ -43,6 +43,7 @@
 - `documents/coding-conventions-python.md`
 - 開発環境を触る場合は `docker/`
 - 実験を行う場合は `documents/experiment-workflow.md`
+- 実験 topic を作る場合は `experiments/README.md`
 - エージェントを使う場合は `agents/README.md`
 
 ## 日常の進め方
@@ -75,6 +76,7 @@ experiments/
 
 実験方法論そのものは `documents/experiment-workflow.md` と `documents/research-workflow.md` を正本にします。
 agent に実験つき改造 loop を回させる場合は `agents/skills/experiment-change-loop.md` を入口にし、記録は `agents/templates/experiment_change_loop.md` を使います。
+server で回す実験コードの実体テンプレは `experiments/_template/`、run metadata を残す入口は `scripts/experiments/run_managed_experiment.py` です。
 
 ## よく使うコマンド
 

@@ -52,6 +52,8 @@ agent がこの反復を自律実行する場合の skill 入口は `agents/skil
   - topic 名、run_name、result ディレクトリ名、report 名の規則を先に決め、topic README か対応する正本文書へ残します。
 - `Execution Plan:`
   - `main` で進めるか、隔離が必要な場合だけ短期 branch を使うかを先に決めます。既定は `main` です。
+- `Server Run Surface:`
+  - main server host で formal run を回す場合、`scripts/experiments/run_managed_experiment.py` を使うか、同等の metadata capture を topic README に固定します。
 
 次に、隔離の要否を決めます。
 
@@ -82,6 +84,7 @@ top-level の `reports/` は project-wide な review、automation、management r
 - runtime 生成物
   - `result/<run_name>/summary.json`
   - `result/<run_name>/cases.jsonl`
+  - `result/<run_name>/run_manifest.json`
   - `result/<run_name>/run.log`
   - 図を出力する場合は `result/<run_name>/figures/`
 - report 名
@@ -188,6 +191,8 @@ process 管理や GPU 割当は runner 側の責務であり、実験 script 側
 pickle 可否、JAX import 後の env 汚染、GPU visibility の実際の反映は静的チェックだけでは分かりません。
 それらは次の実行段階で smoke / verified として確認します。
 
+server 実行の formal run では、少なくとも `run_manifest.json`、`run.log`、exact command、host 情報、commit 情報が残ることを確認します。
+
 ### 4. 実験実行
 
 実験実行は、少なくとも次の段階に分けます。
@@ -227,6 +232,19 @@ pickle 可否、JAX import 後の env 汚染、GPU visibility の実際の反映
 
 は run 開始前に固定し、途中で script を書き換えながら継ぎ足しません。
 
+main server host で formal run を回す場合は、次を推奨します。
+
+```bash
+python3 scripts/experiments/run_managed_experiment.py \
+  --topic <topic> \
+  --variant formal \
+  -- \
+  python3 experiments/<topic>/experimentcode.py \
+    --run-dir {run_dir}
+```
+
+この wrapper は `result/<run_name>/`、`run_manifest.json`、`run.log`、`experiments/report/<run_name>.md` の初期 stub をそろえます。
+
 #### 4.4 long run のルール
 
 - 長時間 run でも、別 branch / worktree は必須ではありません。隔離が必要なときだけ使います。
@@ -251,6 +269,8 @@ user-facing report の体裁と根拠導線は [experiment-report-style.md](expe
 
 - `summary.json`
 - `cases.jsonl`
+- `run_manifest.json`
+- `run.log`
 - report へのリンク
 - `Result Summary:`
 - `Quantitative Summary:`

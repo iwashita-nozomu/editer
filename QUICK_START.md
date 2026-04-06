@@ -14,6 +14,7 @@
 
 - [documents/experiment-workflow.md](/mnt/l/workspace/project_template/documents/experiment-workflow.md)
 - [documents/research-workflow.md](/mnt/l/workspace/project_template/documents/research-workflow.md)
+- [experiments/README.md](/mnt/l/workspace/project_template/experiments/README.md)
 
 agent を使う場合は次を見ます。
 
@@ -67,6 +68,7 @@ bash scripts/run_comprehensive_review.sh
 - 実験コードは `experiments/<topic>/` に置きます。
 - 実行ごとの生成物は `experiments/<topic>/result/<run_name>/` に置きます。
 - 1 回の実験 report は `experiments/report/<run_name>.md` に置きます。
+- server で formal run を回すときは `scripts/experiments/run_managed_experiment.py` で `run_manifest.json` と `run.log` を残します。
 - partial run を正式結果として扱いません。
 - agent に実験つき改造 loop を回させる場合は `agents/skills/experiment-change-loop.md` と `agents/templates/experiment_change_loop.md` を使います。
 

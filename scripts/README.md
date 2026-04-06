@@ -33,6 +33,11 @@
 - [run_pytest_with_logs.sh](/mnt/l/workspace/project_template/scripts/run_pytest_with_logs.sh)
   - pytest をログ付きで実行します。
 
+### 実験運用
+
+- [experiments/run_managed_experiment.py](/mnt/l/workspace/project_template/scripts/experiments/run_managed_experiment.py)
+  - server 上の実験 run で `result/<run_name>/`、`run_manifest.json`、`run.log`、report stub を初期化します。
+
 ベースライン依存:
 - `psutil`
   - process / memory / CPU の観測に使います。
@@ -92,6 +97,7 @@ python3 scripts/ci/run_codex_in_repo_container.py --print-only
 python3 scripts/ci/check_server_readiness.py
 python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune
 python3 scripts/agent_tools/smoke_test_research_perspective_pack.py
+python3 scripts/experiments/run_managed_experiment.py --topic _template --variant smoke --dry-run
 ```
 
 ## 実行環境

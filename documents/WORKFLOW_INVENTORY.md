@@ -20,6 +20,8 @@
   - nested Codex を canonical container 内で起動します。
 - `scripts/ci/check_server_readiness.py`
   - main server host の path、mount、builder、Docker socket readiness を確認します。
+- `scripts/experiments/run_managed_experiment.py`
+  - server 上の実験 run で `result/<run_name>/`、`run_manifest.json`、`run.log`、report stub を初期化します。
 - `scripts/run_pytest_with_logs.sh`
   - Python テストのログ付き実行入口です。Python を使う場合だけ使います。
 - `scripts/run_comprehensive_review.sh`
@@ -64,5 +66,6 @@
 - main server host の確認は `make server-check`
 - repo 全体の点検は `bash scripts/run_comprehensive_review.sh`
 - 実験運用は `documents/experiment-workflow.md`
+- server 上の実験 run 初期化は `python3 scripts/experiments/run_managed_experiment.py`
 - 実験つきの改造 loop は `agents/skills/experiment-change-loop.md`
 - 環境依存ツール導入案は `agents/skills/environment-maintenance.md` と `agents/templates/environment_change_proposal.md`
