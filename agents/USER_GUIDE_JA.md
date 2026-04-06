@@ -23,11 +23,16 @@
 - どの skill を使うか迷う場合は、まず `repo-onboarding` か `agent-orchestration` を見ます。
 - Codex で毎回同じ手順を踏みたい場合は `codex-task-workflow` を見ます。
 - Python 差分では `python-review` を既定で使います。
+- 局所 diff を findings-first で見るときは `code-review` か `change-review` を使います。
 - Markdown / report 差分では `md-style-check` と必要なら `report-review` を使います。
+- 文書の説明不足を拾うときは `docs-completeness-review` を使います。
 - 文献調査や関連研究整理では `literature-survey` を使います。
 - 研究系 task では `research-workflow` を外側の loop に使います。
 - 実験結果を見ながら code change を継続反復する場合は `experiment-change-loop` を使います。
+- 単一 run の review / rerun 分岐は `experiment-lifecycle` を使います。
 - 研究設計や artifact 方針まで大きく触る場合は `research-perspective-review` を追加します。
+- worktree を切った直後は `worktree-start`、drift や cleanup 判断は `worktree-health` を使います。
+- repo 全体を横断して見るときは `project-review`、必要なら `comprehensive-review` と `project-health` を追加します。
 - 文書の置き場で迷う場合は `artifact-placement` を見ます。
 - CLI 差分で迷う場合は `codex-cli`、`claude-code-cli`、`copilot-cli` を見ます。
 - Docker、CI、dependency、repo-wide tool 導入案では `environment-maintenance` を使います。

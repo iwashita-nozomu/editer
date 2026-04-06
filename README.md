@@ -92,20 +92,28 @@ make tools-help
 
 ## Docker で Codex を使う
 
-`docker/Dockerfile` には Codex CLI を同梱します。コンテナに入ったあと、認証は各自の OpenAI アカウントで行います。対話認証は `codex login`、API key を使う場合は `printenv OPENAI_API_KEY | codex login --with-api-key` を使えます。
+`docker/Dockerfile` には Codex CLI と `docker` CLI を同梱します。コンテナに入ったあと、認証は各自の OpenAI アカウントで行います。対話認証は `codex login`、API key を使う場合は `printenv OPENAI_API_KEY | codex login --with-api-key` を使えます。
 
 `docker/Dockerfile` か `docker/requirements.txt` を更新した変更では、`make docker-build-check` を通して build 可否を確認します。ローカルに `docker` / `podman` がない場合は、GitHub Actions の `Docker Build` workflow を使います。
 
 repo-wide な tool 導入案は `agents/templates/environment_change_proposal.md` に理由、Docker 影響、validation、rollback を残します。
 
+`safe.directory` は build 時に固定せず、container 起動時に現在の working directory を自動登録します。追加の path が必要な場合は `GIT_SAFE_DIRECTORIES=/workspace:/mnt/git/template.git` のように環境変数で渡します。
+
 container 内では `PYTHONPATH=/workspace/python` を前提にします。
 
 ```bash
 docker build -t project-template -f docker/Dockerfile .
-docker run --rm -it -v $(pwd):/workspace -w /workspace project-template bash
+docker run --rm -it \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v $(pwd):/workspace -w /workspace \
+  project-template bash
 codex --version
+docker --version
 codex login
 ```
+
+container 内から `docker build` / `docker run` を行う場合は、上のように host の Docker socket を渡すか、別 daemon を用意します。
 
 build 確認だけを行う場合は次です。
 

@@ -10,18 +10,30 @@
   - task 文書、run artifact、repo 正本の置き分け
 - `subagent-bootstrap`
   - specialist 起動、report bundle、write-scope 整理
+- `static-check`
+  - 速い検査と基礎品質確認
 - `static-validation`
   - lint / test / link / CI 確認
+- `code-review`
+  - correctness / 設計 / 保守性レビュー
 - `python-review`
   - pyright / pytest / ruff を前提にした Python review
+- `docs-completeness-review`
+  - 文書の欠落や説明不足のレビュー
 - `md-style-check`
   - Markdown の体裁とリンク確認
 - `docs-consistency-review`
   - 文書間の矛盾と stale route の確認
 - `change-review`
   - findings-first review
+- `worktree-start`
+  - worktree 開始時の scope と kickoff を整える
+- `worktree-health`
+  - worktree の scope drift と cleanup risk を確認
 - `experiment-workflow`
   - question, protocol, run, report の整理
+- `experiment-lifecycle`
+  - 単一 run と review / rerun 分岐
 - `experiment-change-loop`
   - 実験結果で改造 loop を閉じるまで回す
 - `literature-survey`
@@ -34,6 +46,12 @@
   - experiment report の reader-facing review
 - `research-perspective-review`
   - 研究系変更を複数視点で並列レビュー
+- `comprehensive-review`
+  - docs / tools / workflow の横断レビュー
+- `project-health`
+  - 継続運用、CI、drift の健全性確認
+- `project-review`
+  - repo-wide な棚卸しと全体レビュー
 - `environment-maintenance`
   - Docker, CI, dependency, runtime 更新
 - `codex-cli`

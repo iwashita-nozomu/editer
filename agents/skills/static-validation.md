@@ -14,3 +14,8 @@
 - `make ci-quick`
 - `make ci`
 - `make docs-check`
+
+## Boundary
+
+- `static-check` は Codex skill 名互換の入口です。
+- どの gate を組み合わせるかの正本はこの文書です。

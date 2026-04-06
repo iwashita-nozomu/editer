@@ -4,7 +4,7 @@ ARG NODE_VERSION=22.14.0
 
 # GCCやビルド系 + Python
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates curl git \
+    ca-certificates curl git docker.io \
     build-essential pkg-config cmake \
     python3 python3-pip python3-venv \
     openssh-client graphviz xz-utils \
@@ -28,9 +28,14 @@ RUN pip install --no-cache-dir "jax[cuda12]"
 COPY docker/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-WORKDIR /work
-ENV PYTHONPATH=/workspace/python
-RUN git config --global --add safe.directory /mnt/git/template.git
-RUN git config --global --add safe.directory /mnt/git/jax_util.git
+COPY docker/entrypoint.sh /usr/local/bin/project-template-entrypoint
+RUN chmod +x /usr/local/bin/project-template-entrypoint \
+ && docker --version
 
+WORKDIR /workspace
+ENV PYTHONPATH=/workspace/python
+ENV AUTO_GIT_SAFE_DIRECTORY=1
+ENV GIT_SAFE_DIRECTORIES=
+
+ENTRYPOINT ["/usr/local/bin/project-template-entrypoint"]
 CMD ["/bin/bash"]

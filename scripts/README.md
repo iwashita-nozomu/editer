@@ -14,7 +14,7 @@
 - [ci/run_docs_checks.sh](/mnt/l/workspace/project_template/scripts/ci/run_docs_checks.sh)
   - repo-wide の Markdown 体裁とリンクを確認します。
 - [ci/check_docker_build.sh](/mnt/l/workspace/project_template/scripts/ci/check_docker_build.sh)
-  - `docker/Dockerfile` の build 可否と最小限の runtime smoke check を確認します。
+  - `docker/Dockerfile` の build 可否、`docker` CLI、run-time `safe.directory` 設定を確認します。
 - [run_comprehensive_review.sh](/mnt/l/workspace/project_template/scripts/run_comprehensive_review.sh)
   - repo 全体の確認用です。
 

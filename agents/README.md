@@ -34,6 +34,10 @@
   - 研究系変更の outer loop
 - [skills/experiment-change-loop.md](/mnt/l/workspace/project_template/agents/skills/experiment-change-loop.md)
   - 実験結果に基づく改造 loop の自律実行
+- [skills/worktree-start.md](/mnt/l/workspace/project_template/agents/skills/worktree-start.md)
+  - worktree kickoff と scope 初期化
+- [skills/project-review.md](/mnt/l/workspace/project_template/agents/skills/project-review.md)
+  - repo-wide review と棚卸し
 - [skills/research-perspective-review.md](/mnt/l/workspace/project_template/agents/skills/research-perspective-review.md)
   - 研究系変更の並列 review pack
 - [skills/environment-maintenance.md](/mnt/l/workspace/project_template/agents/skills/environment-maintenance.md)

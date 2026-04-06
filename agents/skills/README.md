@@ -24,18 +24,27 @@
 | `codex-task-workflow` | Codex の context-independent task 実行 | `agents/skills/codex-task-workflow.md` | `.agents/skills/codex-task-workflow/SKILL.md` |
 | `claude-code-cli` | Claude Code 用の入口差分 | `agents/skills/claude-code-cli.md` | `.agents/skills/claude-code-cli/SKILL.md` |
 | `copilot-cli` | Copilot 用の入口差分 | `agents/skills/copilot-cli.md` | `.agents/skills/copilot-cli/SKILL.md` |
+| `static-check` | 速い検査と基礎品質確認 | `agents/skills/static-check.md` | `.agents/skills/static-check/SKILL.md` |
 | `static-validation` | lint / test / docs / links の確認 | `agents/skills/static-validation.md` | `.agents/skills/static-validation/SKILL.md` |
+| `code-review` | correctness / 設計 / 保守性レビュー | `agents/skills/code-review.md` | `.agents/skills/code-review/SKILL.md` |
 | `python-review` | pyright / pytest / ruff を前提にした Python review | `agents/skills/python-review.md` | `.agents/skills/python-review/SKILL.md` |
+| `docs-completeness-review` | 文書の欠落や説明不足のレビュー | `agents/skills/docs-completeness-review.md` | `.agents/skills/docs-completeness-review/SKILL.md` |
 | `md-style-check` | Markdown の体裁とリンク確認 | `agents/skills/md-style-check.md` | `.agents/skills/md-style-check/SKILL.md` |
 | `docs-consistency-review` | 文書間の矛盾と stale route の確認 | `agents/skills/docs-consistency-review.md` | `.agents/skills/docs-consistency-review/SKILL.md` |
 | `change-review` | findings-first review | `agents/skills/change-review.md` | `.agents/skills/change-review/SKILL.md` |
+| `worktree-start` | worktree 開始時の scope と kickoff を整える | `agents/skills/worktree-start.md` | `.agents/skills/worktree-start/SKILL.md` |
+| `worktree-health` | worktree の scope drift と cleanup risk を確認 | `agents/skills/worktree-health.md` | `.agents/skills/worktree-health/SKILL.md` |
 | `experiment-workflow` | question, protocol, run, report の整理 | `agents/skills/experiment-workflow.md` | `.agents/skills/experiment-workflow/SKILL.md` |
+| `experiment-lifecycle` | 単一 run と review / rerun 分岐 | `agents/skills/experiment-lifecycle.md` | `.agents/skills/experiment-lifecycle/SKILL.md` |
 | `experiment-change-loop` | 実験結果で改造 loop を閉じるまで回す | `agents/skills/experiment-change-loop.md` | `.agents/skills/experiment-change-loop/SKILL.md` |
 | `literature-survey` | 先行研究、関連文献、反証候補の整理 | `agents/skills/literature-survey.md` | `.agents/skills/literature-survey/SKILL.md` |
 | `research-workflow` | 外部調査、比較設計、run loop、decision state の整理 | `agents/skills/research-workflow.md` | `.agents/skills/research-workflow/SKILL.md` |
 | `critical-review` | 過大主張、比較条件、根拠不足の確認 | `agents/skills/critical-review.md` | `.agents/skills/critical-review/SKILL.md` |
 | `report-review` | experiment report の reader-facing review | `agents/skills/report-review.md` | `.agents/skills/report-review/SKILL.md` |
 | `research-perspective-review` | 研究系変更を複数視点で並列レビュー | `agents/skills/research-perspective-review.md` | `.agents/skills/research-perspective-review/SKILL.md` |
+| `comprehensive-review` | docs / tools / workflow の横断レビュー | `agents/skills/comprehensive-review.md` | `.agents/skills/comprehensive-review/SKILL.md` |
+| `project-health` | 継続運用、CI、drift の健全性確認 | `agents/skills/project-health.md` | `.agents/skills/project-health/SKILL.md` |
+| `project-review` | repo-wide な棚卸しと全体レビュー | `agents/skills/project-review.md` | `.agents/skills/project-review/SKILL.md` |
 | `environment-maintenance` | Docker / CI / dependency / runtime 更新 | `agents/skills/environment-maintenance.md` | `.agents/skills/environment-maintenance/SKILL.md` |
 
 ## Codex Defaults
@@ -46,6 +55,8 @@
 - 文献調査が主タスクなら `literature-survey` を先に見ます。
 - 研究系の task では `research-workflow` を outer loop、`research-perspective-review` を大きい review pack として使います。
 - 実験結果を見ながら code change を継続反復する task では `experiment-change-loop` を使います。
+- worktree を新設・再開するときは `worktree-start`、scope drift や cleanup 判断は `worktree-health` を使います。
+- repo-wide な棚卸しや大きな workflow 整理では `project-review` と必要なら `comprehensive-review` を使います。
 - repo-wide な tool 導入や Docker / CI 更新案では `environment-maintenance` と `agents/templates/environment_change_proposal.md` を使います。
 
 ## Updating Skills

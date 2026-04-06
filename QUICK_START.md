@@ -79,12 +79,16 @@ bash scripts/run_comprehensive_review.sh
 - Markdown の体裁ルールは `.markdownlint.json` と `documents/conventions/common/05_docs.md` を基準にします。
 - 依存棚卸しは `pipdeptree` と `deptry` を baseline にします。
 
-Codex CLI は `docker/Dockerfile` に同梱します。コンテナ内では `codex login`、API key を使う場合は `printenv OPENAI_API_KEY | codex login --with-api-key` を使います。
+Codex CLI と `docker` CLI は `docker/Dockerfile` に同梱します。コンテナ内では `codex login`、API key を使う場合は `printenv OPENAI_API_KEY | codex login --with-api-key` を使います。`safe.directory` は起動時に現在の working directory を自動登録し、追加 path は `GIT_SAFE_DIRECTORIES` で渡します。
 
 ```bash
 docker build -t project-template -f docker/Dockerfile .
-docker run --rm -it -v $(pwd):/workspace -w /workspace project-template bash
+docker run --rm -it \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v $(pwd):/workspace -w /workspace \
+  project-template bash
 codex --version
+docker --version
 codex login
 ```
 

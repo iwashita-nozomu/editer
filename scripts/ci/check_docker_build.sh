@@ -164,13 +164,19 @@ IMAGE_BUILT=1
 if [[ "$SKIP_RUN" -eq 0 ]]; then
   echo ""
   echo "Running container smoke check"
-  "$CONTAINER_BUILDER" run --rm --entrypoint /bin/bash "$IMAGE_TAG" -lc '
+  "$CONTAINER_BUILDER" run --rm \
+    -e GIT_SAFE_DIRECTORIES="/tmp/project-template-safe-dir" \
+    "$IMAGE_TAG" /bin/bash -lc '
     set -euo pipefail
     python3 --version
     python3 -m pip --version
     node --version
     npm --version
     codex --version
+    docker --version
+    safe_dirs="$(git config --global --get-all safe.directory || true)"
+    printf "%s\n" "$safe_dirs" | grep -Fx "/workspace" >/dev/null
+    printf "%s\n" "$safe_dirs" | grep -Fx "/tmp/project-template-safe-dir" >/dev/null
   '
 fi
 
