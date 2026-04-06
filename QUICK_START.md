@@ -69,6 +69,7 @@ bash scripts/run_comprehensive_review.sh
 
 - 実験コードは `experiments/<topic>/` に置きます。
 - topic の正本 entrypoint と formal command は `experiments/registry.toml` に置きます。
+- 新しい topic は `python3 scripts/experiments/create_experiment_topic.py <topic>` で作ります。
 - 実行ごとの生成物は `experiments/<topic>/result/<run_name>/` に置きます。
 - 1 回の実験 report は `experiments/report/<run_name>.md` に置きます。
 - server で formal run を回すときは `scripts/experiments/run_managed_experiment.py --topic <topic> --use-registered-command formal` で `run_manifest.json` と `run.log` を残します。

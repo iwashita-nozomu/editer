@@ -37,6 +37,10 @@
 
 ### 実験運用
 
+- [experiments/create_experiment_topic.py](/mnt/l/workspace/project_template/scripts/experiments/create_experiment_topic.py)
+  - `_template/` から topic と registry entry を作ります。
+- [experiments/sync_experiment_registry_context.py](/mnt/l/workspace/project_template/scripts/experiments/sync_experiment_registry_context.py)
+  - branch / worktree / scope file を registry metadata に同期します。
 - [experiments/run_managed_experiment.py](/mnt/l/workspace/project_template/scripts/experiments/run_managed_experiment.py)
   - server 上の実験 run で `result/<run_name>/`、`run_manifest.json`、`run.log`、report stub を初期化します。
 
@@ -101,6 +105,8 @@ python3 scripts/ci/check_server_readiness.py
 python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune
 python3 scripts/agent_tools/smoke_test_research_perspective_pack.py
 python3 scripts/ci/check_experiment_registry.py
+python3 scripts/experiments/create_experiment_topic.py my_topic
+python3 scripts/experiments/sync_experiment_registry_context.py --topic my_topic --branch work/my-topic-YYYYMMDD
 python3 scripts/experiments/run_managed_experiment.py --topic _template --use-registered-command smoke --dry-run
 ```
 

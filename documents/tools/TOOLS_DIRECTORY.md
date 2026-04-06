@@ -12,6 +12,8 @@
 - `scripts/ci/run_codex_in_repo_container.py`
 - `scripts/ci/check_server_readiness.py`
 - `scripts/ci/check_experiment_registry.py`
+- `scripts/experiments/create_experiment_topic.py`
+- `scripts/experiments/sync_experiment_registry_context.py`
 - `scripts/experiments/run_managed_experiment.py`
 - `scripts/run_comprehensive_review.sh`
 - `scripts/run_pytest_with_logs.sh`

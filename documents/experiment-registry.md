@@ -49,6 +49,13 @@ durable な正本は常に topic 名です。
 - 実験 topic を隔離 branch / worktree で扱う場合だけ、`active_branch` や `scope_file` を更新します。
 - branch を閉じたら、stale な `active_branch` や `active_worktree` を整理します。
 
+手で編集してもよいですが、通常は次を使います。
+
+```bash
+python3 scripts/experiments/create_experiment_topic.py <topic>
+python3 scripts/experiments/sync_experiment_registry_context.py --topic <topic>
+```
+
 ## server 実行ルール
 
 - formal run は `scripts/experiments/run_managed_experiment.py` を使います。

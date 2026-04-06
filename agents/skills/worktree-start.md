@@ -25,6 +25,7 @@
 - `scripts/worktree_start.sh`
 - `scripts/agent_tools/worktree_start.py`
 - `scripts/agent_tools/worktree_scope_lint.py`
+- `scripts/experiments/sync_experiment_registry_context.py`
 - `scripts/tools/check_worktree_scopes.sh`
 
 ## Expected Outcome
@@ -66,6 +67,7 @@
 - `bash scripts/worktree_start.sh <branch-name> [worktree-path]`
 - `python3 scripts/agent_tools/worktree_start.py --current`
 - `python3 scripts/agent_tools/worktree_scope_lint.py --current`
+- `python3 scripts/experiments/sync_experiment_registry_context.py --topic <topic> --branch <branch>`
 - `cp notes/worktrees/WORKTREE_LOG_TEMPLATE.md notes/worktrees/worktree_<topic>_YYYY-MM-DD.md`
 - `git status --short --branch`
 - `git worktree list --porcelain`

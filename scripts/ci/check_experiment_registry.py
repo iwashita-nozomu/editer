@@ -236,6 +236,14 @@ def collect_findings(repo_root: Path, registry_path: Path) -> list[Finding]:
     else:
         findings.append(Finding("error", "defaults.managed_runner must be a string"))
 
+    topic_template_dir = defaults.get("topic_template_dir")
+    if isinstance(topic_template_dir, str):
+        resolved_template_dir = repo_root / topic_template_dir
+        if not resolved_template_dir.is_dir():
+            findings.append(
+                Finding("error", f"defaults.topic_template_dir is missing: {resolved_template_dir}")
+            )
+
     topics = normalize_topics(registry.get("topics", []))
     seen_names: set[str] = set()
     for topic in topics:

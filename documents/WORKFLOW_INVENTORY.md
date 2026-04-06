@@ -22,6 +22,10 @@
   - main server host の path、mount、builder、Docker socket readiness を確認します。
 - `scripts/experiments/run_managed_experiment.py`
   - server 上の実験 run で `result/<run_name>/`、`run_manifest.json`、`run.log`、report stub を初期化します。
+- `scripts/experiments/create_experiment_topic.py`
+  - `_template/` から新しい topic と registry entry を作ります。
+- `scripts/experiments/sync_experiment_registry_context.py`
+  - branch / worktree / scope file を registry に同期します。
 - `scripts/ci/check_experiment_registry.py`
   - `experiments/registry.toml` の entrypoint、command、branch metadata を確認します。
 - `scripts/run_pytest_with_logs.sh`

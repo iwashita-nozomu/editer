@@ -10,7 +10,7 @@ description: Use this skill when creating, recreating, or resuming a worktree an
 1. Run `bash scripts/worktree_start.sh <branch-name> [worktree-path]` for new worktrees or `python3 scripts/agent_tools/worktree_start.py --current` when resuming one.
 1. Refresh `WORKTREE_SCOPE.md` before the first edit. Fill concrete branch, path, editable directories, runtime outputs, references, carry-over targets, and required checks.
 1. Run `python3 scripts/agent_tools/worktree_scope_lint.py --current` after refreshing the scope and fix placeholders or stale kickoff fields.
-1. If this worktree owns an experiment topic, refresh the matching `experiments/registry.toml` entry so `active_branch` and related scope metadata are current.
+1. If this worktree owns an experiment topic, run `python3 scripts/experiments/sync_experiment_registry_context.py --topic <topic> --branch <branch>` so `active_branch` and related scope metadata are current.
 1. Create or update the action log from `notes/worktrees/WORKTREE_LOG_TEMPLATE.md`, then append the first kickoff entry before changing code or docs.
 1. If the branch will survive multiple sessions or needs handoff, create or update `notes/branches/<branch_topic>.md`.
 1. Run `git status --short --branch` and `git worktree list --porcelain`.
