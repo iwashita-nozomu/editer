@@ -27,7 +27,7 @@
 - `change-review`
   - findings-first review
 - `worktree-start`
-  - worktree 開始時の scope と kickoff を整える
+  - worktree 開始時の scope、action log、kickoff を整える
 - `worktree-health`
   - worktree の scope drift と cleanup risk を確認
 - `experiment-workflow`

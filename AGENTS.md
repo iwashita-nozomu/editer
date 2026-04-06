@@ -55,6 +55,7 @@ Use this file as the runtime entrypoint for Codex and GitHub Copilot agents.
 1. Load only the skills needed for the task from `.agents/skills/`.
 1. If handoff, specialist delegation, or review artifacts matter, check `agents/canonical/CODEX_SUBAGENTS.md` and bootstrap `reports/agents/<run-id>/`.
 1. Validate with `make ci-quick`, then broader checks if the change warrants them.
+1. If the task changed repo files and the user did not explicitly forbid it, commit and push the branch before the final completion report.
 
 ## Research Defaults
 
@@ -84,6 +85,7 @@ Use this file as the runtime entrypoint for Codex and GitHub Copilot agents.
 - If you touch Python dependencies, update `docker/Dockerfile` and `docker/requirements.txt` together.
 - Repo-wide tool introduction proposals should follow `environment-maintenance` and `agents/templates/environment_change_proposal.md`.
 - Worktree kickoff and scope refresh should use `worktree-start`; drift and cleanup checks should use `worktree-health`.
+- Final completion reports should normally be sent only after commit and push are done. If push is blocked or intentionally skipped, state that explicitly in the report.
 - Prefer repository docs and checked-in scripts over agent-specific guesses.
 - Keep runtime entrypoint files thin; update the canonical docs in `agents/` first.
 - If workflow or review policy changes are based on external sources, update `documents/workflow-references.md`.

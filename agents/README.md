@@ -35,7 +35,7 @@
 - [skills/experiment-change-loop.md](/mnt/l/workspace/project_template/agents/skills/experiment-change-loop.md)
   - 実験結果に基づく改造 loop の自律実行
 - [skills/worktree-start.md](/mnt/l/workspace/project_template/agents/skills/worktree-start.md)
-  - worktree kickoff と scope 初期化
+  - worktree kickoff、scope 初期化、action log 起点の固定
 - [skills/project-review.md](/mnt/l/workspace/project_template/agents/skills/project-review.md)
   - repo-wide review と棚卸し
 - [skills/research-perspective-review.md](/mnt/l/workspace/project_template/agents/skills/research-perspective-review.md)

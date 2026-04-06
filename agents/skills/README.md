@@ -32,7 +32,7 @@
 | `md-style-check` | Markdown の体裁とリンク確認 | `agents/skills/md-style-check.md` | `.agents/skills/md-style-check/SKILL.md` |
 | `docs-consistency-review` | 文書間の矛盾と stale route の確認 | `agents/skills/docs-consistency-review.md` | `.agents/skills/docs-consistency-review/SKILL.md` |
 | `change-review` | findings-first review | `agents/skills/change-review.md` | `.agents/skills/change-review/SKILL.md` |
-| `worktree-start` | worktree 開始時の scope と kickoff を整える | `agents/skills/worktree-start.md` | `.agents/skills/worktree-start/SKILL.md` |
+| `worktree-start` | worktree 開始時の scope、action log、kickoff を整える | `agents/skills/worktree-start.md` | `.agents/skills/worktree-start/SKILL.md` |
 | `worktree-health` | worktree の scope drift と cleanup risk を確認 | `agents/skills/worktree-health.md` | `.agents/skills/worktree-health/SKILL.md` |
 | `experiment-workflow` | question, protocol, run, report の整理 | `agents/skills/experiment-workflow.md` | `.agents/skills/experiment-workflow/SKILL.md` |
 | `experiment-lifecycle` | 単一 run と review / rerun 分岐 | `agents/skills/experiment-lifecycle.md` | `.agents/skills/experiment-lifecycle/SKILL.md` |
@@ -55,7 +55,7 @@
 - 文献調査が主タスクなら `literature-survey` を先に見ます。
 - 研究系の task では `research-workflow` を outer loop、`research-perspective-review` を大きい review pack として使います。
 - 実験結果を見ながら code change を継続反復する task では `experiment-change-loop` を使います。
-- worktree を新設・再開するときは `worktree-start`、scope drift や cleanup 判断は `worktree-health` を使います。
+- worktree を新設・再開するときは `worktree-start` で scope と action log を先に固定し、scope drift や cleanup 判断は `worktree-health` を使います。
 - repo-wide な棚卸しや大きな workflow 整理では `project-review` と必要なら `comprehensive-review` を使います。
 - repo-wide な tool 導入や Docker / CI 更新案では `environment-maintenance` と `agents/templates/environment_change_proposal.md` を使います。
 

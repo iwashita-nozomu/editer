@@ -1,10 +1,11 @@
-# Worktree Extraction Notes
+# Worktree Notes
 
-このディレクトリには、削除予定の worktree から `main` へ吸い上げたメモを置きます。
+このディレクトリには、active な worktree の kickoff から closeout までを追う action log と carry-over note を置きます。
 研究・実験改造の全体手順は [documents/research-workflow.md](../../documents/research-workflow.md) を参照してください。
 
 ## Purpose
 
+- worktree を切った直後の kickoff 状態を `main` 側から辿れるようにする
 - 削除前の worktree にしか残っていない知見を `main` 側へ退避する
 - 一時的な branch や tuning worktree の判断を、後で参照できる形にする
 - worktree 自体は消しても、判断の履歴は失わないようにする
@@ -15,6 +16,19 @@
 - scope 更新、編集開始、テスト実行、実験開始 / 停止、最終判断は append-only で追記します。
 - 1 行でよいので、何をしたか、何を見たか、次に何をするかが追える形にします。
 - worktree 内で先に書く場合も、最終配置と同じ相対パスに置きます。
+
+## Kickoff Minimum
+
+worktree を作った直後は、最低限次を残します。
+
+- branch 名、worktree path、purpose
+- `WORKTREE_SCOPE.md` の所在と main carry-over target
+- `git status --short --branch` と `git worktree list --porcelain` の確認結果
+- 今から最初にやる 1 手
+
+## Template
+
+- kickoff と継続記録には [WORKTREE_LOG_TEMPLATE.md](/mnt/l/workspace/project_template/notes/worktrees/WORKTREE_LOG_TEMPLATE.md) を使います。
 
 ## What To Extract
 

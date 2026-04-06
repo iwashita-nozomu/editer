@@ -2,13 +2,14 @@
 
 ## Purpose
 
-新しい worktree を切った直後、または既存 worktree を引き継いだ直後に、scope、参照、action log、初期チェックを揃えます。
+新しい worktree を切った直後、または既存 worktree を引き継いだ直後に、最初の 10 分で scope、参照、action log、carry-over 先、初期チェックを固定します。
 
 ## Use When
 
 - new / recreated worktree の kickoff
 - stale な worktree の再開前確認
 - `WORKTREE_SCOPE.md` の再作成や scope refresh
+- handoff 前提で worktree の入口を作り直したいとき
 
 ## Core References
 
@@ -16,20 +17,44 @@
 - `documents/WORKTREE_SCOPE_TEMPLATE.md`
 - `documents/BRANCH_SCOPE.md`
 - `notes/worktrees/README.md`
+- `notes/worktrees/WORKTREE_LOG_TEMPLATE.md`
+- `notes/branches/README.md`
 - `scripts/setup_worktree.sh`
+- `scripts/tools/check_worktree_scopes.sh`
+
+## Expected Outcome
+
+- `WORKTREE_SCOPE.md` が current state に合わせて埋まっている
+- action log の path が決まり、最初の kickoff entry が残っている
+- 必要なら branch summary の path が決まり、handoff 先をそこから辿れる
+- 初期状態の `git` / worktree チェック結果と次の一手が残っている
 
 ## Mandatory Checklist
 
-- `WORKTREE_SCOPE.md` の `Branch` と `Worktree path` が current state と一致する
-- `Required References Before Editing` に concrete file を書く
-- `notes/worktrees/worktree_<topic>_YYYY-MM-DD.md` の path を決める
-- carry-over target と runtime output directory を決める
-- `git status --short --branch` を確認する
-- `git worktree list --porcelain` を確認する
+- `WORKTREE_SCOPE.md` の `Branch`、`Worktree path`、`Purpose`、`Owner or agent` が current state と一致する
+- `Editable Directories`、`Runtime Output Directories`、`Read-Only Or Avoid Directories` が placeholder ではなく concrete path で埋まっている
+- `Required References Before Editing` に broad directory 名ではなく concrete file や確認対象 command を書く
+- `Main Carry-Over Targets` と `Working Notes During Execution` に action log path、branch summary path、主な result の置き場を書く
+- `notes/worktrees/worktree_<topic>_YYYY-MM-DD.md` の path を決め、最初の kickoff entry を追記する
+- branch が複数 session 続く、または handoff する場合は `notes/branches/<branch_topic>.md` を作るか更新する
+- この branch で必要な pre-commit check を `WORKTREE_SCOPE.md` に固定する
+- `git status --short --branch` を確認し、unexpected dirty state があれば action log に残す
+- `git worktree list --porcelain` を確認し、duplicate / stale worktree が無いか見る
+- 複数 worktree がある、または stale な再開で不安がある場合は `bash scripts/tools/check_worktree_scopes.sh` を実行する
+- conflict risk、scope drift、carry-over 漏れの兆候があれば、編集前に action log に残す
+
+## Default Kickoff Sequence
+
+1. `bash scripts/setup_worktree.sh <branch-name> [worktree-path]` で worktree を作るか、既存 worktree の branch / path を確認します。
+1. `documents/WORKTREE_SCOPE_TEMPLATE.md` を基に `WORKTREE_SCOPE.md` を current state へ合わせて更新します。
+1. `notes/worktrees/WORKTREE_LOG_TEMPLATE.md` を基に action log を作るか更新し、最初の kickoff entry を書きます。
+1. `git status --short --branch`、`git worktree list --porcelain`、必要なら `bash scripts/tools/check_worktree_scopes.sh` を実行します。
+1. 次の一手と carry-over 先を action log に書いてから編集を始めます。
 
 ## Default Commands
 
 - `bash scripts/setup_worktree.sh <branch-name> [worktree-path]`
+- `cp notes/worktrees/WORKTREE_LOG_TEMPLATE.md notes/worktrees/worktree_<topic>_YYYY-MM-DD.md`
 - `git status --short --branch`
 - `git worktree list --porcelain`
 - `bash scripts/tools/check_worktree_scopes.sh`
@@ -37,4 +62,6 @@
 ## Boundary
 
 - cleanup readiness や delete 可否の review は `worktree-health` を使います。
+- artifact の置き場に迷う場合は `artifact-placement` を使います。
 - repo-wide な routing や CI / Docker review は `project-review` を使います。
+- Docker / dependency / CI の変更が主題なら `environment-maintenance` を使います。
