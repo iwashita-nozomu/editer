@@ -19,6 +19,7 @@ experiment canon のうち、再利用する review guide、registry contract、
 
 - [WORKFLOW_GUIDE.md](/mnt/l/workspace/project_template/documents/WORKFLOW_GUIDE.md)
 - [implementation-waterfall-workflow.md](/mnt/l/workspace/project_template/documents/implementation-waterfall-workflow.md)
+- [long-form-writing-workflow.md](/mnt/l/workspace/project_template/documents/long-form-writing-workflow.md)
 - [experiment-workflow.md](/mnt/l/workspace/project_template/documents/experiment-workflow.md)
 - [research-workflow.md](/mnt/l/workspace/project_template/documents/research-workflow.md)
 - [AGENTS_COORDINATION.md](/mnt/l/workspace/project_template/documents/AGENTS_COORDINATION.md)
