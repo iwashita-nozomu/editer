@@ -13,7 +13,7 @@ clear
 cat << 'EOF'
 ╔═══════════════════════════════════════════════════════════════════════════╗
 ║                                                                           ║
-║          JAX Utils - 作業用ワークツリーセットアップガイド                  ║
+║          Project Template - 作業用ワークツリーセットアップガイド          ║
 ║                                                                           ║
 ╚═══════════════════════════════════════════════════════════════════════════╝
 
@@ -27,9 +27,10 @@ cat << 'EOF'
     bash scripts/view_conventions.sh
 
   ✓ 主要規約:
+    - 対象範囲 (01_scope.md)
     - 型アノテーション (04_type_annotations.md)
     - 責務分離 (09_file_roles.md)
-    - ニューラルネット (18_neuralnetwork.md)
+    - 命名 (11_naming.md)
     - ドキュメント (common/05_docs.md)
 
 ════════════════════════════════════════════════════════════════════════════
@@ -42,8 +43,8 @@ cat << 'EOF'
   ✓ 例:
     bash scripts/setup_worktree.sh work/protocol-improvements-20260330
     
-    bash scripts/setup_worktree.sh results/smolyak-validation-20260328 \
-      .worktrees/results-smolyak-validation-20260328
+    bash scripts/setup_worktree.sh results/example-validation-20260407 \
+      .worktrees/results-example-validation-20260407
 
   ✓ 自動作成される内容:
     • ブランチ: 指定した branch 名をそのまま使用
@@ -99,7 +100,7 @@ cat << 'EOF'
 
 ════════════════════════════════════════════════════════════════════════════
 
-📚 规约キーワードマップ
+📚 規約キーワードマップ
 
   型安全性:
     ← 04_type_annotations.md
@@ -107,9 +108,8 @@ cat << 'EOF'
 
   コード構成:
     ← 09_file_roles.md
-    ← 10_dependencies.md
 
-  命名规則:
+  命名規則:
     ← 11_naming.md (Python)
     ← 02_naming.md (共通)
 
@@ -136,7 +136,7 @@ cat << 'EOF'
   # ... ファイル編集 ...
 
   # 5. テスト・確認
-  make test
+  make ci-quick
 
   # 6. コミット
   git add -A

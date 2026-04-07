@@ -5,8 +5,8 @@ set -euo pipefail
 #
 # 使い方:
 #   ./scripts/extract_deps_from_svg.sh deps.dot
-#   ./scripts/extract_deps_from_svg.sh deps.dot --internal
-#   ./scripts/extract_deps_from_svg.sh deps.dot --internal --prefix jax_util
+#   ./scripts/extract_deps_from_svg.sh deps.dot --prefix my_package
+#   ./scripts/extract_deps_from_svg.sh deps.dot --internal --prefix my_package
 #
 # 出力:
 #   標準出力に「src -> dst」を1行ずつ出します。
@@ -22,7 +22,7 @@ Usage:
 
 Options:
   --internal          src/dst ともに prefix で始まるエッジだけを出力します。
-  --prefix <prefix>   対象プレフィックス（既定: jax_util）
+  --prefix <prefix>   対象プレフィックス。省略時は全エッジを出力します。
 USAGE
 }
 
@@ -35,7 +35,7 @@ svg_file="$1"
 shift
 
 internal_only=0
-prefix="jax_util"
+prefix=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -93,8 +93,10 @@ for title in raw_titles:
 edges = sorted(set(edges))
 
 if internal_only:
+    if not prefix:
+        raise SystemExit("--internal requires --prefix")
     edges = [(s, d) for s, d in edges if s.startswith(prefix) and d.startswith(prefix)]
-else:
+elif prefix:
     edges = [(s, d) for s, d in edges if s.startswith(prefix) or d.startswith(prefix)]
 
 for s, d in edges:

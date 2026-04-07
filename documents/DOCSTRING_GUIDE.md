@@ -2,9 +2,7 @@
 
 ## 概要
 
-このドキュメントは、**docstring 欠落** と **`__all__` 定義の不統一** を改善するための正本ガイドです。
-
-______________________________________________________________________
+このドキュメントは、docstring 欠落と `__all__` 定義の不統一を改善するための正本ガイドです。
 
 ## 📝 Docstring 実装ガイド
 
@@ -16,8 +14,6 @@ ______________________________________________________________________
 - **規約遵守**: コーディング規約で明示的に要求
 
 **規約**: [documents/coding-conventions-python.md](./coding-conventions-python.md)
-
-______________________________________________________________________
 
 ## 📋 実装パターン
 
@@ -41,7 +37,7 @@ ______________________________________________________________________
     - [リンク]
 
 実装例:
-    >>> from jax_util.module_name import PublicClass
+    >>> from project_package.module_name import PublicClass
     >>> obj = PublicClass(...)
 """
 
@@ -61,37 +57,25 @@ ______________________________________________________________________
 ## 2. クラス Docstring（**必須**）
 
 ```python
-class LinearOperator(eqx.Module):
-    """線形演算子の抽象クラス。
+class JobResult:
+    """ジョブ結果の値オブジェクト。
 
-    行列・線形変換を表現する基本クラス。
-    `shape` プロパティで次元情報を提供し、
-    `__matmul__` と `__mul__` で演算をサポートします。
+    実行結果の主要メタデータを保持します。
+    集計や report 作成はこの型を通して行います。
 
     Attributes:
-        shape (tuple): 演算子の形状 (m, n)
+        name (str): ジョブ名
+        status (str): 完了状態
+        duration_sec (float): 実行時間
 
     See Also:
-        NonLinearOperator: 非線形演算子
+        JobSummary: 集計用の上位表現
 
     Example:
-        >>> class MyOp(LinearOperator):
-        ...     def __init__(self, mv):
-        ...         self.mv = mv
-        ...     @property
-        ...     def shape(self):
-        ...         return (n, n)
-        ...     def __matmul__(self, x):
-        ...         return self.mv(x)
-
-        >>> A = MyOp(my_matrix_vector_product)
-        >>> result = A @ vector
+        >>> result = JobResult(name="smoke", status="passed", duration_sec=1.2)
+        >>> result.status
+        'passed'
     """
-
-    @property
-    def shape(self) -> Tuple[int, ...]:
-        """演算子の形状 (m, n)。"""
-        ...
 ```
 
 **チェックリスト**:
@@ -105,42 +89,26 @@ ______________________________________________________________________
 ## 3. 関数 Docstring（**必須**）
 
 ```python
-def linear_solve(
-    A: LinearOperator,
-    b: Vector,
-    x0: Optional[Vector] = None
-) -> Tuple[Vector, int, Dict[str, Any]]:
-    """線形方程式 Ax = b を解く。
+from pathlib import Path
 
-    前処理付き CG 法で疎行列の線形方程式を解きます。
-    行列 A は対称正定値である必要があります。
+
+def load_registry(path: Path) -> dict[str, str]:
+    """registry 定義を読み込む。
 
     Args:
-        A: 対称正定値行列演算子
-        b: 右辺ベクトル (shape=(n,))
-        x0: 初期推定値。省略時は零ベクトル
+        path: registry file への path。
 
     Returns:
-        解ベクトル x (shape=(n,))
-        反復回数 (int)
-        メタデータ dict
+        topic 名を key に持つ辞書。
 
     Raises:
-        ValueError: A が正方行列でない
-        ValueError: b の次元が A と一致しない
+        FileNotFoundError: path が存在しない場合。
+        ValueError: registry 内容が壊れている場合。
 
     Example:
-        >>> import jax.numpy as jnp
-        >>> from jax_util.solvers import linear_solve
-        >>>
-        >>> A = LinearOperator(jax_matvec_product, shape=(100, 100))
-        >>> b = jnp.ones(100)
-        >>> x, iterations, info = linear_solve(A, b)
-        >>> print(f"収束: {iterations} 反復")
-
-    Notes:
-        - 数値安定性確保のため正規化を内部で実施
-        - 予条件行列を指定可能（将来）
+        >>> registry = load_registry(Path("experiments/registry.toml"))
+        >>> "default" in registry
+        True
     """
     ...
 ```
@@ -215,7 +183,7 @@ class MyClass:
     pass
 
 def my_function():
-    """パブリッシック関数。"""
+    """パブリック関数。"""
     pass
 
 # 公開インターフェースを明示
@@ -225,8 +193,6 @@ __all__ = [
     "my_function",
 ]
 ```
-
-______________________________________________________________________
 
 ## 📊 チェックリスト
 
@@ -305,4 +271,3 @@ ______________________________________________________________________
 - [PEP 257 - Docstring Conventions](https://peps.python.org/pep-0257/)
 - [NumPy Docstring Standard](https://numpydoc.readthedocs.io/en/latest/format.html)
 - [documents/coding-conventions-python.md](./coding-conventions-python.md)
-- [TEAM_IMPLEMENTATION_GUIDE.md](./TEAM_IMPLEMENTATION_GUIDE.md)

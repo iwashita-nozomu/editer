@@ -4,22 +4,21 @@
 
 ## 要約
 
-- 引数・戻り値は `Scalar` / `Vector` / `Matrix` を使います。
-- `Array` 単独の注釈は避けます。
+- 公開境界の引数・戻り値には必ず意味のある型を付けます。
+- 裸の `Any` や曖昧な container 型で境界を済ませません。
 
 ## 規約
 
-- 引数・戻り値の型は必ず `Scalar` / `Vector` / `Matrix` のいずれかで明示します。
-- `Array` のみの注釈は避けてください。
-- 複数の意味を持つ引数は、`Vector` と `Matrix` を分けて表現します。
+- 公開関数、public method、factory、CLI entrypoint の引数・戻り値には型注釈を必須にします。
+- 標準ライブラリ型だけで十分に意味が伝わるなら、`Path`、`Sequence[str]`、`Mapping[str, str]` のような明示的な型を使います。
+- domain の意味を共有したい場合だけ、repo-wide に定義した `TypeAlias`、`Protocol`、typed dataclass を使います。
+- `Any`、`dict[str, Any]`、`tuple[Any, ...]` を public 契約の第一候補にしてはなりません。
+- 互換性のために曖昧な基底型を露出するより、呼び出し側が守るべき最小契約を名前付き型で表現します。
 
-## dtype の受け渡し
+## 実行設定の受け渡し
 
-JAX の数値計算では dtype が結果の安定性・再現性に直結します。
+dtype、backend、device、execution policy のように結果へ影響する設定は、public 境界で解決して内部へ明示的に渡します。
 
-- **公開API**（`__all__` で公開する関数）は、**必ず `dtype` 引数を持ち**、その既定値を `DEFAULT_DTYPE` とします。
-  - 例: `def solve(..., dtype: DTypeLike = DEFAULT_DTYPE) -> ...: ...`
-- **内部実装関数**（先頭が `_` の関数）は、**`dtype` を必ず引数で受け取り**、`DEFAULT_DTYPE` を既定引数にしません。
-  - 例: `def _step(..., dtype: DTypeLike, ...) -> ...: ...`
-  - 必要な dtype は **公開APIから必ず引数で渡します**（内部で環境変数や `DEFAULT_DTYPE` を参照しません）。
-  - 目的は「暗黙の dtype 決め打ち」を避け、呼び出し元で一括制御できるようにすることです。
+- 公開 API が設定を受け取る必要がある場合は、typed config object か明示的な keyword 引数で受けます。
+- 内部 helper は解決済みの設定値を引数で受け取り、module global や環境変数を直接参照しません。
+- 暗黙の既定値が重要な意味を持つ場合は、docstring と type annotation の両方で表現します。

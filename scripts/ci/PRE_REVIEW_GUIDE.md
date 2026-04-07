@@ -68,10 +68,10 @@ python3 -m pip install pyright pytest pydocstyle ruff
 
 ```bash
 # Docker イメージをビルド（既存）
-docker build docker -t jax_util:latest
+docker build docker -t project-template:latest
 
 # コンテナ内で実行
-docker run -it -v /workspace:/workspace jax_util:latest /workspace/scripts/ci/pre_review.sh
+docker run -it -v /workspace:/workspace project-template:latest /workspace/scripts/ci/pre_review.sh
 ```
 
 ---

@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "jax_util"
+name = "project-template"
 version = "0.1.0"
-description = "Common Python module: jax_util"
+description = "Template repository for implementation, experiments, and agent workflows"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = []

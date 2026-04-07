@@ -10,12 +10,11 @@
 
 ## 規約
 
-- `python/jax_util/base/`: 型・定数・作用素・環境設定を置きます。
-- `python/jax_util/hlo/`: HLO ダンプと解析補助だけを置きます。
-- `python/jax_util/solvers/`: 数値ソルバと、その計算に直接関わる補助を置きます。
-- `python/jax_util/optimizers/`: `solvers` を利用する最適化アルゴリズムを置きます。
-- `python/jax_util/neuralnetwork/`: 実験段階の実装を置き、安定 API 文書へは混ぜません。
-- `python/jax_util/solvers/archive/`: 現在使わない実装の保管場所とし、新規実装や修正の対象外とします。
+- `python/<package>/`: checked-in library code と shared runtime helper を置きます。
+- `python/<package>/protocols.py`、`python/<package>/typing.py`、または `python/<package>/base/`: 共有の型境界と最下位レイヤを置きます。
+- `python/experiment_runner/`: topic 非依存の experiment runtime を置きます。
 - `tests/`: テストだけを置きます。
 - `scripts/`: 実行補助とログ整形だけを置きます。
 - `documents/`: 規約と設計書の一次情報源とします。
+- `experiments/`: topic 固有の case 生成、実験本体、run artifact を置きます。
+- C++ を使う場合、library 本体は `src/` と `include/` へ置き、`python/` に混ぜません。

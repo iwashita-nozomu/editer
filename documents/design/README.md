@@ -8,25 +8,22 @@
 - [protocols.md](protocols.md)
   - Protocol 層の責務分割
   - 型パラメータ化の方針
-- [jax_util/README.md](jax_util/README.md)
-  - `jax_util` 配下のモジュール設計入口
 - [experiment_runner.md](../experiment_runner.md)
   - `experiment_runner` の契約と実行モデル
 - [../remote-execution-repo-contract.md](../remote-execution-repo-contract.md)
   - remote execution を受ける repo の最小契約
 
-## `jax_util` 詳細設計
+## 追加の module 設計を置くとき
 
-- [base_components.md](jax_util/base_components.md)
-- [solvers.md](jax_util/solvers.md)
-- [optimizers.md](jax_util/optimizers.md)
-- [hlo.md](jax_util/hlo.md)
+- 実コードに対応する詳細設計が必要になった時点で、`documents/design/<topic>/` を追加します。
+- 詳細設計は、実装者がそのまま従える粒度の責務分割、公開境界、検証計画を含めます。
+- 実体のない package 名や将来案だけで空ディレクトリを増やしません。
 
 ## 更新ルール
 
-- base の型・Protocol を変えた場合は [base_components.md](jax_util/base_components.md) と [protocols.md](protocols.md) を更新します。
-- `solvers` / `optimizers` / `hlo` の公開 API や責務を変えた場合は、対応する `documents/design/jax_util/*.md` を更新します。
+- 共有契約や `Protocol` の責務を変えた場合は [protocols.md](protocols.md) を更新します。
 - `experiment_runner` の契約を変えた場合は [experiment_runner.md](../experiment_runner.md) を更新します。
+- 特定 topic の設計書を新設したら、この index にも入口を追加します。
 
 ## 禁止事項
 

@@ -5,8 +5,8 @@
 
 ## 要約
 
-- 共有契約は最下位レイヤの `base/protocols.py` に集約します。
-- domain 特化の契約は各 package の `protocols.py` で、基底契約の特殊化として定義します。
+- 共有契約は最下位の共有レイヤにある `protocols.py` または `typing.py` に集約します。
+- domain 特化の契約は各 package の `protocols.py` で、共有契約の特殊化として定義します。
 - `protocols.py` は契約だけを持ち、実装や I/O を持ち込みません。
 - 契約の依存方向は一方向に固定し、上位実装から下位契約へ逆流させません。
 - public 契約は `__all__` と import テストで露出を固定します。
@@ -17,18 +17,18 @@
 
 | レイヤ | 配置 | 役割 | 依存先 |
 |---|---|---|---|
-| 基底契約 | `python/jax_util/base/protocols.py` | 共有 `TypeAlias`、共有 `Protocol`、最適化の汎用契約 | 標準ライブラリ、JAX 系の型ライブラリ |
-| domain 契約 | `python/jax_util/<domain>/protocols.py` | domain 専用の型と `base` 契約の特殊化 | `base`、domain の最小型定義 |
+| 共有契約 | `python/<package>/protocols.py` または `python/<package>/base/protocols.py` | 共有 `TypeAlias`、共有 `Protocol`、cross-domain な契約 family | 標準ライブラリ、最小の型ライブラリ |
+| domain 契約 | `python/<package>/<domain>/protocols.py` | domain 専用の型と共有契約の特殊化 | 共有契約、domain の最小型定義 |
 | 実験実行契約 | `python/experiment_runner/protocols.py` | runner / scheduler / worker の軽量契約 | 標準ライブラリ、同 package の最小型定義 |
 | 実装 | `python/**/{*.py}` | 契約の具象実装 | 対応する `protocols.py` |
 
-### 2. `base/protocols.py` に置くもの
+### 2. 共有 `protocols.py` に置くもの
 
 - 複数 domain で再利用する `TypeAlias`
-- 最適化問題や状態のような汎用 `Protocol`
-- 演算子や solver のような最下位レイヤの契約
+- 問題設定や task context のような汎用 `Protocol`
+- 複数 package にまたがっても意味が変わらない最下位レイヤの契約
 
-次は `base/protocols.py` に置いてはなりません。
+次は共有 `protocols.py` に置いてはなりません。
 
 - 特定 domain にしか現れない補助属性
 - 実験実行系だけが使う runner 契約
@@ -49,22 +49,20 @@
 ### 4. `experiment_runner/protocols.py` の扱い
 
 - `TaskContext`、`Worker`、`Scheduler`、`Runner` のような runtime 契約は数値基盤から独立させます。
-- `experiment_runner` の契約を `jax_util.base` に混ぜることを禁止します。
+- `experiment_runner` の契約を共有 package の `protocols.py` に混ぜることを禁止します。
 - 逆に、`experiment_runner` 実装が数値 domain の契約へ依存しないことを維持します。
 
 ### 5. 命名
 
-- 基底名は `OptimizationProblem`、`OptimizationState`、`ConstrainedOptimizationProblem`、`ConstrainedOptimizationState` を使います。
-- 空間特殊化は prefix で表します。
-  - `VectorOptimizationProblem`
-  - `FunctionalOptimizationProblem`
-  - `PyTreeOptimizationProblem`
-- 制約付き特殊化は `Constrained*` family で統一します。
+- 基底名は 1 つに固定し、特殊化でもその基底名を保存します。
+  - 例: `TaskContext` -> `RemoteTaskContext`
+  - 例: `OptimizationProblem` -> `VectorOptimizationProblem`
+- 制約や環境差分は prefix か suffix のどちらか一方で統一します。
 - 旧命名と新命名の互換 alias を併存させることを禁止します。
 
 ### 6. 依存方向
 
-- `base/protocols.py` は上位 domain package を import してはなりません。
+- 共有 `protocols.py` は上位 domain package を import してはなりません。
 - 各 domain `protocols.py` は実装 module を import してはなりません。
 - 実装 module は対応する `protocols.py` を import して構いません。
 - 契約同士の相互 import を禁止します。共通要素が必要なら下位レイヤへ降ろします。

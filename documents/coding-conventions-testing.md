@@ -8,7 +8,7 @@
 
 | 用途 | コマンド | 詳細 |
 |---|---|---|
-| **最初の pytest 実行** | `pytest tests/base/test_*.py -v` | → [実行方法](#32-標準出力を表示する) |
+| **最初の pytest 実行** | `pytest tests/<subdir>/test_*.py -v` | → [実行方法](#32-標準出力を表示する) |
 | **ユニットテスト作成** | 想定解 + 比較検証 | → [想定解](#4-想定解と標準出力ログ) |
 | **統合テスト設計** | 異なるレイヤー・複数ケース | → [分類](#2-配置と分類) |
 | **エッジケーステスト** | 乱数 seed 固定 + 悪条件 | → [乱数](#5-乱数大規模テスト) |
@@ -25,11 +25,10 @@
 
 - テストは `tests/` に集約します。
 - 分類は次の通りです。
-  - `tests/base/`: 単体テスト（高速）。
-  - `tests/solvers/`: 数値ソルバの検証（中〜高コスト）。
-  - `tests/optimizers/`: 最適化アルゴリズムの検証（中〜高コスト）。
-  - `tests/hlo/`: HLO 関連ユーティリティの検証（低〜中コスト）。
-  - `tests/neuralnetwork/`: 実験段階の NN 系検証。
+  - `tests/<package>/`: library / package 単位の unit test。
+  - `tests/tools/`: repo script や補助 tool の test。
+  - `tests/experiment_runner/`: 汎用 experiment runtime の test。
+  - `tests/integration/`: package をまたぐ結合 test。
 - 大規模ケースは `case` や `*_large` の名称で明示します。
 
 ## 3. 実行方法
@@ -41,7 +40,7 @@
 
 ### 3.1 標準出力を表示する
 
-- ファイル単位: `pytest -q -s tests/solvers/test_slq.py`
+- ファイル単位: `pytest -q -s tests/tools/test_run_managed_experiment.py`
 - 全体: `pytest -q -s`
 
 ### 3.2 `python file.py` での補助実行
@@ -74,3 +73,4 @@
 
 - 本体モジュール内の `if __name__ == "__main__":` にテストを書きません。
 - 例外のみを根拠にせず、**既知解・残差・反復回数**で検証します。
+- repo 固有の directory 例を正本扱いせず、実在する `tests/` 配下だけを案内します。

@@ -16,7 +16,6 @@ repo 全体で先に見るのは、言語非依存の規約です。
 - [coding-conventions-python.md](/mnt/l/workspace/project_template/documents/coding-conventions-python.md)
 - [coding-conventions-cpp.md](/mnt/l/workspace/project_template/documents/coding-conventions-cpp.md)
 - [coding-conventions-logging.md](/mnt/l/workspace/project_template/documents/coding-conventions-logging.md)
-- [coding-conventions-solvers.md](/mnt/l/workspace/project_template/documents/coding-conventions-solvers.md)
 
 ## 参考補助
 
@@ -27,3 +26,4 @@ repo 全体で先に見るのは、言語非依存の規約です。
 
 - 新しい規約を追加する場合はこの索引へリンクを追加します。
 - repo 全体の入口では、言語固有規約を既定にしません。
+- framework 固有の補足は、実際にその framework を使う repo だけで参照します。

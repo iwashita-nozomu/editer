@@ -22,7 +22,7 @@ TEMPLATE = """
 
 ## 対象コードパス
 
-（例）: `python/jax_util/<submodule>/`
+（例）: `python/<package>/<submodule>/` または `src/<component>/`
 
 ## 公開 API
 

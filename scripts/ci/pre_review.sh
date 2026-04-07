@@ -130,12 +130,7 @@ fi
 # 2. Test execution
 echo ""
 echo -e "${BLUE}2️⃣  Running pytest...${NC}"
-# 注: 削除/移動したテストをスキップ (-k オプション)
-if python3 -m pytest tests/ -q --tb=short \
-  --ignore=tests/solvers/test_jax_debug.py \
-  --ignore=tests/solvers/test_solver_internal_branches.py \
-  --ignore=tests/functional/test_protocols_and_smolyak_helpers.py \
-  --ignore=tests/functional/test_smolyak.py; then
+if python3 -m pytest tests/ -q --tb=short; then
     echo -e "${GREEN}✅ All tests passed${NC}"
     write_report "pytest=pass"
 else

@@ -1,7 +1,7 @@
 # ハウススタイル規約
 
-この文書は、`jax_util` の実コードと正本文書に繰り返し現れる癖を、テンプレート向けに厳格化して固定するための正本です。
-単なる好みではなく、境界の明確化、型追跡、JAX 実行安全性、文書の単独可読性を守るためのルールとして扱います。
+この文書は、この template の実装と正本文書に共通する書き方を固定する正本です。
+単なる好みではなく、境界の明確化、型追跡、実行安全性、文書の単独可読性を守るためのルールとして扱います。
 
 ## 要約
 
@@ -9,7 +9,7 @@
 - 非自明な関数と重要な処理塊には `# 責務:` コメントを付け、1 関数 1 責務を守ります。
 - 入力検証、shape/dtype 正規化、例外送出は境界で先に行います。
 - 型契約は `TypeAlias`、`Protocol`、型付き dataclass で表現し、`Any` と `cast` に逃げません。
-- JAX の trace 対象では `jax.lax.*` と配列演算を使い、Python 制御や暗黙変換を混ぜません。
+- JAX を使う場合、trace 対象では `jax.lax.*` と配列演算を使い、Python 制御や暗黙変換を混ぜません。
 - 正本文書は日本語で書き、`## 要約`、`## 規約`、`## 禁止事項`、`## 例外` を使い分けます。
 
 ## 規約
@@ -46,13 +46,13 @@
 
 ### 3.5 Protocol の整理
 
-- repo-wide に共有する型境界、`TypeAlias`、基底 `Protocol` は最下位レイヤの `base/protocols.py` に集約しなければなりません。
-- 空間や domain に依存する特殊化は各 domain の `protocols.py` に置き、`base` の汎用契約を継承して表現しなければなりません。
+- repo-wide に共有する型境界、`TypeAlias`、基底 `Protocol` は最下位の共有レイヤにある `protocols.py` または `typing.py` に集約しなければなりません。
+- domain に依存する特殊化は各 domain の `protocols.py` に置き、共有レイヤの汎用契約を継承して表現しなければなりません。
 - `protocols.py` には契約だけを置き、重い実装、I/O、環境変数解釈、アルゴリズム本体を混ぜることを禁止します。
 - `protocols.py` は実装 module を import してはなりません。依存は標準ライブラリ、型定義、最下位レイヤの契約に限定しなければなりません。
 - 同じ概念の契約を複数の module に重複定義することを禁止します。既存契約を拡張できるなら継承し、新設は最後の手段にしなければなりません。
 - 命名 family は `OptimizationProblem` / `OptimizationState` / `Constrained*` のように基底名を保存した特殊化で揃えなければなりません。
-- 実験実行系のように数値基盤から独立した契約群は別 package の `protocols.py` に分離し、`jax_util.base` へ逆流させることを禁止します。
+- 実験実行系のように共有数値基盤から独立した契約群は別 package の `protocols.py` に分離し、共有レイヤへ逆流させることを禁止します。
 - 実装側は具体クラスに依存する前に `Protocol` で受けることを優先しなければなりません。ただし public 契約に不要な属性まで盛り込んではなりません。
 - public に export する `Protocol`、`TypeAlias`、契約 family は `__all__` に必ず載せ、import 可能性をテストで確認しなければなりません。
 
@@ -64,9 +64,9 @@
 - 暗黙の丸め、黙った clipping、条件付きの型すり替えを禁止します。補正が必要な場合は API か文書で明示しなければなりません。
 - 環境変数の解釈は helper に集約し、アルゴリズム本体へ `os.getenv` を散在させることを禁止します。
 
-### 5. JAX と NumPy の分離
+### 5. JAX を使う場合の分離
 
-- host 側の組合せ列挙、参照実装、JSON 直列化前処理は NumPy/Python に寄せます。
+- JAX を使う場合、host 側の組合せ列挙、参照実装、JSON 直列化前処理は NumPy/Python に寄せます。
 - device 側で trace される数値計算は JAX 配列と `jax.numpy` / `jax.lax` に寄せなければなりません。
 - trace 対象の反復に Python の `for`、`while`、`if` を持ち込むことを禁止します。`jax.lax.fori_loop`、`jax.lax.while_loop`、`jax.lax.scan` を使わなければなりません。
 - trace 対象で `bool()`、`int()`、`float()` による JAX 配列の暗黙変換を禁止します。

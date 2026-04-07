@@ -21,20 +21,30 @@ REPORT = ROOT / "reports" / "design_organize_report.txt"
 
 
 def detect_submodule(text: str, path: Path):
-    # Heuristics: look for explicit code paths like `python/jax_util/...`
+    # Heuristics: look for explicit code paths like `python/<package>/...`
     m = re.search(r"`([^`/]+/[^`]+(?:/[^`]*)?)`", text)
     if m:
         candidate = m.group(1)
         # prefer top-level submodule name
         parts = candidate.split("/")
         if parts:
-            return parts[0] if parts[0] != "python" else (parts[1] if len(parts) > 1 else "python")
+            if parts[0] in {"python", "tests", "src", "include", "experiments"}:
+                return parts[1] if len(parts) > 1 else parts[0]
+            return parts[0]
 
     # fallback: look for keywords
-    keywords = ["jax_util", "optimizers", "solvers", "hlo", "experiments", "neuralnetwork"]
+    keywords = [
+        "protocol",
+        "experiment_runner",
+        "experiments",
+        "workflow",
+        "docker",
+        "remote",
+        "tests",
+    ]
     for k in keywords:
         if k in text or k in str(path):
-            return k if k != "hlo" else "jax_util"
+            return k
 
     # default
     return "misc"
