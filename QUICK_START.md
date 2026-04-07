@@ -39,9 +39,10 @@ python3 -m pyright
 
 ## 3. 実装前の確認
 
+- `documents/conventions/README.md` と `documents/coding-conventions-python.md` を先に見ます。
+- agent workflow を使う変更なら `documents/WORKFLOW_GUIDE.md` と `agents/canonical/CODEX_WORKFLOW.md` を確認します。
+
 ```bash
-bash scripts/guide.sh
-bash scripts/view_conventions.sh
 make ci-quick
 make docs-check
 python3 -m pytest tests/ -q --tb=short
@@ -115,6 +116,7 @@ python3 scripts/ci/run_codex_in_repo_container.py --print-only
 ```bash
 git status --short
 git branch --show-current
+bash scripts/push_origin.sh
 ```
 
 - 長期に残す知見は `notes/` に寄せます。

@@ -19,14 +19,18 @@ shared review / validation / container helper の source of truth は `vendor/ag
 - `scripts/experiments/run_managed_experiment.py`
 - `scripts/run_comprehensive_review.sh`
 - `scripts/run_pytest_with_logs.sh`
+- `scripts/push_origin.sh`
 
 ## 文書整備
 
 - `scripts/tools/check_markdown_lint.py`
 - `scripts/tools/check_markdown_math.py`
 - `scripts/tools/audit_and_fix_links.py`
+- `scripts/tools/fix_markdown_code_blocks.py`
 - `scripts/tools/fix_markdown_docs.py`
+- `scripts/tools/fix_markdown_headers.py`
 - `scripts/tools/find_similar_documents.py`
+- `scripts/tools/format_markdown.py`
 
 ## agent 補助
 
@@ -38,6 +42,5 @@ shared agent/worktree surface の ownership は `documents/SHARED_RUNTIME_SURFAC
 - `scripts/setup_worktree.sh`
 - `scripts/worktree_start.sh`
 - `scripts/tools/create_worktree.sh`
-- `scripts/push_origin.sh`
 
 これらは branch/worktree を使う特別な場合だけ使います。

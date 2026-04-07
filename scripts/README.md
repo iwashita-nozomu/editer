@@ -11,8 +11,6 @@ ownership と surface 種別は [documents/SHARED_RUNTIME_SURFACES.md](/mnt/l/wo
 
 ### 共通
 
-- [guide.sh](/mnt/l/workspace/project_template/scripts/guide.sh)
-  - 入口確認に使います。
 - [ci/run_all_checks.sh](/mnt/l/workspace/project_template/scripts/ci/run_all_checks.sh)
   - 主要なチェックをまとめて実行します。
 - [ci/pre_review.sh](/mnt/l/workspace/project_template/scripts/ci/pre_review.sh)
@@ -35,11 +33,13 @@ ownership と surface 種別は [documents/SHARED_RUNTIME_SURFACES.md](/mnt/l/wo
   - shared experiment registry contract に沿って `experiments/registry.toml` の topic entry と command surface を確認します。
 - [run_comprehensive_review.sh](/mnt/l/workspace/project_template/scripts/run_comprehensive_review.sh)
   - repo 全体の確認用です。
+- [push_origin.sh](/mnt/l/workspace/project_template/scripts/push_origin.sh)
+  - commit 後の canonical push 入口です。
 
 ### Python
 
 - [run_pytest_with_logs.sh](/mnt/l/workspace/project_template/scripts/run_pytest_with_logs.sh)
-  - pytest をログ付きで実行します。
+  - `tests/logs/` に raw log と JSONL を残しながら pytest を実行します。
 
 ### 実験運用
 
@@ -65,6 +65,9 @@ ownership と surface 種別は [documents/SHARED_RUNTIME_SURFACES.md](/mnt/l/wo
 - [tools/check_markdown_lint.py](/mnt/l/workspace/project_template/scripts/tools/check_markdown_lint.py)
 - [tools/check_markdown_math.py](/mnt/l/workspace/project_template/scripts/tools/check_markdown_math.py)
 - [tools/audit_and_fix_links.py](/mnt/l/workspace/project_template/scripts/tools/audit_and_fix_links.py)
+- [tools/fix_markdown_code_blocks.py](/mnt/l/workspace/project_template/scripts/tools/fix_markdown_code_blocks.py)
+- [tools/fix_markdown_headers.py](/mnt/l/workspace/project_template/scripts/tools/fix_markdown_headers.py)
+- [tools/format_markdown.py](/mnt/l/workspace/project_template/scripts/tools/format_markdown.py)
 - [tools/fix_markdown_docs.py](/mnt/l/workspace/project_template/scripts/tools/fix_markdown_docs.py)
 - [tools/find_similar_documents.py](/mnt/l/workspace/project_template/scripts/tools/find_similar_documents.py)
 - [tools/mirror_skill_shims.py](/mnt/l/workspace/project_template/scripts/tools/mirror_skill_shims.py)
@@ -84,8 +87,6 @@ ownership と surface 種別は [documents/SHARED_RUNTIME_SURFACES.md](/mnt/l/wo
   - worktree kickoff の user-facing 入口です。
 - [sync_agent_canon.sh](/mnt/l/workspace/project_template/scripts/sync_agent_canon.sh)
   - `vendor/agent-canon/` subtree の add / pull / push / status、shared surface の drift check、root shared surface の再同期をまとめます。
-- [push_origin.sh](/mnt/l/workspace/project_template/scripts/push_origin.sh)
-  - commit 後の canonical push 入口です。
 
 ## よく使うコマンド
 
@@ -104,6 +105,7 @@ make docker-codex-host-docker
 bash scripts/run_comprehensive_review.sh
 python3 -m pyright
 python3 -m pytest tests/ -q --tb=short
+bash scripts/run_pytest_with_logs.sh
 python3 -m ruff check python tests --select D,E,F,I,UP
 pipdeptree --warn fail
 deptry python
@@ -111,6 +113,9 @@ python3 scripts/ci/run_container_pack.py --pack docker/packs/default.toml --prin
 python3 scripts/ci/run_codex_in_repo_container.py --print-only
 python3 scripts/ci/check_server_readiness.py
 python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune
+python3 scripts/tools/fix_markdown_code_blocks.py --dry-run documents
+python3 scripts/tools/fix_markdown_headers.py --dry-run documents
+python3 scripts/tools/format_markdown.py documents notes
 python3 scripts/agent_tools/smoke_test_research_perspective_pack.py
 bash scripts/sync_agent_canon.sh link-root
 bash scripts/sync_agent_canon.sh check
@@ -124,7 +129,7 @@ python3 scripts/experiments/run_managed_experiment.py --topic _template --use-re
 
 ## 実行環境
 
-- shell スクリプトは `python3` を優先します。
+- shell スクリプトは repo root を自動解決する前提です。
 - Python 依存を使う場合は `docker/` 側の定義を更新します。
 - この template は Python 実装と Markdown 文書を前提にしています。
 

@@ -38,6 +38,16 @@ ownership と validation は [SHARED_RUNTIME_SURFACES.md](/mnt/l/workspace/proje
   - Markdown の体裁確認です。
 - `scripts/tools/audit_and_fix_links.py`
   - Markdown のリンク監査です。
+- `scripts/tools/fix_markdown_code_blocks.py`
+  - 言語未指定の fenced code block を補正します。
+- `scripts/tools/fix_markdown_headers.py`
+  - Markdown header level の飛びを補正します。
+- `scripts/tools/format_markdown.py`
+  - 軽い整形だけをまとめて当てます。
+- `scripts/tools/fix_markdown_docs.py`
+  - conservatively な Markdown 整形を当てます。
+- `scripts/tools/find_similar_documents.py`
+  - 重複・統合候補の文書を探します。
 - `scripts/worktree_start.sh`
   - worktree kickoff の user-facing 入口です。
 - `scripts/sync_agent_canon.sh`

@@ -1,9 +1,4 @@
-.PHONY: git_init ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-links agent-canon-snapshot agent-canon-status docker-check docker-build-check docker-build-check-host-docker server-check experiment-check docker-shell docker-codex docker-codex-host-docker
-
-# Git 初期化（初回のみ）
-git_init:
-	bash scripts/git_init.sh
-	@echo "✅ Git setup complete"
+.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-links agent-canon-snapshot agent-canon-status docker-check docker-build-check docker-build-check-host-docker server-check experiment-check docker-shell docker-codex docker-codex-host-docker
 
 # ★推奨: 統合 CI（pytest + pyright + ruff）
 ci:
@@ -71,9 +66,9 @@ docker-codex:
 docker-codex-host-docker:
 	python3 scripts/ci/run_codex_in_repo_container.py --profile host-docker
 
-# 開発環境初期化
-dev-setup: git_init
-	@echo "✅ Dev environment ready. Start with: make ci-quick"
+# 開発開始の確認
+dev-setup:
+	@echo "Template clone is ready. Read QUICK_START.md, then run: make ci-quick"
 
 # ツール情報表示
 tools-help:
