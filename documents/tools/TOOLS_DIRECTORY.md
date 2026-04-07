@@ -28,10 +28,12 @@
 
 ## agent 補助
 
+次の root path は runtime surface ですが、正本は `vendor/agent-canon/` です。
 - `scripts/agent_tools/bootstrap_agent_run.py`
 - `scripts/agent_tools/validate_role_write_scope.py`
 - `scripts/agent_tools/worktree_scope_lint.py`
 - `scripts/agent_tools/worktree_start.py`
+- `scripts/sync_agent_canon.sh`
 
 ## 例外運用
 

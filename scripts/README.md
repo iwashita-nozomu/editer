@@ -3,6 +3,9 @@
 `scripts/` は、開発、review、文書整備、実験運用を補助する実行入口です。
 テンプレートとして残すべき共通スクリプトだけをここから辿れるようにします。
 
+shared agent canon 由来の runtime surface は `vendor/agent-canon/` を source of truth にします。
+ここでは `scripts/agent_tools/`、`worktree_start.sh`、`sync_agent_canon.sh`、`tools/mirror_skill_shims.py` がそれに当たります。
+
 ## よく使うもの
 
 ### 共通
@@ -77,7 +80,7 @@
 - [worktree_start.sh](/mnt/l/workspace/project_template/scripts/worktree_start.sh)
   - worktree kickoff の user-facing 入口です。
 - [sync_agent_canon.sh](/mnt/l/workspace/project_template/scripts/sync_agent_canon.sh)
-  - `vendor/agent-canon/` subtree の add / pull / push / status と、root shared surface の再リンクをまとめます。
+  - `vendor/agent-canon/` subtree の add / pull / push / status、shared surface の drift check、root shared surface の再同期をまとめます。
 - [push_origin.sh](/mnt/l/workspace/project_template/scripts/push_origin.sh)
   - commit 後の canonical push 入口です。
 
@@ -107,6 +110,7 @@ python3 scripts/ci/check_server_readiness.py
 python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune
 python3 scripts/agent_tools/smoke_test_research_perspective_pack.py
 bash scripts/sync_agent_canon.sh link-root
+bash scripts/sync_agent_canon.sh check
 bash scripts/sync_agent_canon.sh snapshot
 bash scripts/sync_agent_canon.sh status
 python3 scripts/ci/check_experiment_registry.py

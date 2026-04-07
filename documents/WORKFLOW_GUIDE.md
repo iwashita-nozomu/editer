@@ -109,6 +109,7 @@ shared agent canon を別 repo に切り出したあとは、product 側では s
 
 ```bash
 bash scripts/sync_agent_canon.sh link-root
+bash scripts/sync_agent_canon.sh check
 bash scripts/sync_agent_canon.sh status
 bash scripts/sync_agent_canon.sh pull
 make agent-checks

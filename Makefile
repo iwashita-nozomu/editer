@@ -1,4 +1,4 @@
-.PHONY: git_init ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-links agent-canon-snapshot agent-canon-status docker-check docker-build-check docker-build-check-host-docker server-check experiment-check docker-shell docker-codex docker-codex-host-docker
+.PHONY: git_init ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-links agent-canon-snapshot agent-canon-status docker-check docker-build-check docker-build-check-host-docker server-check experiment-check docker-shell docker-codex docker-codex-host-docker
 
 # Git 初期化（初回のみ）
 git_init:
@@ -19,8 +19,13 @@ docs-check:
 
 # agent runtime / skill drift checks
 agent-checks:
+	bash scripts/sync_agent_canon.sh check
 	python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune --check
 	python3 scripts/agent_tools/smoke_test_research_perspective_pack.py
+
+# shared surface drift only
+agent-canon-check:
+	bash scripts/sync_agent_canon.sh check
 
 # root shared surface を vendor 正本へ再リンク
 agent-canon-links:

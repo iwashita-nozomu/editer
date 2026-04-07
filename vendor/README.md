@@ -18,6 +18,7 @@
 
 ```bash
 bash scripts/sync_agent_canon.sh link-root
+bash scripts/sync_agent_canon.sh check
 bash scripts/sync_agent_canon.sh snapshot
 bash scripts/sync_agent_canon.sh add git@github.com:<org>/agent-canon.git
 bash scripts/sync_agent_canon.sh pull
@@ -28,4 +29,5 @@ bash scripts/sync_agent_canon.sh status
 注意:
 - `vendor/agent-canon/AGENTS.md` は、必要なら canon 開発 subtree 用 override としてだけ置きます
 - product 全体の runtime discovery は root entrypoint に寄せます
+- `check` は shared surface の drift を fail-fast で検出します
 - `link-root` は shared surface の symlink と同期コピーを vendor 正本へ戻します。対象に未 commit の変更がある場合は、先に commit / stash するか、意図的な再同期だけ `AGENT_CANON_FORCE_RELINK=1` を使います

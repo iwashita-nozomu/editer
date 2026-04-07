@@ -3,6 +3,9 @@
 このディレクトリは、repo で使う補助ツールの入口です。
 詳細な台帳ではなく、いま残すべき実行導線だけを整理します。
 
+agent/worktree helper のうち shared canon に属するものは `vendor/agent-canon/` が正本です。
+この文書では product 側の実行入口として root path を案内します。
+
 ## よく使うもの
 
 - `scripts/ci/run_all_checks.sh`
@@ -37,6 +40,8 @@
   - agent 実行の入口です。
 - `scripts/worktree_start.sh`
   - worktree kickoff の user-facing 入口です。
+- `scripts/sync_agent_canon.sh`
+  - shared agent canon surface の drift check と再同期です。
 - `scripts/push_origin.sh`
   - commit 後の canonical push 入口です。
 
