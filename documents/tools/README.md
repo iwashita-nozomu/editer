@@ -3,13 +3,15 @@
 このディレクトリは、repo で使う補助ツールの入口です。
 詳細な台帳ではなく、いま残すべき実行導線だけを整理します。
 
-agent/worktree helper と experiment scaffold / registry helper のうち shared canon に属するものは `vendor/agent-canon/` が正本です。
+agent/worktree helper、review / validation runner、docs-check helper、container runtime helper、experiment scaffold / registry helper のうち shared canon に属するものは `vendor/agent-canon/` が正本です。
 ownership と validation は [SHARED_RUNTIME_SURFACES.md](/mnt/l/workspace/project_template/documents/SHARED_RUNTIME_SURFACES.md) を参照し、この文書では product 側の実行入口だけを案内します。
 
 ## よく使うもの
 
 - `scripts/ci/run_all_checks.sh`
   - 主要なチェックをまとめて実行します。
+- `scripts/ci/pre_review.sh`
+  - review 前の基礎 gate をまとめて実行します。
 - `scripts/ci/run_docs_checks.sh`
   - repo-wide の Markdown 体裁とリンク監査をまとめて実行します。
 - `scripts/ci/run_container_pack.py`

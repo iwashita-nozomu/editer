@@ -1,10 +1,12 @@
 # ツール目録
 
 テンプレートとして残す主要ツールだけを列挙します。
+shared review / validation / container helper の source of truth は `vendor/agent-canon/` です。
 
 ## CI・検証
 
 - `scripts/ci/run_all_checks.sh`
+- `scripts/ci/pre_review.sh`
 - `scripts/ci/run_docs_checks.sh`
 - `scripts/ci/run_container_pack.py`
 - `scripts/ci/run_in_repo_container.py`
