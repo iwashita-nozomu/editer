@@ -10,6 +10,7 @@
 - 要件が固まる前に code を書き始めない
 - 設計が固まる前に実装を広げない
 - 実装、review、verification を段階ゲートで区切る
+- 各 pass で複数回の独立レビューを必須にする
 - 変更要求 1 件につき 1 回の実装パスを閉じる
 - 差し戻しが必要な場合は、どの段へ戻すかを明示する
 
@@ -39,6 +40,18 @@
 
 ## 4. 標準ゲート
 
+この workflow では、最小でも次の 7 回の review / gate 判断を通します。
+
+1. intake review
+1. requirements review
+1. design review
+1. implementation checkpoint review
+1. verification review
+1. final acceptance review
+1. audit review
+
+`Scoped Change` のような小さい差分でも、この最小回数を下回りません。長い task では implementation checkpoint review を複数回に増やします。
+
 ### Gate 0. Intake
 
 目的:
@@ -58,10 +71,16 @@
 - 必要に応じて `scheduler`
 - 必要に応じて `infra_steward`
 
+必須レビュー:
+- `manager_reviewer`
+  - scope、non-goals、acceptance criteria、validation plan の粗さを確認する
+  - family 選択が妥当か確認する
+
 exit 条件:
 - 何をもって完了とするかが 1 文で言える
 - どの family で扱うかが決まっている
 - 実装前に必要な review / validation が決まっている
+- intake review が `resolved` になっている
 
 ### Gate 1. Requirements Freeze
 
@@ -80,6 +99,12 @@ exit 条件:
 - `manager_reviewer`
 - 必要に応じて `research_reviewer`
 
+必須レビュー:
+- `manager_reviewer`
+  - requirement の抜け、曖昧な acceptance、scope overrun を確認する
+- 必要に応じて `research_reviewer`
+  - 外部根拠と requirement の結びつきを確認する
+
 ルール:
 - production code の変更は、この gate を通す前に始めません
 - 例外は捨てる前提の pilot / prototype だけです
@@ -87,6 +112,7 @@ exit 条件:
 exit 条件:
 - reviewer が scope の曖昧さを受け入れ可能と判断している
 - 受け入れ条件が test、docs、runtime の観点で追える
+- requirements review が `resolved` になっている
 
 ### Gate 2. Design Freeze
 
@@ -105,6 +131,12 @@ exit 条件:
 - `design_reviewer`
 - 必要に応じて `infra_reviewer`
 
+必須レビュー:
+- `design_reviewer`
+  - file plan、test/check plan、rollback plan、risk の取りこぼしを確認する
+- 必要に応じて `infra_reviewer`
+  - runtime、CI、Docker、dependency 影響を確認する
+
 ルール:
 - 要件の追加や変更が出たら Gate 1 に戻します
 - 実装中に設計変更が必要だと分かったら Gate 2 を開き直します
@@ -113,6 +145,7 @@ exit 条件:
 - どの file をどう変えるかが説明できる
 - validation の入口が定まっている
 - rollback か abort の条件が決まっている
+- design review が `resolved` になっている
 
 ### Gate 3. Implementation
 
@@ -127,10 +160,18 @@ exit 条件:
 - docs と tests は同じ pass で更新します
 - 途中で scope を広げません
 - 設計を変えたくなったら Gate 2 へ戻します
+- 非自明な変更では、final polish 前に checkpoint review を必ず 1 回挟みます
+
+必須レビュー:
+- `change_reviewer`
+  - implementation checkpoint review として、構造、境界、明白な回帰、設計逸脱を早期に確認する
+  - `Large Delivery` では chunk ごとに最低 1 回
+  - `Platform And Environment` では rollout 影響が見える時点で最低 1 回
 
 exit 条件:
 - 差分が requirements / design に一致している
 - planned checks を実行できる状態になっている
+- implementation checkpoint review が `resolved` になっている
 
 ### Gate 4. Verification
 
@@ -148,6 +189,16 @@ exit 条件:
 - validation plan の実行
 - security / safety / provenance の確認
 
+必須レビュー:
+- `change_reviewer`
+  - final diff review と validation evidence review を行う
+- 必要に応じて `python-review`
+  - Python API、型境界、test coverage の不足を確認する
+- 必要に応じて `md-style-check`
+  - 文書体裁とリンク整合を確認する
+- 必要に応じて `critical-review`
+  - claim、evidence、overclaim を確認する
+
 ルール:
 - 設計を変えない軽微修正だけは、この gate 内で戻して構いません
 - 新しい requirement や設計変更が必要なら Gate 1 または Gate 2 に戻します
@@ -155,6 +206,7 @@ exit 条件:
 exit 条件:
 - `required_change` が解消している
 - 実行した checks と未実行理由が説明できる
+- verification review が `resolved` になっている
 
 ### Gate 5. Acceptance And Transition
 
@@ -163,6 +215,7 @@ exit 条件:
 
 主担当:
 - `final_reviewer`
+- `auditor`
 - `verifier`
 
 最低限の確認:
@@ -171,8 +224,15 @@ exit 条件:
 - closeout command の実行
 - commit / push の成否確認
 
+必須レビュー:
+- `final_reviewer`
+  - 変更全体、docs 同期、受け入れ条件達成を確認する
+- `auditor`
+  - required reviews が揃っているか、artifact と closeout evidence が欠けていないか確認する
+
 exit 条件:
 - final reviewer が change 全体を受け入れ可能と判断している
+- auditor review が `resolved` になっている
 - verifier が gate を閉じている
 
 ## 5. 差し戻しルール
@@ -203,6 +263,7 @@ pilot は本実装の抜け道ではなく、requirements/design の凍結精度
 
 - Gate 1 から Gate 5 をそのまま 1 pass で通します
 - artifact は最小限で構いませんが、requirements/design/verification の区別は崩しません
+- review 回数は intake、requirements、design、checkpoint、verification、final、audit の 7 回を下回りません
 
 ### Research-Driven Change
 
@@ -215,11 +276,13 @@ pilot は本実装の抜け道ではなく、requirements/design の凍結精度
 - `scheduler` が chunk を先に固定します
 - 各 chunk は独立した waterfall pass として閉じます
 - chunk 間の横断変更は、次 chunk の Gate 1 に持ち越します
+- 各 chunk で checkpoint review を複数回に増やして構いません
 
 ### Platform And Environment
 
 - Gate 2 で rollout / rollback / environment impact を必ず固定します
 - Gate 4-5 で `docker/`、CI、runtime pack、関連 README の同期を確認します
+- `infra_reviewer` は design review だけでなく verification review にも参加して構いません
 
 ## 8. closeout の必須項目
 
