@@ -19,7 +19,7 @@ Use this file as the runtime entrypoint for Codex and GitHub Copilot agents.
 
 - Human-facing primary language is Japanese.
 - The default integration branch is `main`.
-- Product-scoped Codex runtime settings live in `.codex/config.toml`.
+- Default Codex runtime settings live in `.codex/config.toml`. If a product needs overrides, replace the symlink intentionally.
 - Product rules stay in `documents/`, implementation in `python/`, environment guidance in `docker/`.
 
 ## Shared Canon

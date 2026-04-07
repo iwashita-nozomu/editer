@@ -78,6 +78,7 @@ shared canon の正本として扱う対象:
 - `CLAUDE.md`
 - `.github/AGENTS.md`
 - `.github/copilot-instructions.md`
+- `.codex/config.toml`
 - `.codex/README.md`
 - `.codex/agents/`
 - `documents/BRANCH_SCOPE.md`
@@ -100,9 +101,6 @@ shared canon の正本として扱う対象:
 ### 4.2 product template に残すもの
 
 - root `AGENTS.md`
-- root `CLAUDE.md`
-- root `.codex/config.toml`
-- `.github/`
 - `README.md`
 - `docker/`
 - `scripts/`
@@ -114,7 +112,7 @@ shared canon の正本として扱う対象:
 補足:
 - `docker` 以外の全部を `agent-canon` へ移すわけではありません
 - implementation、experiment、server operation、generic project bootstrap は product template 側に残します
-- root の `agents/`、`.agents/`、`.claude/`、`CLAUDE.md`、`.github/AGENTS.md`、`.github/copilot-instructions.md`、`.codex/agents`、`.codex/README.md`、`documents/BRANCH_SCOPE.md`、`documents/AGENTS_COORDINATION.md`、`documents/REVIEW_PROCESS.md`、`documents/SKILL_IMPLEMENTATION_GUIDE.md`、`documents/WORKTREE_SCOPE_TEMPLATE.md`、`documents/implementation-waterfall-workflow.md`、`documents/workflow-references.md`、`documents/worktree-lifecycle.md`、`scripts/agent_tools/`、`scripts/setup_worktree.sh`、`scripts/worktree_start.sh`、`scripts/tools/check_worktree_scopes.sh`、`scripts/tools/create_worktree.sh`、`scripts/tools/mirror_skill_shims.py` は shared canon への symlink view にします
+- root の `agents/`、`.agents/`、`.claude/`、`CLAUDE.md`、`.github/AGENTS.md`、`.github/copilot-instructions.md`、`.codex/config.toml`、`.codex/agents`、`.codex/README.md`、`documents/BRANCH_SCOPE.md`、`documents/AGENTS_COORDINATION.md`、`documents/REVIEW_PROCESS.md`、`documents/SKILL_IMPLEMENTATION_GUIDE.md`、`documents/WORKTREE_SCOPE_TEMPLATE.md`、`documents/implementation-waterfall-workflow.md`、`documents/workflow-references.md`、`documents/worktree-lifecycle.md`、`scripts/agent_tools/`、`scripts/setup_worktree.sh`、`scripts/worktree_start.sh`、`scripts/tools/check_worktree_scopes.sh`、`scripts/tools/create_worktree.sh`、`scripts/tools/mirror_skill_shims.py` は shared canon への symlink view にします
 
 ### 4.3 vendor-aware 化が必要な support surface
 
@@ -141,7 +139,7 @@ root 側は次のような薄い wrapper と symlink view にします。
   - Codex / Copilot の root entrypoint
   - `vendor/agent-canon/` 内の正本への導線だけを持つ
 - `.codex/config.toml`
-  - product-scoped Codex runtime 設定だけを持つ
+  - `vendor/agent-canon/.codex/config.toml` への symlink view
 - `CLAUDE.md`
   - `vendor/agent-canon/CLAUDE.md` への symlink view
 - `.github/AGENTS.md`
@@ -250,6 +248,7 @@ bash scripts/sync_agent_canon.sh status
 - subtree sync script を追加する
 - root `AGENTS.md` を薄い wrapper にする
 - root の shared docs / scripts / discovery surface を symlink view に寄せる
+- root `.codex/config.toml` も shared default に寄せる
 
 ### Phase 1. upstream `agent-canon` repo を作る
 

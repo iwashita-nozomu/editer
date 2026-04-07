@@ -62,6 +62,7 @@ agents:${PREFIX}/agents
 .agents:${PREFIX}/.agents
 .claude:${PREFIX}/.claude
 CLAUDE.md:${PREFIX}/CLAUDE.md
+.codex/config.toml:../${PREFIX}/.codex/config.toml
 .codex/README.md:../${PREFIX}/.codex/README.md
 .codex/agents:../${PREFIX}/.codex/agents
 .github/AGENTS.md:../${PREFIX}/.github/AGENTS.md
