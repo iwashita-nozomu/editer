@@ -58,6 +58,7 @@ ensure_prefix_exists() {
 
 build_link_specs() {
   cat <<EOF
+AGENTS.md:${PREFIX}/ROOT_AGENTS.md
 agents:${PREFIX}/agents
 .agents:${PREFIX}/.agents
 .claude:${PREFIX}/.claude
