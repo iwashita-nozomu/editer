@@ -27,7 +27,9 @@
 product-repo/
 ├─ AGENTS.md
 ├─ CLAUDE.md
-├─ .github/copilot-instructions.md
+├─ .github/
+│  ├─ AGENTS.md
+│  └─ copilot-instructions.md
 ├─ .codex/
 │  ├─ config.toml
 │  └─ README.md
@@ -73,6 +75,9 @@ shared canon の正本として扱う対象:
 - `agents/`
 - `.agents/`
 - `.claude/`
+- `CLAUDE.md`
+- `.github/AGENTS.md`
+- `.github/copilot-instructions.md`
 - `.codex/README.md`
 - `.codex/agents/`
 - `documents/BRANCH_SCOPE.md`
@@ -96,8 +101,8 @@ shared canon の正本として扱う対象:
 
 - root `AGENTS.md`
 - root `CLAUDE.md`
-- root `.github/copilot-instructions.md`
 - root `.codex/config.toml`
+- `.github/`
 - `README.md`
 - `docker/`
 - `scripts/`
@@ -109,7 +114,7 @@ shared canon の正本として扱う対象:
 補足:
 - `docker` 以外の全部を `agent-canon` へ移すわけではありません
 - implementation、experiment、server operation、generic project bootstrap は product template 側に残します
-- root の `agents/`、`.agents/`、`.claude/`、`.codex/agents`、`.codex/README.md`、`documents/BRANCH_SCOPE.md`、`documents/AGENTS_COORDINATION.md`、`documents/REVIEW_PROCESS.md`、`documents/SKILL_IMPLEMENTATION_GUIDE.md`、`documents/WORKTREE_SCOPE_TEMPLATE.md`、`documents/implementation-waterfall-workflow.md`、`documents/workflow-references.md`、`documents/worktree-lifecycle.md`、`scripts/agent_tools/`、`scripts/setup_worktree.sh`、`scripts/worktree_start.sh`、`scripts/tools/check_worktree_scopes.sh`、`scripts/tools/create_worktree.sh`、`scripts/tools/mirror_skill_shims.py` は shared canon への symlink view にします
+- root の `agents/`、`.agents/`、`.claude/`、`CLAUDE.md`、`.github/AGENTS.md`、`.github/copilot-instructions.md`、`.codex/agents`、`.codex/README.md`、`documents/BRANCH_SCOPE.md`、`documents/AGENTS_COORDINATION.md`、`documents/REVIEW_PROCESS.md`、`documents/SKILL_IMPLEMENTATION_GUIDE.md`、`documents/WORKTREE_SCOPE_TEMPLATE.md`、`documents/implementation-waterfall-workflow.md`、`documents/workflow-references.md`、`documents/worktree-lifecycle.md`、`scripts/agent_tools/`、`scripts/setup_worktree.sh`、`scripts/worktree_start.sh`、`scripts/tools/check_worktree_scopes.sh`、`scripts/tools/create_worktree.sh`、`scripts/tools/mirror_skill_shims.py` は shared canon への symlink view にします
 
 ### 4.3 vendor-aware 化が必要な support surface
 
@@ -137,6 +142,12 @@ root 側は次のような薄い wrapper と symlink view にします。
   - `vendor/agent-canon/` 内の正本への導線だけを持つ
 - `.codex/config.toml`
   - product-scoped Codex runtime 設定だけを持つ
+- `CLAUDE.md`
+  - `vendor/agent-canon/CLAUDE.md` への symlink view
+- `.github/AGENTS.md`
+  - `vendor/agent-canon/.github/AGENTS.md` への symlink view
+- `.github/copilot-instructions.md`
+  - `vendor/agent-canon/.github/copilot-instructions.md` への symlink view
 - `.codex/README.md`
   - `vendor/agent-canon/.codex/README.md` への symlink view
 - `documents/BRANCH_SCOPE.md`
@@ -155,10 +166,6 @@ root 側は次のような薄い wrapper と symlink view にします。
   - `vendor/agent-canon/documents/workflow-references.md` への symlink view
 - `documents/worktree-lifecycle.md`
   - `vendor/agent-canon/documents/worktree-lifecycle.md` への symlink view
-- `CLAUDE.md`
-  - shared canon を参照する adapter に限定する
-- `.github/copilot-instructions.md`
-  - Copilot 固有差分だけに限定する
 - `agents/`
   - `vendor/agent-canon/agents/` への symlink view
 - `.agents/`

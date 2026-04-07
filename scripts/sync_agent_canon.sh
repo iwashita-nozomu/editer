@@ -61,8 +61,11 @@ build_link_specs() {
 agents:${PREFIX}/agents
 .agents:${PREFIX}/.agents
 .claude:${PREFIX}/.claude
+CLAUDE.md:${PREFIX}/CLAUDE.md
 .codex/README.md:../${PREFIX}/.codex/README.md
 .codex/agents:../${PREFIX}/.codex/agents
+.github/AGENTS.md:../${PREFIX}/.github/AGENTS.md
+.github/copilot-instructions.md:../${PREFIX}/.github/copilot-instructions.md
 documents/BRANCH_SCOPE.md:../${PREFIX}/documents/BRANCH_SCOPE.md
 documents/AGENTS_COORDINATION.md:../${PREFIX}/documents/AGENTS_COORDINATION.md
 documents/REVIEW_PROCESS.md:../${PREFIX}/documents/REVIEW_PROCESS.md
