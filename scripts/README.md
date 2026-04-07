@@ -4,6 +4,7 @@
 テンプレートとして残すべき共通スクリプトだけをここから辿れるようにします。
 
 shared agent canon 由来の runtime surface は `vendor/agent-canon/` を source of truth にします。
+experiment helper、registry checker、topic scaffold も shared canon 側へ寄せ、product root では同じ path の入口だけを残します。
 ownership と surface 種別は [documents/SHARED_RUNTIME_SURFACES.md](/mnt/l/workspace/project_template/documents/SHARED_RUNTIME_SURFACES.md) を参照します。
 
 ## よく使うもの
@@ -29,7 +30,7 @@ ownership と surface 種別は [documents/SHARED_RUNTIME_SURFACES.md](/mnt/l/wo
 - [ci/check_server_readiness.py](/mnt/l/workspace/project_template/scripts/ci/check_server_readiness.py)
   - main server host の path、mount、builder、Docker socket readiness を確認します。
 - [ci/check_experiment_registry.py](/mnt/l/workspace/project_template/scripts/ci/check_experiment_registry.py)
-  - `experiments/registry.toml` の topic entry と command surface を確認します。
+  - shared experiment registry contract に沿って `experiments/registry.toml` の topic entry と command surface を確認します。
 - [run_comprehensive_review.sh](/mnt/l/workspace/project_template/scripts/run_comprehensive_review.sh)
   - repo 全体の確認用です。
 
@@ -41,7 +42,7 @@ ownership と surface 種別は [documents/SHARED_RUNTIME_SURFACES.md](/mnt/l/wo
 ### 実験運用
 
 - [experiments/create_experiment_topic.py](/mnt/l/workspace/project_template/scripts/experiments/create_experiment_topic.py)
-  - `_template/` から topic と registry entry を作ります。
+  - shared `_template/` から topic と registry entry を作ります。
 - [experiments/sync_experiment_registry_context.py](/mnt/l/workspace/project_template/scripts/experiments/sync_experiment_registry_context.py)
   - branch / worktree / scope file を registry metadata に同期します。
 - [experiments/run_managed_experiment.py](/mnt/l/workspace/project_template/scripts/experiments/run_managed_experiment.py)

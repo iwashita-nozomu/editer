@@ -3,7 +3,7 @@
 このディレクトリは、repo で使う補助ツールの入口です。
 詳細な台帳ではなく、いま残すべき実行導線だけを整理します。
 
-agent/worktree helper のうち shared canon に属するものは `vendor/agent-canon/` が正本です。
+agent/worktree helper と experiment scaffold / registry helper のうち shared canon に属するものは `vendor/agent-canon/` が正本です。
 ownership と validation は [SHARED_RUNTIME_SURFACES.md](/mnt/l/workspace/project_template/documents/SHARED_RUNTIME_SURFACES.md) を参照し、この文書では product 側の実行入口だけを案内します。
 
 ## よく使うもの
@@ -21,13 +21,13 @@ ownership と validation は [SHARED_RUNTIME_SURFACES.md](/mnt/l/workspace/proje
 - `scripts/ci/check_server_readiness.py`
   - main server host の readiness を確認します。
 - `scripts/ci/check_experiment_registry.py`
-  - experiment registry の entrypoint と command を確認します。
+  - shared experiment registry contract の entrypoint と command を確認します。
 - `scripts/experiments/create_experiment_topic.py`
-  - experiment topic を scaffold します。
+  - shared topic scaffold から experiment topic を作ります。
 - `scripts/experiments/sync_experiment_registry_context.py`
   - registry の branch / worktree metadata を同期します。
 - `scripts/experiments/run_managed_experiment.py`
-  - server 上の実験 run artifact を初期化します。
+  - shared managed-runner として server 上の実験 run artifact を初期化します。
 - `scripts/run_comprehensive_review.sh`
   - repo 全体の確認をまとめて実行します。
 - `scripts/run_pytest_with_logs.sh`

@@ -2,6 +2,7 @@
 
 `documents/` は、この repo の正本文書だけを置く場所です。
 workflow 系の正本は shared agent canon に寄せ、product root では symlink view として同じ path を使います。
+experiment canon のうち、再利用する review guide、registry contract、report style、scaffold 方針も shared agent canon に寄せます。
 ここでは「agent/workflow canon」「experiment canon」「product/environment canon」を分けて辿れるようにします。
 
 ## 最初に読む
