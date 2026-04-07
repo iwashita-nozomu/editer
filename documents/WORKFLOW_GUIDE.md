@@ -25,7 +25,7 @@
 | やりたいこと | 最初に読む | 主に触る場所 | 最低限の確認 |
 | --- | --- | --- | --- |
 | repo の全体像を知りたい | `README.md`, `QUICK_START.md` | `documents/`, `scripts/`, `docker/` | `make ci-quick` |
-| Python 実装を直したい | `documents/coding-conventions-python.md` | `python/`, `python/tests/` | `make ci-quick` |
+| Python 実装を直したい | `documents/coding-conventions-python.md`, `documents/implementation-waterfall-workflow.md` | `python/`, `python/tests/` | `make ci-quick` |
 | 文書だけ更新したい | `documents/README.md` | `documents/`, `notes/` | `make docs-check` |
 | Docker / 依存を更新したい | `docker/README.md` | `docker/`, `scripts/ci/` | `make docker-build-check` |
 | main server host の readiness を見たい | `documents/server-host-contract.md` | `documents/templates/`, `scripts/ci/` | `python3 scripts/ci/check_server_readiness.py` |
@@ -40,6 +40,7 @@
 ### 1. 日常の実装変更
 
 1. 変更対象を決めます。
+1. `documents/implementation-waterfall-workflow.md` に従って、requirements と design を先に固定します。
 1. 変更前に baseline を確認します。
 1. 実装と文書を同じ変更でそろえます。
 1. `make ci-quick` で早い確認をします。

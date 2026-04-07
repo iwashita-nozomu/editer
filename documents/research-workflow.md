@@ -220,6 +220,9 @@ agent がこの loop を自律実行する場合は、routing skill として `a
 
 この loop では、`experimenter` は code を直しません。code を直すのは常に `implementer` です。
 逆に、`implementer` は「良さそうに見える結果」を根拠に勝手に claim を広げません。比較の妥当性と解釈の厳しさは `experiment_reviewer` が担い、reader-facing な report の厳しさは `report_reviewer` が担います。
+各 `implementer` の change は、別文書の
+[implementation-waterfall-workflow.md](implementation-waterfall-workflow.md)
+に従う 1 回の waterfall pass として扱います。新仮説や `rerun_required` は、同じ pass 内の横滑りではなく、次 pass の開始条件です。
 
 この loop の内側で、1 回の run、report 生成、rewrite / extra validation / rerun 分岐を扱う実務手順は [experiment-workflow.md](experiment-workflow.md) を正本にします。
 

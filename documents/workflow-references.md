@@ -18,12 +18,22 @@
 
 ## System Development, Security, Release, And Operations
 
+- [Managing the Development of Large Software Systems](https://faculty.washington.edu/hazeline/misc/reserve/royce_waterfall.pdf)
+  - waterfall の段階列、設計先行、文書化、pilot model、test planning の基礎資料です。
 - [NIST SP 800-218, Secure Software Development Framework (SSDF)](https://csrc.nist.gov/pubs/sp/800/218/final)
   - secure development workflow、review gate、supply-chain 観点の根拠です。
+- [NIST SP 800-218A, Secure Software Development Practices for Generative AI and Dual-Use Foundation Models](https://csrc.nist.gov/pubs/sp/800/218/a/final)
+  - AI を含む実装で、secure development practice を SDLC 全体へ広げる根拠です。
 - [Microsoft Security Development Lifecycle](https://www.microsoft.com/en-us/securityengineering/sdl)
   - security review と設計段階の gate を考えるときの基礎資料です。
 - [OWASP Threat Modeling Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html)
   - threat-model workflow を追加するときの根拠です。
+- [NASA Systems Engineering Handbook](https://ntrs.nasa.gov/api/citations/20170001761/downloads/20170001761.pdf)
+  - stakeholder expectations、requirements、design、verification、validation、transition を分ける根拠です。
+- [Sequential Development Approach - SEBoK](https://sebokwiki.org/wiki/Sequential_Development_Approach)
+  - phase-based sequential development と、初期段階の限定的 iteration の整理に使った資料です。
+- [Technical Reviews and Audits - SEBoK](https://sebokwiki.org/wiki/Technical_Reviews_and_Audits)
+  - decision gate と readiness review の根拠です。
 - [Google SRE: Release Engineering](https://sre.google/sre-book/release-engineering/)
   - release-readiness と deploy 前後の運用手順の根拠です。
 - [Google SRE Workbook: Postmortem Culture](https://sre.google/workbook/postmortem-culture/)
@@ -64,7 +74,11 @@
   - reference 置き場の入口です。
 - [documents/research-workflow.md](/mnt/l/workspace/project_template/documents/research-workflow.md)
   - 研究・実験改造の正本です。
+- [documents/implementation-waterfall-workflow.md](/mnt/l/workspace/project_template/documents/implementation-waterfall-workflow.md)
+  - 実装パスのウォーターフォール正本です。
 - [documents/experiment-critical-review.md](/mnt/l/workspace/project_template/documents/experiment-critical-review.md)
   - 批判的レビュー観点の正本です。
+- [references/workflow/implementation-waterfall.md](/mnt/l/workspace/project_template/references/workflow/implementation-waterfall.md)
+  - 実装ウォーターフォール化の文献メモです。
 - [agents/README.md](/mnt/l/workspace/project_template/agents/README.md)
   - agent canon の入口です。

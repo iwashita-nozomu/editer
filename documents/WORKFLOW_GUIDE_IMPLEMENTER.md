@@ -2,6 +2,7 @@
 
 この文書は、Python 実装、テスト、文書同期を担当する利用者向けの入口です。
 repo 全体の見取り図は `documents/WORKFLOW_GUIDE.md` を見てください。
+実装パスそのものの正本は `documents/implementation-waterfall-workflow.md` です。
 
 ## 最初にやること
 
@@ -30,11 +31,12 @@ python3 -m pyright
 
 ## 標準フロー
 
-1. 実装対象と関連テストを決める
-1. 変更前に baseline を確認する
-1. 実装と文書を同じ変更で直す
-1. 早い確認を回す
-1. 仕上げ前に full check を回す
+1. `Change Request:`、`Acceptance Criteria:`、`Validation Plan:` を固定する
+1. requirements を凍結する
+1. 設計と file plan を凍結する
+1. 実装と文書を同じ pass で直す
+1. reviewer と check で verification を閉じる
+1. 仕上げ前に full check を回し、closeout する
 
 ```bash
 python3 -m pytest python/tests/ -q --tb=short

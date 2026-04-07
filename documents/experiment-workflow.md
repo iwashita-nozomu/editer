@@ -354,6 +354,7 @@ carry-over のルールは次です。
 
 この workflow の要点は次です。
 
+- repo に持ち帰る各 code change は [implementation-waterfall-workflow.md](implementation-waterfall-workflow.md) の 1 pass として扱う
 - 毎回の実験で、結果とレポートを必ず生成する
 - code review と report review を分ける
 - `experiment_reviewer` と `report_reviewer` を分ける
