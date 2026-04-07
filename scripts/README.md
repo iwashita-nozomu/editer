@@ -106,6 +106,7 @@ python3 scripts/ci/run_codex_in_repo_container.py --print-only
 python3 scripts/ci/check_server_readiness.py
 python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune
 python3 scripts/agent_tools/smoke_test_research_perspective_pack.py
+bash scripts/sync_agent_canon.sh snapshot
 bash scripts/sync_agent_canon.sh status
 python3 scripts/ci/check_experiment_registry.py
 python3 scripts/experiments/create_experiment_topic.py my_topic

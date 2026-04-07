@@ -55,9 +55,15 @@ product-repo/
 phase 1 で移す対象:
 - `agents/`
 - `.agents/skills/`
+- `.claude/agents/`
 - `.claude/skills/`
+- `.codex/README.md`
 - `.codex/agents/`
 - `agents/templates/`
+- `scripts/agent_tools/`
+- `scripts/tools/mirror_skill_shims.py`
+- `vendor/agent-canon/AGENTS.md`
+- `vendor/agent-canon/README.md`
 
 phase 2 で移す候補:
 - `documents/AGENTS_COORDINATION.md`
@@ -75,12 +81,17 @@ phase 2 を後ろにずらす理由:
 - root `CLAUDE.md`
 - root `.github/copilot-instructions.md`
 - root `.codex/config.toml`
-- root `.codex/README.md`
 - `README.md`
 - `docker/`
 - `scripts/`
 - `python/`
+- `experiments/`
+- `notes/`
 - `documents/` のうち product / environment / server / experiment に閉じるもの
+
+補足:
+- `docker` 以外の全部を `agent-canon` へ移すわけではありません
+- implementation、experiment、server operation、generic project bootstrap は product template 側に残します
 
 ### 4.3 vendor-aware 化が必要な support surface
 
@@ -92,7 +103,7 @@ shared canon を subtree 化すると、次の script は `vendor/agent-canon/` 
 - `scripts/agent_tools/validate_role_write_scope.py`
 - `scripts/agent_tools/agent_team.py`
 
-この移行では、これらを即座に動かし替えるのではなく、まず subtree 運用の入口を追加し、次の pass で vendor-aware 化します。
+この移行では、これらを即座に動かし替えるのではなく、まず template 側に committed snapshot を作り、次の pass で vendor-aware 化します。
 
 ## 5. wrapper の考え方
 
@@ -125,25 +136,33 @@ root 側は次のような薄い wrapper にします。
 
 ## 7. 標準運用
 
-### 7.1 初回取り込み
+### 7.1 template 側 snapshot を更新
+
+外部 repo を作る前でも、template 側には committed snapshot を置きます。
+
+```bash
+bash scripts/sync_agent_canon.sh snapshot
+```
+
+### 7.2 初回取り込み
 
 ```bash
 bash scripts/sync_agent_canon.sh add git@github.com:<org>/agent-canon.git
 ```
 
-### 7.2 upstream から更新取得
+### 7.3 upstream から更新取得
 
 ```bash
 bash scripts/sync_agent_canon.sh pull
 ```
 
-### 7.3 product 側の shared canon 変更を upstream へ戻す
+### 7.4 product 側の shared canon 変更を upstream へ戻す
 
 ```bash
 bash scripts/sync_agent_canon.sh push
 ```
 
-### 7.4 現在の設定確認
+### 7.5 現在の設定確認
 
 ```bash
 bash scripts/sync_agent_canon.sh status
@@ -156,6 +175,7 @@ bash scripts/sync_agent_canon.sh status
 - migration 正本を作る
 - `vendor/` の reserved path を作る
 - subtree sync script を追加する
+- committed snapshot を `vendor/agent-canon/` に作る
 - index 文書に導線を足す
 
 ### Phase 1. upstream `agent-canon` repo を作る
@@ -170,7 +190,7 @@ bash scripts/sync_agent_canon.sh status
 
 exit 条件:
 - upstream repo 単体で shared canon を保持できる
-- product 側に subtree add 済み snapshot を持てる
+- product 側に subtree add / split できる snapshot history を持てる
 
 ### Phase 2. template の runtime entrypoint を薄くする
 
@@ -228,6 +248,7 @@ exit 条件:
 抑止:
 - `vendor/agent-canon/` の変更は専用 commit に分ける
 - `git subtree push --prefix=vendor/agent-canon` を標準運用にする
+- 外部 repo をまだ作っていない段階では `snapshot` で vendor tree を更新し、repo 作成時に `git subtree split --prefix=vendor/agent-canon` から初期 history を切り出す
 
 ### worktree ごとに shared canon がばらつく
 
@@ -242,6 +263,7 @@ exit 条件:
 - root `AGENTS.md` と root `.codex/` は product entrypoint として機能する
 - product で worktree を切ったとき、その時点の shared canon snapshot が `vendor/agent-canon/` として見える
 - product 側で直した shared canon を `git subtree push` で upstream へ戻せる
+- upstream repo 作成前でも、`git clone <template>` 直後に `vendor/agent-canon/` snapshot が揃っている
 
 ## 11. 関連
 

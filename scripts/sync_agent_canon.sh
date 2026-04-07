@@ -9,6 +9,7 @@ DEFAULT_BRANCH="${AGENT_CANON_BRANCH:-main}"
 usage() {
   cat <<EOF
 Usage:
+  bash scripts/sync_agent_canon.sh snapshot
   bash scripts/sync_agent_canon.sh add <remote-url> [branch]
   bash scripts/sync_agent_canon.sh pull [branch]
   bash scripts/sync_agent_canon.sh push [branch]
@@ -46,6 +47,36 @@ ensure_remote() {
 
 require_existing_remote() {
   git -C "$ROOT_DIR" remote get-url "$REMOTE_NAME" >/dev/null 2>&1 || die "remote '$REMOTE_NAME' is not configured"
+}
+
+cmd_snapshot() {
+  local prefix_root="$ROOT_DIR/$PREFIX"
+  local items=(
+    "agents"
+    ".agents"
+    ".claude/agents"
+    ".claude/skills"
+    ".codex/README.md"
+    ".codex/agents"
+    "documents/AGENTS_COORDINATION.md"
+    "documents/REVIEW_PROCESS.md"
+    "documents/implementation-waterfall-workflow.md"
+    "documents/workflow-references.md"
+    "scripts/agent_tools"
+    "scripts/tools/mirror_skill_shims.py"
+  )
+
+  mkdir -p "$prefix_root"
+
+  local rel=""
+  for rel in "${items[@]}"; do
+    local src="$ROOT_DIR/$rel"
+    local dst="$prefix_root/$rel"
+    [ -e "$src" ] || die "snapshot source '$rel' does not exist"
+    rm -rf "$dst"
+    mkdir -p "$(dirname "$dst")"
+    cp -a "$src" "$dst"
+  done
 }
 
 cmd_add() {
@@ -100,6 +131,9 @@ main() {
 
   local subcommand="${1:-}"
   case "$subcommand" in
+    snapshot)
+      cmd_snapshot
+      ;;
     add)
       [ "${2:-}" ] || die "add requires <remote-url>"
       cmd_add "$2" "${3:-$DEFAULT_BRANCH}"

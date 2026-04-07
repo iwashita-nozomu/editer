@@ -1,4 +1,4 @@
-.PHONY: git_init ci ci-quick docs-check dev-setup tools-help agent-checks docker-check docker-build-check docker-build-check-host-docker server-check experiment-check docker-shell docker-codex docker-codex-host-docker
+.PHONY: git_init ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-snapshot agent-canon-status docker-check docker-build-check docker-build-check-host-docker server-check experiment-check docker-shell docker-codex docker-codex-host-docker
 
 # Git 初期化（初回のみ）
 git_init:
@@ -21,6 +21,14 @@ docs-check:
 agent-checks:
 	python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune --check
 	python3 scripts/agent_tools/smoke_test_research_perspective_pack.py
+
+# committed vendor snapshot を更新
+agent-canon-snapshot:
+	bash scripts/sync_agent_canon.sh snapshot
+
+# subtree / snapshot 設定を確認
+agent-canon-status:
+	bash scripts/sync_agent_canon.sh status
 
 # Dockerfile と requirements の整合
 docker-check:

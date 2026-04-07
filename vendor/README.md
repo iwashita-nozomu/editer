@@ -10,10 +10,12 @@
 - product runtime の正面入口は root `AGENTS.md` と root `.codex/` に残します
 - `vendor/agent-canon/` は shared canon の subtree snapshot として扱います
 - shared canon の同期は [scripts/sync_agent_canon.sh](/mnt/l/workspace/project_template/scripts/sync_agent_canon.sh) から行います
+- template repo には committed snapshot を残すので、`git clone <template>` 直後でも shared canon を参照できます
 
 よく使うコマンド:
 
 ```bash
+bash scripts/sync_agent_canon.sh snapshot
 bash scripts/sync_agent_canon.sh add git@github.com:<org>/agent-canon.git
 bash scripts/sync_agent_canon.sh pull
 bash scripts/sync_agent_canon.sh push
