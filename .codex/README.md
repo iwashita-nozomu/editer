@@ -20,13 +20,18 @@
 - `gpt-5.4` + `xhigh`
   - `requirements_organizer`
   - `execution_planner`
-  - `explorer`
+  - `detailed_designer`
   - `literature_researcher`
   - `docs_workflow_steward`
   - 全 reviewer 系 role
-- `gpt-5.3-codex-spark` + `xhigh`
-  - `detailed_designer`
+- `gpt-5.4-mini` + `xhigh`
+  - `explorer`
   - `worker`
+- manual worker overrides
+  - `gpt-5.3-codex`
+    - terminal-heavy な実装や coding-specialist 挙動を明示的に使いたいとき
+  - `gpt-5.3-codex-spark`
+    - 極端に狭い低遅延 edit loop だけ
 - `Plan` collaboration mode
   - interactive Codex で要件整理と実行計画立案を行う parent session に対して使う
   - session 単位の設定なので、per-agent TOML ではなく Codex canon 側で管理する

@@ -9,6 +9,26 @@
   - root `AGENTS.md` を入口にする運用の根拠です。
 - [Subagents - Codex | OpenAI Developers](https://developers.openai.com/codex/subagents)
   - Codex subagent の置き方と使い分けの根拠です。
+- [Models | OpenAI API](https://developers.openai.com/api/docs/models)
+  - current model lineup と mainline chooser の根拠です。
+- [GPT-5.4 Model | OpenAI API](https://developers.openai.com/api/docs/models/gpt-5.4)
+  - `gpt-5.4` を planning、design、review の default 判断役に置く根拠です。
+- [GPT-5.4 mini Model | OpenAI API](https://developers.openai.com/api/docs/models/gpt-5.4-mini)
+  - `gpt-5.4-mini` を high-frequency subagent の default に置く根拠です。
+- [GPT-5.3-Codex Model | OpenAI API](https://developers.openai.com/api/docs/models/gpt-5.3-codex)
+  - coding-specialist override を残す根拠です。
+- [Introducing GPT-5.4 | OpenAI](https://openai.com/index/introducing-gpt-5-4/)
+  - `gpt-5.4` が `GPT-5.3-Codex` の coding capability を mainline へ取り込んだ、という位置づけの根拠です。
+- [Introducing GPT-5.4 mini and nano | OpenAI](https://openai.com/index/introducing-gpt-5-4-mini-and-nano/)
+  - `gpt-5.4` が planning / coordination / final judgment、`gpt-5.4-mini` subagent が狭い並列 task を担う、という routing の直接根拠です。
+- [Introducing GPT-5.3-Codex-Spark | OpenAI](https://openai.com/index/introducing-gpt-5-3-codex-spark/)
+  - `gpt-5.3-codex-spark` を smaller、text-only、128k の low-latency override に留める根拠です。
+- [Introducing GPT-5.4 | Simon Willison's Weblog](https://simonwillison.net/2026/Mar/5/introducing-gpt54/)
+  - practitioner 視点で、`gpt-5.4` が coding capability を mainline へ寄せたと読む補助資料です。
+- [GPT-5.4 mini and GPT-5.4 nano, which can describe 76,000 photos for $52 | Simon Willison's Weblog](https://simonwillison.net/2026/Mar/17/mini-and-nano/)
+  - mini / nano の速度、価格、reasoning tier の実地感を補う資料です。
+- [I Tested GPT 5.4 Against Every Rival — Here's My Honest Review | Thomas Wiegold Blog](https://thomas-wiegold.com/blog/i-tested-gpt-5-4-against-every-rival/)
+  - task-based routing の必要性と、terminal-heavy task で `gpt-5.3-codex` override を残す判断の補助資料です。
 - [How Claude remembers your project - Claude Code Docs](https://code.claude.com/docs/en/memory)
   - `CLAUDE.md` を薄い adapter にする判断の参考です。
 - [Copilot customization cheat sheet - GitHub Docs](https://docs.github.com/en/copilot/reference/customization-cheat-sheet)
