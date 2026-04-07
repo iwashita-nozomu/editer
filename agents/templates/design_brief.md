@@ -1,4 +1,4 @@
-# Design Brief
+# Detailed Design Brief
 
 - Run ID: {\{RUN_ID}}
 - Task: {\{TASK}}
@@ -6,11 +6,23 @@
 
 ## Goals
 
-<!-- Describe the design goal in implementation-facing terms. -->
+<!-- Describe the design goal in implementation-facing terms. The goal is to produce the design document that implementation will follow. -->
 
-## Proposed Approach
+## Existing Code And Docs To Reuse
 
-<!-- Describe the planned architecture, boundaries, and rollout shape. -->
+<!-- List the local modules, helpers, tests, docs, and naming patterns that should be reused or mirrored. -->
+
+## Patterns And Writing Style To Mirror
+
+<!-- Record the existing coding and documentation style that implementation should follow. -->
+
+## File-By-File Design
+
+<!-- Describe the planned file edits, boundaries, interfaces, and expected diff shape in detail. -->
+
+## Validation And Rollback Plan
+
+<!-- Describe how the design will be validated and what rollback or fallback path exists. -->
 
 ## Risks
 

@@ -17,6 +17,11 @@
 
 ## Current Agents
 
+- `requirements_organizer`
+- `execution_planner`
+- `plan_reviewer`
+- `detailed_designer`
+- `detailed_design_reviewer`
 - `explorer`
 - `reviewer`
 - `worker`

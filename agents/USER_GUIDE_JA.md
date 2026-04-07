@@ -43,4 +43,7 @@
 - Claude 専用 subagent は `.claude/agents/` にあります。
 - Codex 用 subagent は `.codex/agents/` にあります。
 - subagent は task 固有に使い、repo 全体の正本は `agents/` 側に置きます。
-- specialist を立ち上げる前に `subagent-bootstrap` を見て、必要なら run bundle を先に作ります。
+- specialist を立ち上げる前に `subagent-bootstrap` を見て、repo-changing task では run bundle を先に作ります。
+- 既定の流れは `要件整理 -> 調査 -> 実行計画立案 -> 計画レビュー -> 詳細設計 -> 詳細設計レビュー -> 実装` です。
+- `計画レビュー` と `詳細設計レビュー` は別 subagent で行います。
+- `詳細設計レビュー` を通す前に実装へ進みません。

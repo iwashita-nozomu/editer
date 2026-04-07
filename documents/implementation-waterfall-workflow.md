@@ -7,12 +7,15 @@
 
 ## 1. 目的
 
+- stage ごとに適切な subagent / specialist を explicit に立てる
 - 要件が固まる前に code を書き始めない
-- 設計が固まる前に実装を広げない
+- 計画が固まる前に詳細設計へ進まない
+- 詳細設計が固まる前に実装を広げない
 - 実装、review、verification を段階ゲートで区切る
 - 各 pass で複数回の独立レビューを必須にする
 - 変更要求 1 件につき 1 回の実装パスを閉じる
 - 差し戻しが必要な場合は、どの段へ戻すかを明示する
+- 新規実装より前に、既存コードと既存の書き方を徹底的に再利用する
 
 ## 2. 文献ベースの判断
 
@@ -40,19 +43,43 @@
 
 ## 4. 標準ゲート
 
-この workflow では、最小でも次の 7 回の review / gate 判断を通します。
+この workflow では、最小でも次の stage を順に通します。
 
-1. intake review
-1. requirements review
-1. design review
-1. implementation checkpoint review
-1. verification review
-1. final acceptance review
-1. audit review
+1. 要件整理
+1. 調査
+1. 実行計画立案
+1. 計画レビュー
+1. 詳細設計
+1. 詳細設計レビュー
+1. 実装
+1. 実装 checkpoint review
+1. 最終受け入れ review
+1. audit / gate close
 
-`Scoped Change` のような小さい差分でも、この最小回数を下回りません。長い task では implementation checkpoint review を複数回に増やします。
+`Scoped Change` のような小さい差分でも、実行計画、計画レビュー、詳細設計、詳細設計レビューを省略しません。
+また、`計画レビュー` と `詳細設計レビュー` は別エージェントで行います。とくに `詳細設計レビュー` を、実装前でもっとも重要な gate とみなします。
 
-### Gate 0. Intake
+### Gate 0. Subagent Bootstrap
+
+目的:
+- run bundle と review artifact を先に固定する
+- 要件 reviewer、計画 reviewer、詳細設計 reviewer を別 agent instance として割り当てる
+
+最低限の記録:
+- `team_manifest.yaml`
+- `intent_brief.md`
+- `decision_log.md`
+
+推奨 subagent:
+- repo 内調査が要る場合は `explorer`
+- 文書主体の整理が要る場合は `docs_workflow_steward`
+
+必須ルール:
+- repo-changing task では explicit subagent activation を省略しません
+- `計画レビュー` と `詳細設計レビュー` は別 agent instance で行います
+- `詳細設計レビュー` を、実装前でもっとも重要な gate とみなします
+
+### Gate 1. 要件整理
 
 目的:
 - 変更要求を 1 件に固定する
@@ -67,9 +94,10 @@
 
 主担当:
 - `manager`
-- 必要に応じて `researcher`
-- 必要に応じて `scheduler`
-- 必要に応じて `infra_steward`
+- `manager_reviewer`
+
+推奨 subagent:
+- repo survey が要る場合は `explorer`
 
 必須レビュー:
 - `manager_reviewer`
@@ -80,74 +108,147 @@ exit 条件:
 - 何をもって完了とするかが 1 文で言える
 - どの family で扱うかが決まっている
 - 実装前に必要な review / validation が決まっている
-- intake review が `resolved` になっている
-
-### Gate 1. Requirements Freeze
-
-目的:
-- 解く問題、満たす条件、守る制約を固定する
-
-最低限の記録:
-- `Question:` または `Problem Statement:`
-- `Acceptance Criteria:`
-- `Constraints:`
-- `Interfaces Affected:`
-- `Rollback Trigger:`
-
-主担当:
-- `manager`
-- `manager_reviewer`
-- 必要に応じて `research_reviewer`
-
-必須レビュー:
-- `manager_reviewer`
-  - requirement の抜け、曖昧な acceptance、scope overrun を確認する
-- 必要に応じて `research_reviewer`
-  - 外部根拠と requirement の結びつきを確認する
-
-ルール:
-- production code の変更は、この gate を通す前に始めません
-- 例外は捨てる前提の pilot / prototype だけです
-
-exit 条件:
-- reviewer が scope の曖昧さを受け入れ可能と判断している
-- 受け入れ条件が test、docs、runtime の観点で追える
 - requirements review が `resolved` になっている
 
-### Gate 2. Design Freeze
+### Gate 2. 調査
 
 目的:
-- 実装方針、ファイル計画、検証計画を固定する
+- 既存コード、既存 docs、外部根拠、既存 implementation pattern を調べる
+
+主担当:
+- 必要に応じて `researcher`
+- 必要に応じて `research_reviewer`
+
+推奨 subagent:
+- 外部文献が要る場合は `literature_researcher`
+- repo 内の precedent 調査は `explorer`
 
 最低限の記録:
-- `Design Summary:`
-- `Files To Touch:`
-- `Test / Check Plan:`
-- `Migration Or Rollback Plan:`
-- `Open Risks:`
+- `Existing Code To Reuse:`
+- `Existing Writing Style To Follow:`
+- `Prior Art Or Local Precedent:`
+- `Research Gaps:`
+
+exit 条件:
+- 何を再利用し、何を新規に足すかが言える
+- 調査が必要な task では research review が `resolved` になっている
+
+### Gate 3. 実行計画立案
+
+目的:
+- stage 順序、担当 agent、handoff、validation 順序を固定する
+
+最低限の記録:
+- `Stage Order:`
+- `Owner Agent Per Stage:`
+- `Review Agent Per Stage:`
+- `Validation Sequence:`
+- `Rollback Points:`
+
+主担当:
+- `scheduler`
+
+推奨 subagent:
+- 文書主体なら `docs_workflow_steward`
+
+必須レビュー:
+- ここでは plan review は行いません。次 gate で独立 reviewer に渡します。
+
+ルール:
+- 実行計画は詳細設計の前に必ず確定させます
+- どの subagent / role がどの stage を担当するか明記します
+
+exit 条件:
+- `schedule.md` に stage 順序、担当 agent、exit criteria、validation が書かれている
+- 実装へ進む前に必要な review agent がすべて割り当てられている
+
+### Gate 4. 計画レビュー
+
+目的:
+- 実行計画の順序、review 分離、rollback point を独立に確認する
+
+最低限の記録:
+- `Stage Risks:`
+- `Reviewer Separation Risks:`
+- `Rollback Gaps:`
+- `Required Revisions:`
+
+主担当:
+- `schedule_reviewer`
+
+推奨 subagent:
+- `reviewer`
+
+必須レビュー:
+- `schedule_reviewer`
+  - stage 順序、依存関係、review agent の分離、rollback point を確認する
+- 必要に応じて `infra_reviewer`
+  - runtime、CI、Docker、dependency 影響が計画に反映されているか確認する
+
+ルール:
+- 計画レビュー agent を詳細設計レビュー agent と兼務させません
+- stage の飛ばしや merge は認めません
+
+exit 条件:
+- `schedule_review.md` が `resolved` になっている
+
+### Gate 5. 詳細設計
+
+目的:
+- 実装前提を十分に伝える詳細設計文書を起こす
+- 既存コードと既存の書き方をどう踏襲するかを明文化する
 
 主担当:
 - `designer`
+
+推奨 subagent:
+- 文書主体なら `docs_workflow_steward`
+- 既存 code path 調査が要る場合は `explorer`
+
+最低限の記録:
+- `Existing Code And Docs To Reuse:`
+- `Patterns And Writing Style To Mirror:`
+- `File-By-File Design:`
+- `Interfaces And Boundaries:`
+- `Validation And Rollback Plan:`
+
+ルール:
+- 詳細設計の目標は、実装前に読むべき文書を完成させることです
+- 既存 module boundary、命名、API shape、test style、docs style から逸脱する場合は、理由を明示します
+
+exit 条件:
+- 実装者が文書だけ読んで着手できる
+- 新規 abstraction より reuse-first の方針が説明できる
+
+### Gate 6. 詳細設計レビュー
+
+目的:
+- 詳細設計文書の十分性と、reuse-first / style-following が担保されているか確認する
+
+主担当:
 - `design_reviewer`
 - 必要に応じて `infra_reviewer`
+
+推奨 subagent:
+- `reviewer`
+- Python 差分が中心なら追加で `python_reviewer`
+- repo-wide 影響が大きければ `project_reviewer`
 
 必須レビュー:
 - `design_reviewer`
-  - file plan、test/check plan、rollback plan、risk の取りこぼしを確認する
+  - 文書 completeness、実装可能性、既存コード再利用、既存の書き方踏襲、不要な新規性を確認する
 - 必要に応じて `infra_reviewer`
-  - runtime、CI、Docker、dependency 影響を確認する
+  - infra / runtime 影響が設計文書に落ちているか確認する
 
 ルール:
-- 要件の追加や変更が出たら Gate 1 に戻します
-- 実装中に設計変更が必要だと分かったら Gate 2 を開き直します
+- `詳細設計レビュー` は計画レビューより重い gate とします
+- design reviewer が未解消の懸念を残したまま実装へ進みません
 
 exit 条件:
-- どの file をどう変えるかが説明できる
-- validation の入口が定まっている
-- rollback か abort の条件が決まっている
-- design review が `resolved` になっている
+- `design_review.md` が `resolved` になっている
+- reuse-first と style-following の懸念が解消している
 
-### Gate 3. Implementation
+### Gate 7. 実装
 
 目的:
 - 凍結済みの設計を実装へ落とす
@@ -155,12 +256,17 @@ exit 条件:
 主担当:
 - `implementer`
 
+推奨 subagent:
+- bounded な切り出しだけを `worker` に渡す
+
 ルール:
 - 実装は 1 つの change request に閉じます
 - docs と tests は同じ pass で更新します
 - 途中で scope を広げません
-- 設計を変えたくなったら Gate 2 へ戻します
+- 設計を変えたくなったら Gate 5-6 を開き直します
 - 非自明な変更では、final polish 前に checkpoint review を必ず 1 回挟みます
+- 既存コード、既存 helper、既存 naming、既存 test style、既存 docs style を優先します
+- 完全な新規実装より、既存実装の拡張、既存 pattern の模倣、既存 file layout の踏襲を優先します
 
 必須レビュー:
 - `change_reviewer`
@@ -169,17 +275,17 @@ exit 条件:
   - `Platform And Environment` では rollout 影響が見える時点で最低 1 回
 
 exit 条件:
-- 差分が requirements / design に一致している
+- 差分が requirements / plan / design に一致している
 - planned checks を実行できる状態になっている
 - implementation checkpoint review が `resolved` になっている
 
-### Gate 4. Verification
+### Gate 8. 最終受け入れ review
 
 目的:
 - 差分が設計どおりで、回帰やリスクが許容範囲に収まっているか確認する
 
 主担当:
-- `change_reviewer`
+- `final_reviewer`
 - 必要に応じて `python-review`
 - 必要に応じて `md-style-check`
 - 必要に応じて `critical-review`
@@ -190,8 +296,8 @@ exit 条件:
 - security / safety / provenance の確認
 
 必須レビュー:
-- `change_reviewer`
-  - final diff review と validation evidence review を行う
+- `final_reviewer`
+  - 変更全体、docs 同期、受け入れ条件達成、不要な新規 pattern の混入有無を確認する
 - 必要に応じて `python-review`
   - Python API、型境界、test coverage の不足を確認する
 - 必要に応じて `md-style-check`
@@ -201,20 +307,21 @@ exit 条件:
 
 ルール:
 - 設計を変えない軽微修正だけは、この gate 内で戻して構いません
-- 新しい requirement や設計変更が必要なら Gate 1 または Gate 2 に戻します
+- 新しい requirement が必要なら Gate 1 に戻します
+- 計画変更が必要なら Gate 3 に戻します
+- 設計変更が必要なら Gate 5 に戻します
 
 exit 条件:
 - `required_change` が解消している
 - 実行した checks と未実行理由が説明できる
-- verification review が `resolved` になっている
+- final acceptance review が `resolved` になっている
 
-### Gate 5. Acceptance And Transition
+### Gate 9. Audit And Gate Closure
 
 目的:
 - 受け入れ条件を満たした変更だけを close する
 
 主担当:
-- `final_reviewer`
 - `auditor`
 - `verifier`
 
@@ -225,24 +332,25 @@ exit 条件:
 - commit / push の成否確認
 
 必須レビュー:
-- `final_reviewer`
-  - 変更全体、docs 同期、受け入れ条件達成を確認する
 - `auditor`
   - required reviews が揃っているか、artifact と closeout evidence が欠けていないか確認する
 
 exit 条件:
-- final reviewer が change 全体を受け入れ可能と判断している
 - auditor review が `resolved` になっている
 - verifier が gate を閉じている
 
 ## 5. 差し戻しルール
 
 - requirement の抜けやスコープ変更:
+  - Gate 0 へ戻す
+- 調査不足、existing code survey の不足:
   - Gate 1 へ戻す
+- 実行計画の順序不備、agent 割当の不足:
+  - Gate 2-3 へ戻す
 - 設計不整合、file plan の見直し、rollback 方針の欠落:
-  - Gate 2 へ戻す
+  - Gate 4-5 へ戻す
 - 実装ミスや test failure だが設計は維持できる:
-  - Gate 3 に戻して修正する
+  - Gate 6 に戻して修正する
 - 実験結果やユーザー要望で別仮説になった:
   - 既存 pass を閉じ、新しい change request として Gate 0 からやり直す
 
@@ -261,13 +369,13 @@ pilot は本実装の抜け道ではなく、requirements/design の凍結精度
 
 ### Scoped Change
 
-- Gate 1 から Gate 5 をそのまま 1 pass で通します
-- artifact は最小限で構いませんが、requirements/design/verification の区別は崩しません
-- review 回数は intake、requirements、design、checkpoint、verification、final、audit の 7 回を下回りません
+- Gate 0 から Gate 8 をそのまま 1 pass で通します
+- artifact は軽くて構いませんが、要件整理、計画、詳細設計、各 review の区別は崩しません
+- `scheduler`、`schedule_reviewer`、`designer`、`design_reviewer` を軽量版として必ず有効化します
 
 ### Research-Driven Change
 
-- literature survey、baseline run、比較設計は Gate 0-2 の入力です
+- literature survey、baseline run、比較設計は Gate 0-5 の入力です
 - 1 回の code change は 1 回の waterfall pass で実装します
 - `rerun_required` や新仮説が出たら、新しい pass としてやり直します
 
@@ -276,15 +384,23 @@ pilot は本実装の抜け道ではなく、requirements/design の凍結精度
 - `scheduler` が chunk を先に固定します
 - 各 chunk は独立した waterfall pass として閉じます
 - chunk 間の横断変更は、次 chunk の Gate 1 に持ち越します
+- 各 chunk の前に詳細設計文書を起こし、詳細設計レビューを通します
 - 各 chunk で checkpoint review を複数回に増やして構いません
 
 ### Platform And Environment
 
-- Gate 2 で rollout / rollback / environment impact を必ず固定します
-- Gate 4-5 で `docker/`、CI、runtime pack、関連 README の同期を確認します
-- `infra_reviewer` は design review だけでなく verification review にも参加して構いません
+- Gate 2-5 で rollout / rollback / environment impact を必ず固定します
+- Gate 7-8 で `docker/`、CI、runtime pack、関連 README の同期を確認します
+- `infra_reviewer` は詳細設計レビューだけでなく最終受け入れ review にも参加して構いません
 
-## 8. closeout の必須項目
+## 8. reuse-first の必須ルール
+
+- まず既存 module、既存 helper、既存 abstraction を探します
+- 既存 API shape、命名、error handling、test style、docs style を優先します
+- 新しい pattern を導入するときは、詳細設計文書に既存 pattern では足りない理由を書きます
+- 既存コードを踏襲できるなら、完全新規実装を選びません
+
+## 9. closeout の必須項目
 
 - 実行した validation
 - 未実行 validation と理由

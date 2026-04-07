@@ -4,10 +4,18 @@
 - Task: {\{TASK}}
 - Owner: {\{OWNER}}
 
-## Milestones
+## Stage Plan
 
-| Milestone | Goal | Dependencies | Exit Criteria | Status |
-| --------- | ---- | ------------ | ------------- | ------ |
+| Stage | Owner Agent | Review Agent | Inputs | Exit Criteria | Status |
+| ----- | ----------- | ------------ | ------ | ------------- | ------ |
+
+## Explicit Subagents
+
+<!-- Record the concrete Codex / Claude subagents or permanent team roles used for each stage. -->
+
+## Reuse And Continuity Constraints
+
+<!-- Record which existing code, naming, APIs, tests, and docs style must be followed. -->
 
 ## Risks
 

@@ -10,7 +10,11 @@
 
 ## Routing Review
 
-<!-- Check whether the right specialist roles were enabled. -->
+<!-- Check whether the right specialist roles and explicit stage subagents were enabled. -->
+
+## Reuse-First Review
+
+<!-- Check whether the intake package identifies existing code and docs that implementation should follow. -->
 
 ## Decision
 

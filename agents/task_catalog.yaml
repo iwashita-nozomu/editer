@@ -14,7 +14,9 @@ workflow_families:
         - final_reviewer
         - verifier
         - auditor
-      specialists: []
+      specialists:
+        - scheduler
+        - schedule_reviewer
     tasks:
       - T1
       - T2
@@ -36,6 +38,8 @@ workflow_families:
       specialists:
         - researcher
         - research_reviewer
+        - scheduler
+        - schedule_reviewer
         - experimenter
         - experiment_reviewer
         - reproducibility_reviewer
@@ -94,21 +98,29 @@ tasks:
   - id: T1
     name: local bug fix
     family: scoped_change
-    specialists: []
+    specialists:
+      - scheduler
+      - schedule_reviewer
   - id: T2
     name: CI or flaky test fix
     family: scoped_change
-    specialists: []
+    specialists:
+      - scheduler
+      - schedule_reviewer
   - id: T3
     name: docs and test sync
     family: scoped_change
-    specialists: []
+    specialists:
+      - scheduler
+      - schedule_reviewer
   - id: T4
     name: research-backed implementation change
     family: research_driven_change
     specialists:
       - researcher
       - research_reviewer
+      - scheduler
+      - schedule_reviewer
       - experimenter
       - experiment_reviewer
     optional_review_packs:
@@ -119,6 +131,8 @@ tasks:
     specialists:
       - researcher
       - research_reviewer
+      - scheduler
+      - schedule_reviewer
       - experimenter
       - experiment_reviewer
     optional_review_packs:
@@ -147,6 +161,8 @@ tasks:
     name: research workflow, artifact policy, or reporting policy change
     family: research_driven_change
     specialists:
+      - scheduler
+      - schedule_reviewer
       - researcher
       - research_reviewer
       - experimenter

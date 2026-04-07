@@ -4,9 +4,17 @@
 - Task: {\{TASK}}
 - Owner: {\{OWNER}}
 
-## Milestone Review
+## Stage Order Review
 
-<!-- Check milestone ordering, dependency realism, and rollback points. -->
+<!-- Check stage ordering, dependency realism, and rollback points. -->
+
+## Reviewer Separation Review
+
+<!-- Check that plan review and detailed design review are assigned to different agents. -->
+
+## Subagent Adequacy Review
+
+<!-- Check that the chosen subagents are appropriate for requirements, research, planning, design, and implementation. -->
 
 ## Risks
 
