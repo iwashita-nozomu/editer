@@ -105,6 +105,37 @@ python3 scripts/ci/run_codex_in_repo_container.py --profile host-docker
 
 `safe.directory` は `docker/Dockerfile` の build 時に `git config --global` で固定します。既定では `/workspace`、`/mnt/git/template.git`、`/mnt/git/agent-canon.git` を登録します。これは `/mnt/l/workspace/jax_solver_util` 側の Codex 起動権限設定に合わせたものです。
 
+## VS Code Dev Container
+
+`.devcontainer/devcontainer.json` は Docker Compose ベースです。起動前に `.devcontainer/generate-runtime-compose.sh` を走らせ、host を見て次を自動切替します。
+
+- NVIDIA GPU が見えるとき:
+  - `gpus: all` を追加
+- GPU が見えないとき:
+  - CPU-only のまま起動
+- `/mnt/git` が存在するとき:
+  - `/mnt/git:/mnt/git` を bind mount
+- `/mnt/git` が無いとき:
+  - mount しない
+
+そのため、template を clone したディレクトリでも、GPU なし環境で dev container が落ちにくくなります。
+
+VS Code extension は最小限として次を同梱します。
+
+- `ms-python.python`
+- `ms-toolsai.jupyter`
+- `ms-azuretools.vscode-docker`
+- `ms-vscode.cpptools`
+- `ms-vscode.cmake-tools`
+
+runtime 側の C/C++ 基本 tool は、すでに `docker/Dockerfile` に入っています。
+
+- `build-essential`
+- `pkg-config`
+- `cmake`
+
+なので、現時点では Docker image 側に追加の CMake setup は不要です。必要になったら compiler、debugger、language server を用途別に足します。
+
 host に `docker` group が設定されていても、現在の shell がその group をまだ持っていない場合があります。`getent group docker` にユーザー名が出ても `id` に `docker` が無いときは、新しい login shell を開いてから `make docker-build-check` を実行します。一時確認だけなら `sg docker -c 'docker version'` で daemon 到達性を切り分けられます。
 
 ## Standard Commands

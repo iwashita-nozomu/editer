@@ -90,6 +90,8 @@ bash scripts/run_comprehensive_review.sh
 
 Codex CLI と `docker` CLI は `docker/Dockerfile` に同梱します。コンテナ内では `codex login`、API key を使う場合は `printenv OPENAI_API_KEY | codex login --with-api-key` を使います。`safe.directory` は image build 時に `git config --global` で固定し、既定で `/workspace`、`/mnt/git/template.git`、`/mnt/git/agent-canon.git` を登録します。
 
+VS Code から開発コンテナへ入る場合は `.devcontainer/` を使います。GPU がある host では自動で `gpus: all` を追加し、GPU が無い host では CPU-only で起動します。`/mnt/git` も host に存在するときだけ mount します。
+
 ```bash
 docker build -t project-template -f docker/Dockerfile .
 docker run --rm -it \
