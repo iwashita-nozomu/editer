@@ -93,7 +93,7 @@ experiments/
 - 複数 run をまたぐ知見は `notes/experiments/` または `notes/themes/`
 
 実験方法論そのものは `documents/experiment-workflow.md` と `documents/research-workflow.md` を正本にします。
-agent に実験つき改造 loop を回させる場合は `agents/skills/experiment-change-loop.md` を入口にし、記録は `agents/templates/experiment_change_loop.md` を使います。
+agent に実験つき改造 loop を回させる場合は `agents/skills/adaptive-improvement-loop.md` を outer loop、`agents/skills/experiment-lifecycle.md` を run 単位の分岐に使います。
 server で回す実験コードの実体テンプレは `experiments/_template/`、topic 正本は `experiments/registry.toml`、topic scaffold は `scripts/experiments/create_experiment_topic.py`、run metadata を残す入口は `scripts/experiments/run_managed_experiment.py` です。
 
 ## よく使うコマンド

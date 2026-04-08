@@ -83,6 +83,10 @@ ownership と surface 種別は [documents/SHARED_RUNTIME_SURFACES.md](/mnt/l/wo
   - shared agent/worktree surface の ownership と validation の正本です。
 - [agent_tools/bootstrap_agent_run.py](/mnt/l/workspace/project_template/scripts/agent_tools/bootstrap_agent_run.py)
   - agent 実行の bootstrap 入口です。
+- [agent_tools/task_start.py](/mnt/l/workspace/project_template/scripts/agent_tools/task_start.py)
+  - run bundle の作成に加えて、`workflow=...`, `skills=...`, `review=...` の開始宣言を機械生成します。
+- [agent_tools/task_close.py](/mnt/l/workspace/project_template/scripts/agent_tools/task_close.py)
+  - `verification.txt` と `closeout_gate.md` を見て、user-facing completion report を返してよいか機械判定します。
 - [agent_tools/validate_role_write_scope.py](/mnt/l/workspace/project_template/scripts/agent_tools/validate_role_write_scope.py)
   - role ごとの write scope を検証します。
 - [agent_tools/smoke_test_research_perspective_pack.py](/mnt/l/workspace/project_template/scripts/agent_tools/smoke_test_research_perspective_pack.py)
@@ -126,6 +130,8 @@ python3 scripts/tools/fix_markdown_code_blocks.py --dry-run documents
 python3 scripts/tools/fix_markdown_headers.py --dry-run documents
 python3 scripts/tools/format_markdown.py documents notes
 python3 scripts/agent_tools/smoke_test_research_perspective_pack.py
+python3 scripts/agent_tools/task_start.py --task "scoped change" --task-id T1 --owner "codex" --dry-run
+python3 scripts/agent_tools/task_close.py --run-id 20260408-sample-run
 python3 scripts/agent_tools/work_log.py --kind review --message "ci-quick passed" --next "prepare commit"
 bash scripts/sync_agent_canon.sh link-root
 bash scripts/sync_agent_canon.sh check
