@@ -8,6 +8,7 @@
 - [documents/README.md](/mnt/l/workspace/project_template/documents/README.md)
 - [documents/WORKFLOW_GUIDE.md](/mnt/l/workspace/project_template/documents/WORKFLOW_GUIDE.md)
 - [documents/linux-wsl-host-requirements.md](/mnt/l/workspace/project_template/documents/linux-wsl-host-requirements.md)
+- [documents/template-bootstrap.md](/mnt/l/workspace/project_template/documents/template-bootstrap.md)
 - [documents/conventions/README.md](/mnt/l/workspace/project_template/documents/conventions/README.md)
 - [documents/coding-conventions-python.md](/mnt/l/workspace/project_template/documents/coding-conventions-python.md)
 
@@ -29,6 +30,13 @@ agent を使う場合は次を見ます。
 - 短期 branch は必要なときだけ切り、長期の分岐運用は避けます。
 - 変更の前に、対象ディレクトリと必要な更新を先に決めます。
 - Python と Markdown は常に対象に含まれる前提で確認します。
+
+template から起こした直後に repo 名や bare remote 名を変えるなら次です。
+
+```bash
+bash scripts/init_from_template.sh --project-slug your-project --display-name "Your Project"
+make fresh-clone-check
+```
 
 最低限の確認:
 
@@ -124,5 +132,6 @@ bash scripts/push_origin.sh
 ```
 
 - 長期に残す知見は `notes/` に寄せます。
+- worktree を使った場合は、`documents/notes-lifecycle.md` を見て action log から knowledge/theme/failure へ昇格させる項目を決めます。
 - repo 全体のルール変更は `documents/` に反映します。
 - 短期 branch を使った場合は、統合後に削除して `main` に戻します。

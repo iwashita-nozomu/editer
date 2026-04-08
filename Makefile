@@ -1,4 +1,4 @@
-.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-links agent-canon-snapshot agent-canon-status docker-check docker-build-check docker-build-check-host-docker server-check experiment-check docker-shell docker-codex docker-codex-host-docker
+.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-links agent-canon-snapshot agent-canon-status docker-check docker-build-check docker-build-check-host-docker server-check experiment-check docker-shell docker-codex docker-codex-host-docker fresh-clone-check template-check
 
 # ★推奨: 統合 CI（pytest + pyright + ruff）
 ci:
@@ -7,6 +7,13 @@ ci:
 # CI 高速モード（ruff skip）
 ci-quick:
 	bash scripts/ci/run_all_checks.sh --quick
+
+# template fresh clone acceptance
+fresh-clone-check:
+	bash scripts/ci/check_fresh_clone.sh
+
+# higher-level template acceptance
+template-check: fresh-clone-check
 
 # repo-wide Markdown lint / link checks
 docs-check:
@@ -69,7 +76,7 @@ docker-codex-host-docker:
 
 # 開発開始の確認
 dev-setup:
-	@echo "Template clone is ready. Read QUICK_START.md, then run: make ci-quick"
+	@echo "Template clone is ready. Read documents/template-bootstrap.md, then run: make fresh-clone-check"
 
 # ツール情報表示
 tools-help:

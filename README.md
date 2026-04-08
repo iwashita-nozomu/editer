@@ -39,6 +39,7 @@ shared agent canon は `vendor/agent-canon/` に committed snapshot として同
 ## まず読むもの
 
 - `QUICK_START.md`
+- `documents/template-bootstrap.md`
 - `documents/README.md`
 - `documents/linux-wsl-host-requirements.md`
 - `documents/WORKFLOW_GUIDE.md`
@@ -58,6 +59,16 @@ shared agent canon は `vendor/agent-canon/` に committed snapshot として同
 3. 実装、実験コード、文書、必要なら `docker/` を更新します。
 4. 仕上げに `make ci` か必要な個別チェックを流します。
 5. 長期に残す判断や実験知見は `notes/` に移し、正本ルールは `documents/` に反映します。
+
+## 新規 clone 直後の最短手順
+
+```bash
+bash scripts/init_from_template.sh --project-slug your-project --display-name "Your Project"
+make fresh-clone-check
+make ci-quick
+```
+
+最短 runbook は `documents/template-bootstrap.md`、notes を育てる方針は `documents/notes-lifecycle.md` を見ます。
 
 ## 実験を含むプロジェクトでの使い方
 

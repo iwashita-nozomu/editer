@@ -35,6 +35,8 @@ ownership と surface 種別は [documents/SHARED_RUNTIME_SURFACES.md](/mnt/l/wo
   - repo 全体の確認用です。
 - [push_origin.sh](/mnt/l/workspace/project_template/scripts/push_origin.sh)
   - commit 後の canonical push 入口です。
+- [init_from_template.sh](/mnt/l/workspace/project_template/scripts/init_from_template.sh)
+  - clone 直後に project slug、display name、bare remote 名などを初期化します。
 
 ### Python
 
@@ -85,6 +87,8 @@ ownership と surface 種別は [documents/SHARED_RUNTIME_SURFACES.md](/mnt/l/wo
   - research perspective review pack の runtime と bundle を smoke test します。
 - [worktree_start.sh](/mnt/l/workspace/project_template/scripts/worktree_start.sh)
   - worktree kickoff の user-facing 入口です。
+- [agent_tools/work_log.py](/mnt/l/workspace/project_template/scripts/agent_tools/work_log.py)
+  - worktree action log へ 1 行ずつ追記します。
 - [sync_agent_canon.sh](/mnt/l/workspace/project_template/scripts/sync_agent_canon.sh)
   - `vendor/agent-canon/` subtree の add / pull / push / status、shared surface の drift check、root shared surface の再同期をまとめます。
 
@@ -103,6 +107,8 @@ make docker-shell
 make docker-codex
 make docker-codex-host-docker
 bash scripts/run_comprehensive_review.sh
+bash scripts/init_from_template.sh --project-slug your-project --display-name "Your Project" --dry-run
+bash scripts/ci/check_fresh_clone.sh
 python3 -m pyright
 python3 -m pytest tests/ -q --tb=short
 bash scripts/run_pytest_with_logs.sh
@@ -117,6 +123,7 @@ python3 scripts/tools/fix_markdown_code_blocks.py --dry-run documents
 python3 scripts/tools/fix_markdown_headers.py --dry-run documents
 python3 scripts/tools/format_markdown.py documents notes
 python3 scripts/agent_tools/smoke_test_research_perspective_pack.py
+python3 scripts/agent_tools/work_log.py --kind review --message "ci-quick passed" --next "prepare commit"
 bash scripts/sync_agent_canon.sh link-root
 bash scripts/sync_agent_canon.sh check
 bash scripts/sync_agent_canon.sh snapshot
