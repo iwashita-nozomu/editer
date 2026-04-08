@@ -85,7 +85,7 @@ bash scripts/run_comprehensive_review.sh
 - container runtime の再利用 surface は `docker/packs/*.toml` と `scripts/ci/run_container_pack.py` を基準にします。
 - Python 依存を追加する場合は `docker/Dockerfile` と `docker/requirements.txt` を同時に更新します。
 - `docker/Dockerfile` か `docker/requirements.txt` を更新したら `make docker-build-check` を流します。
-- repo-wide な tool 導入案は `agents/templates/environment_change_proposal.md` に記録します。
+- repo-wide な tool 導入案や Docker 変更では `agents/templates/environment_change_proposal.md` に triggering code requirement と blocked command を先に記録します。
 - container 内では `PYTHONPATH=/workspace/python` を前提にします。
 - Markdown の体裁ルールは `.markdownlint.json` と `documents/conventions/common/05_docs.md` を基準にします。
 - 依存棚卸しは `pipdeptree` と `deptry` を baseline にします。

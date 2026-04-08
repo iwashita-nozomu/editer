@@ -177,4 +177,4 @@ python3 scripts/ci/run_in_repo_container.py --pack docker/packs/default.toml --s
 - `documents/coding-conventions-project.md`
 - この `docker/README.md`
 
-必要なら `agents/templates/environment_change_proposal.md` に理由、影響範囲、validation、rollback を残します。
+必要なら `agents/templates/environment_change_proposal.md` に triggering code requirement、blocked command、影響範囲、validation、rollback を残します。

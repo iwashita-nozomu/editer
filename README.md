@@ -106,7 +106,7 @@ make tools-help
 
 `docker/Dockerfile` か `docker/requirements.txt` を更新した変更では、`make docker-build-check` を通して build 可否を確認します。ローカルに `docker` / `podman` がない場合は、GitHub Actions の `Docker Build` workflow を使います。
 
-repo-wide な tool 導入案は `agents/templates/environment_change_proposal.md` に理由、Docker 影響、validation、rollback を残します。
+repo-wide な tool 導入案や Docker 変更では `agents/templates/environment_change_proposal.md` に triggering code requirement、blocked command、Docker 影響、validation、rollback を残します。
 
 `safe.directory` は `docker/Dockerfile` の build 時に `git config --global` で固定します。template の canonical image では `/workspace` と、local bare remote 置き場として使う `/mnt/git/template.git`、`/mnt/git/agent-canon.git` を登録します。`/mnt/git` を mount した container からそのまま push/pull できる状態を先に作るためです。
 
