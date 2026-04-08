@@ -16,14 +16,31 @@ if [ -S /var/run/docker.sock ]; then
   docker_socket_status="mounted"
 fi
 
+repo_root="/workspace"
+if [ ! -f "${repo_root}/.codex/config.toml" ]; then
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  repo_root="$(cd "${script_dir}/.." && pwd)"
+fi
+
+codex_approval_policy="<unset>"
+codex_sandbox_mode="<unset>"
+if [ -f "${repo_root}/.codex/config.toml" ]; then
+  codex_approval_policy="$(awk -F'=' '/^approval_policy[[:space:]]*=/{gsub(/[ "]/, "", $2); print $2; exit}' "${repo_root}/.codex/config.toml")"
+  codex_sandbox_mode="$(awk -F'=' '/^sandbox_mode[[:space:]]*=/{gsub(/[ "]/, "", $2); print $2; exit}' "${repo_root}/.codex/config.toml")"
+  codex_approval_policy="${codex_approval_policy:-<unset>}"
+  codex_sandbox_mode="${codex_sandbox_mode:-<unset>}"
+fi
+
 echo
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "project-template devcontainer"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "workspace: /workspace"
+echo "workspace: ${repo_root}"
 echo "gpu: ${gpu_status}"
 echo "/mnt/git: ${mnt_git_status}"
 echo "docker-socket: ${docker_socket_status}"
+echo "codex-approval: ${codex_approval_policy}"
+echo "codex-sandbox: ${codex_sandbox_mode}"
 echo "pythonpath: ${PYTHONPATH:-<unset>}"
 echo
 echo "quick checks:"
