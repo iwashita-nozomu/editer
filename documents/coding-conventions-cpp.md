@@ -10,8 +10,10 @@ layout と build tree の正本は [cpp-build-layout.md](/mnt/l/workspace/projec
 - 明確で簡潔な実装を優先します。
 - 例外や分岐が多くなる設計は避けます。
 - 数値計算の安定性を意識し、前提条件をコメントで明示します。
+- template 既定の C++ 実装形態は header-only にします。
 - root `CMakeLists.txt` を canonical entrypoint にします。
-- `cmake/` は helper module、`src/` は実装、`include/` は public header、`tests/cpp/` は test/smoke source に固定します。
+- `cmake/` は helper module、`include/` は public header 兼 template 既定の実装置き場、`tests/cpp/` は test/smoke source に固定します。
+- `src/` は header-only で収まらない特例実装だけに使います。新規 template 利用で最初から `src/` に実装を書くことを禁止します。
 - in-source build を禁止します。`build/cpp/<profile>/` を使います。
 
 ## 2. 命名規則
@@ -23,6 +25,13 @@ layout と build tree の正本は [cpp-build-layout.md](/mnt/l/workspace/projec
 
 - 参照・ポインタの使い分けを明示し、所有権をコメントで説明します。
 - `const` を適切に付け、意図しない変更を防ぎます。
+
+## 3.5 Header-Only Rule
+
+- template の C++ 実装は `include/project_template/*.hpp` を既定にします。
+- 小さい helper、policy class、FFI binding helper、shape/stride 変換、artifact loader helper は header-only にします。
+- `src/` に `.cc` / `.cpp` を置くのは、compile time、link time、ODR、外部 library 事情で header-only が不適切だと説明できる場合だけにします。
+- `src/` を使うときは、なぜ header-only では駄目かを設計文書か change note に残さなければなりません。
 
 ## 4. コメント
 

@@ -40,12 +40,14 @@ find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
 include(ProjectTemplateJaxExport)
 project_template_detect_jaxlib_include(PROJECT_TEMPLATE_JAXLIB_INCLUDE_DIR)
 
-add_library(project_template_jax_headers INTERFACE)
+add_library(project_template_cpp INTERFACE)
 target_include_directories(
-  project_template_jax_headers
+  project_template_cpp
   INTERFACE
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
     "${PROJECT_TEMPLATE_JAXLIB_INCLUDE_DIR}"
 )
+target_compile_features(project_template_cpp INTERFACE cxx_std_17)
 
 option(PROJECT_TEMPLATE_ENABLE_CPP_SMOKE "Build the template C++ smoke target." ON)
 
@@ -54,6 +56,6 @@ if(PROJECT_TEMPLATE_ENABLE_CPP_SMOKE)
     project_template_cpp_smoke
     tests/cpp/smoke/jax_export_header_smoke.cpp
   )
-  target_link_libraries(project_template_cpp_smoke PRIVATE project_template_jax_headers)
+  target_link_libraries(project_template_cpp_smoke PRIVATE project_template_cpp)
   install(TARGETS project_template_cpp_smoke RUNTIME DESTINATION bin)
 endif()

@@ -1,8 +1,5 @@
-#include <cstddef>
-#include <xla/ffi/api/c_api.h>
-#include <xla/ffi/api/ffi.h>
+#include <project_template/jax_export_smoke.hpp>
 
 int main() {
-  const std::size_t api_struct_size = sizeof(XLA_FFI_Api);
-  return api_struct_size > 0 ? 0 : 1;
+  return project_template::xla_ffi_headers_available() ? 0 : 1;
 }

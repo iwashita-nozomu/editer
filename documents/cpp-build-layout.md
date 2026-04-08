@@ -8,16 +8,17 @@
   - repo 全体の canonical CMake entrypoint
 - `cmake/`
   - CMake helper module
-- `src/`
-  - C++ / CUDA 実装
 - `include/`
-  - public header
+  - public header 兼 template 既定の header-only 実装
+- `src/`
+  - header-only で収まらない特例実装だけ
 - `lib/`
   - checked-in third-party source や補助 library
 - `tests/cpp/`
   - smoke / test source
 
 `CMakeLists.txt` を `src/` や `cpp/` の下へ分散させることを禁止します。entrypoint は root に 1 つだけ置きます。
+template 既定では `include/project_template/*.hpp` に実装を書きます。`src/` を先に使う設計を template の標準にしません。
 
 ## Default Build Directories
 
@@ -32,7 +33,7 @@
 
 ## jax.export Flow
 
-JAX 側は Python で `jax.export` artifact を生成し、C++ 側は同じ workspace の `src/` / `include/` と root `CMakeLists.txt` から consumer を build します。
+JAX 側は Python で `jax.export` artifact を生成し、C++ 側は同じ workspace の `include/` と root `CMakeLists.txt` から header-only consumer を build します。`src/` は特例時だけ使います。
 
 最低限の smoke として、template 既定では次を通します。
 
@@ -67,3 +68,9 @@ cmake --build build/cpp/dev --target project_template_cpp_smoke
   - local reusable install
 - `.state/jax-export/dev`
   - local reusable export artifact
+
+## Header-Only Default
+
+- canonical C++ target は `INTERFACE` library を既定にします。
+- smoke / test binary だけが compile / link される前提にします。
+- header-only で済むものを安易に `.cpp` へ分離しません。
