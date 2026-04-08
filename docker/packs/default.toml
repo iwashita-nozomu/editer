@@ -16,9 +16,7 @@ commands = [
   "python3 scripts/docker_dependency_validator.py",
   "python3 -c \"import jax; print(jax.__version__)\"",
   "safe_dirs=\"$(git config --get-all safe.directory || true)\"",
-  "printf '%s\\n' \"$safe_dirs\" | grep -Fx '/workspace' >/dev/null",
-  "printf '%s\\n' \"$safe_dirs\" | grep -Fx '/mnt/git/template.git' >/dev/null",
-  "printf '%s\\n' \"$safe_dirs\" | grep -Fx '/mnt/git/agent-canon.git' >/dev/null",
+  "for safe_dir in /workspace /mnt/git/template.git /mnt/git/agent-canon.git; do printf '%s\\n' \"$safe_dirs\" | grep -Fx \"$safe_dir\" >/dev/null; done",
 ]
 
 [runtime]

@@ -30,12 +30,17 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 WORKDIR /workspace
 ENV PYTHONPATH=/workspace/python
+ENV TEMPLATE_BARE_GIT_ROOT=/mnt/git
 
-# /mnt/l/workspace/jax_solver_util と同じ起動時権限の扱いに合わせ、
-# Codex 起動時に見る git safe.directory は global config へ固定する。
-RUN git config --global --add safe.directory /workspace
-RUN git config --global --add safe.directory /mnt/git/template.git
-RUN git config --global --add safe.directory /mnt/git/agent-canon.git
+# Canonical image 側で safe.directory を固定し、/mnt/git を mount した
+# local bare remote への push/pull を container 内からもそのまま通す。
+RUN set -eux; \
+    for safe_dir in \
+        /workspace \
+        "${TEMPLATE_BARE_GIT_ROOT}/template.git" \
+        "${TEMPLATE_BARE_GIT_ROOT}/agent-canon.git"; do \
+        git config --global --add safe.directory "${safe_dir}"; \
+    done
 
 # docker CLI は同梱するが、build/run をコンテナ内から行うときは
 # host socket の mount か別 daemon が必要。

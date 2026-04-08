@@ -88,9 +88,9 @@ bash scripts/run_comprehensive_review.sh
 - Markdown の体裁ルールは `.markdownlint.json` と `documents/conventions/common/05_docs.md` を基準にします。
 - 依存棚卸しは `pipdeptree` と `deptry` を baseline にします。
 
-Codex CLI と `docker` CLI は `docker/Dockerfile` に同梱します。コンテナ内では `codex login`、API key を使う場合は `printenv OPENAI_API_KEY | codex login --with-api-key` を使います。`safe.directory` は image build 時に `git config --global` で固定し、既定で `/workspace`、`/mnt/git/template.git`、`/mnt/git/agent-canon.git` を登録します。
+Codex CLI と `docker` CLI は `docker/Dockerfile` に同梱します。コンテナ内では `codex login`、API key を使う場合は `printenv OPENAI_API_KEY | codex login --with-api-key` を使います。`safe.directory` は image build 時に `git config --global` で固定し、既定で `/workspace` と local bare remote 用の `/mnt/git/template.git`、`/mnt/git/agent-canon.git` を登録します。
 
-VS Code から開発コンテナへ入る場合は `.devcontainer/` を使います。起動時に generated compose を 1 枚作り、GPU がある host では自動で `gpus: all` を追加し、GPU が無い host では CPU-only で起動します。`/mnt/git` も host に存在するときだけ mount します。前提拡張は `.vscode/extensions.json` を見ます。
+VS Code から開発コンテナへ入る場合は `.devcontainer/` を使います。起動時に generated compose を 1 枚作り、GPU がある host では自動で `gpus: all` を追加し、GPU が無い host では CPU-only で起動します。`/mnt/git` も host に存在するときだけ mount し、container 内から local bare remote へ push/pull できます。前提拡張は `.vscode/extensions.json` を見ます。
 
 ```bash
 docker build -t project-template -f docker/Dockerfile .

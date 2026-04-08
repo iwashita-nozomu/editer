@@ -103,7 +103,7 @@ python3 scripts/ci/run_container_pack.py --pack docker/packs/default-host-docker
 python3 scripts/ci/run_codex_in_repo_container.py --profile host-docker
 ```
 
-`safe.directory` は `docker/Dockerfile` の build 時に `git config --global` で固定します。既定では `/workspace`、`/mnt/git/template.git`、`/mnt/git/agent-canon.git` を登録します。これは `/mnt/l/workspace/jax_solver_util` 側の Codex 起動権限設定に合わせたものです。
+`safe.directory` は `docker/Dockerfile` の build 時に `git config --global` で固定します。template の canonical image では `/workspace` と、local bare remote 用の `/mnt/git/template.git`、`/mnt/git/agent-canon.git` を登録します。`/mnt/git` を mount した dev container や nested Codex から、そのまま local bare remote へ push/pull できるようにするためです。
 
 ## VS Code Dev Container
 
@@ -115,8 +115,10 @@ python3 scripts/ci/run_codex_in_repo_container.py --profile host-docker
   - CPU-only のまま起動
 - `/mnt/git` が存在するとき:
   - `/mnt/git:/mnt/git` を bind mount
+  - local bare remote への push/pull を container 内から継続できる
 - `/mnt/git` が無いとき:
   - mount しない
+  - dev container 自体は CPU/GPU 判定だけでそのまま起動する
 
 そのため、template を clone したディレクトリでも、GPU なし環境で dev container が落ちにくくなります。
 

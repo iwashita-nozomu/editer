@@ -6,6 +6,7 @@ RUNTIME_FILE="${SCRIPT_DIR}/docker-compose.generated.yml"
 
 has_gpu=0
 has_mnt_git=0
+volume_lines=('      - ..:/workspace:cached')
 
 if [ -e /dev/nvidiactl ] || command -v nvidia-smi >/dev/null 2>&1; then
   has_gpu=1
@@ -13,9 +14,11 @@ fi
 
 if [ -d /mnt/git ]; then
   has_mnt_git=1
+  volume_lines+=('      - /mnt/git:/mnt/git')
 fi
 
-cat >"$RUNTIME_FILE" <<'EOF'
+{
+  cat <<'EOF'
 services:
   workspace:
     build:
@@ -23,23 +26,16 @@ services:
       dockerfile: docker/Dockerfile
     working_dir: /workspace
     volumes:
-      - ..:/workspace:cached
 EOF
-
-if [ "$has_mnt_git" -eq 1 ]; then
-  cat >>"$RUNTIME_FILE" <<'EOF'
-      - /mnt/git:/mnt/git
-EOF
-fi
-
-cat >>"$RUNTIME_FILE" <<'EOF'
+  printf '%s\n' "${volume_lines[@]}"
+  cat <<'EOF'
     command: /bin/bash -lc "sleep infinity"
     tty: true
     init: true
 EOF
 
-if [ "$has_gpu" -eq 1 ]; then
-  cat >>"$RUNTIME_FILE" <<'EOF'
+  if [ "$has_gpu" -eq 1 ]; then
+    cat <<'EOF'
     gpus: all
     environment:
       DEVCONTAINER_RUNTIME_MODE: "generated"
@@ -47,12 +43,13 @@ if [ "$has_gpu" -eq 1 ]; then
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: compute,utility
 EOF
-else
-  cat >>"$RUNTIME_FILE" <<'EOF'
+  else
+    cat <<'EOF'
     environment:
       DEVCONTAINER_RUNTIME_MODE: "generated"
       DEVCONTAINER_GPU_MODE: "disabled"
 EOF
-fi
+  fi
+} >"$RUNTIME_FILE"
 
 echo "devcontainer runtime generated: gpu=${has_gpu} mount_mnt_git=${has_mnt_git}"
