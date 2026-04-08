@@ -16,6 +16,7 @@ docs-check:
 agent-checks:
 	bash scripts/sync_agent_canon.sh check
 	python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune --check
+	python3 scripts/agent_tools/check_agent_runtime_alignment.py
 	python3 scripts/agent_tools/smoke_test_research_perspective_pack.py
 
 # shared surface drift only
