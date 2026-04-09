@@ -25,6 +25,8 @@ ownership と surface 種別は [documents/SHARED_RUNTIME_SURFACES.md](/mnt/l/wo
   - repo 定義の runtime pack を build / smoke します。
 - [ci/run_in_repo_container.py](/mnt/l/workspace/project_template/scripts/ci/run_in_repo_container.py)
   - repo workspace を mount した container command を実行します。
+- [ci/run_repo_program.py](/mnt/l/workspace/project_template/scripts/ci/run_repo_program.py)
+  - Python file、shell script、workspace binary、plain command を 1 つの入口で container 実行し、先に軽量 environment check も流します。
 - [ci/run_python_in_dockerfile.py](/mnt/l/workspace/project_template/scripts/ci/run_python_in_dockerfile.py)
   - Python file を rule ベースで container 実行します。
 - [ci/run_codex_in_repo_container.py](/mnt/l/workspace/project_template/scripts/ci/run_codex_in_repo_container.py)
@@ -130,6 +132,9 @@ python3 -m ruff check python tests --select D,E,F,I,UP
 pipdeptree --warn fail
 deptry python
 python3 scripts/ci/run_container_pack.py --pack docker/packs/default.toml --print-only
+python3 scripts/ci/run_repo_program.py --print-only scripts/ci/check_jax_export_stack.py
+python3 scripts/ci/run_repo_program.py --print-only scripts/ci/check_docker_build.sh -- --pack docker/packs/default.toml
+python3 scripts/ci/run_repo_program.py --print-only python3 -- --version
 python3 scripts/ci/run_codex_in_repo_container.py --print-only
 python3 scripts/ci/check_server_readiness.py
 python3 scripts/tools/mirror_skill_shims.py --target .claude/skills --prune

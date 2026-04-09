@@ -1,0 +1,1 @@
+../../vendor/agent-canon/scripts/ci/run_repo_program.py

@@ -1,4 +1,4 @@
-.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-links agent-canon-snapshot agent-canon-status docker-check docker-build-check docker-build-check-host-docker server-check experiment-check docker-shell docker-codex docker-codex-host-docker fresh-clone-check template-check task-start doc-start task-close
+.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-links agent-canon-snapshot agent-canon-status docker-check docker-build-check docker-build-check-host-docker docker-run server-check experiment-check docker-shell docker-codex docker-codex-host-docker fresh-clone-check template-check task-start doc-start task-close
 
 # ★推奨: 統合 CI（pytest + pyright + ruff）
 ci:
@@ -65,6 +65,10 @@ docker-build-check:
 # Docker socket を mount した build smoke check
 docker-build-check-host-docker:
 	bash scripts/ci/check_docker_build.sh --pack docker/packs/default-host-docker.toml
+
+# 任意 program を canonical container で実行
+docker-run:
+	python3 scripts/ci/run_repo_program.py $(ARGS)
 
 # main server host readiness
 server-check:
