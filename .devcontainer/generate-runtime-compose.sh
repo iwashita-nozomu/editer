@@ -6,6 +6,7 @@ RUNTIME_FILE="${SCRIPT_DIR}/docker-compose.generated.yml"
 
 has_gpu=0
 has_mnt_git=0
+has_host_codex=0
 volume_lines=('      - ..:/workspace:cached')
 
 if [ -e /dev/nvidiactl ] || command -v nvidia-smi >/dev/null 2>&1; then
@@ -15,6 +16,11 @@ fi
 if [ -d /mnt/git ]; then
   has_mnt_git=1
   volume_lines+=('      - /mnt/git:/mnt/git')
+fi
+
+if [ -d "${HOME}/.codex" ]; then
+  has_host_codex=1
+  volume_lines+=("      - ${HOME}/.codex:/root/.codex")
 fi
 
 {
@@ -52,4 +58,4 @@ EOF
   fi
 } >"$RUNTIME_FILE"
 
-echo "devcontainer runtime generated: gpu=${has_gpu} mount_mnt_git=${has_mnt_git}"
+echo "devcontainer runtime generated: gpu=${has_gpu} mount_mnt_git=${has_mnt_git} mount_host_codex=${has_host_codex}"

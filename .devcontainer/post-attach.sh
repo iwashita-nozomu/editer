@@ -16,6 +16,11 @@ if [ -S /var/run/docker.sock ]; then
   docker_socket_status="mounted"
 fi
 
+codex_home_status="not-mounted"
+if [ -d /root/.codex ] || [ -d "${HOME:-/root}/.codex" ]; then
+  codex_home_status="mounted"
+fi
+
 repo_root="/workspace"
 if [ ! -f "${repo_root}/.codex/config.toml" ]; then
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -39,6 +44,7 @@ echo "workspace: ${repo_root}"
 echo "gpu: ${gpu_status}"
 echo "/mnt/git: ${mnt_git_status}"
 echo "docker-socket: ${docker_socket_status}"
+echo "host-codex-home: ${codex_home_status}"
 echo "codex-approval: ${codex_approval_policy}"
 echo "codex-sandbox: ${codex_sandbox_mode}"
 echo "pythonpath: ${PYTHONPATH:-<unset>}"
