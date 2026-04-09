@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -88,16 +89,18 @@ def test_bootstrap_worktree_notes_and_append_log(tmp_path: Path) -> None:
         text=True,
     )
     assert bootstrap.returncode == 0, bootstrap.stderr
-    assert "ACTION_LOG=notes/worktrees/worktree_work-demo_2026-04-08.md" in bootstrap.stdout
+    match = re.search(r"ACTION_LOG=(notes/worktrees/worktree_work-demo_\d{4}-\d{2}-\d{2}\.md)", bootstrap.stdout)
+    assert match is not None, bootstrap.stdout
 
-    action_log = repo_root / "notes" / "worktrees" / "worktree_work-demo_2026-04-08.md"
+    action_log_rel = match.group(1)
+    action_log = repo_root / action_log_rel
     branch_summary = repo_root / "notes" / "branches" / "work-demo.md"
     scope_text = (workspace_root / "WORKTREE_SCOPE.md").read_text(encoding="utf-8")
 
     assert action_log.is_file()
     assert branch_summary.is_file()
     assert "`work/demo-20260408`" in scope_text
-    assert "notes/worktrees/worktree_work-demo_2026-04-08.md" in scope_text
+    assert action_log_rel in scope_text
     assert "notes/branches/work-demo.md" in scope_text
 
     work_log = subprocess.run(
