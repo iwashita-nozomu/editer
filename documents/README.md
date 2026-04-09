@@ -1,7 +1,8 @@
 # ドキュメント ハブ
 
 `documents/` は、この repo の正本文書だけを置く場所です。
-workflow 系の正本は shared agent canon に寄せ、template root と派生 repo root では symlink view として同じ path を使います。
+workflow 系のうち shared canon に属する正本は `vendor/agent-canon/` にあります。
+root 側では runtime discovery に必要な共有 surface は symlink view か synced copy とし、template 利用者向けの入口文書は root regular file として持ちます。
 experiment canon のうち、再利用する review guide、registry contract、report style、scaffold 方針も shared agent canon に寄せます。
 ここでは「agent/workflow canon」「experiment canon」「template/environment canon」を分けて辿れるようにします。
 
