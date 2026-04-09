@@ -1,4 +1,4 @@
-.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-links agent-canon-snapshot agent-canon-status agent-canon-pr-check docker-check docker-build-check docker-build-check-host-docker docker-run server-check experiment-check docker-shell docker-codex docker-codex-host-docker fresh-clone-check template-check task-start doc-start task-close user-preference-log
+.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-links agent-canon-snapshot agent-canon-status agent-canon-pr-check docker-check docker-build-check docker-build-check-host-docker docker-run devcontainer-render server-check experiment-check docker-shell docker-codex docker-codex-host-docker fresh-clone-check template-check task-start doc-start task-close user-preference-log
 
 # ★推奨: 統合 CI（pytest + pyright + ruff）
 ci:
@@ -77,6 +77,10 @@ docker-build-check-host-docker:
 # 任意 program を canonical container で実行
 docker-run:
 	python3 scripts/ci/run_repo_program.py $(ARGS)
+
+# devcontainer compose を canonical pack から生成
+devcontainer-render:
+	python3 scripts/ci/render_devcontainer_compose.py --pack docker/packs/default.toml --output .devcontainer/docker-compose.generated.yml
 
 # main server host readiness
 server-check:
