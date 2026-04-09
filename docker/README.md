@@ -154,12 +154,20 @@ JAX と C++ の接続を `jax.export` 前提で使う場合は、canonical image
 
 - `jax[cuda12]`
 - `flatbuffers`
+- `iree-base-compiler`
+- `iree-base-runtime`
 - `python3-dev`
 - `cmake`
 - `ninja-build`
 - `build-essential`
 
-template 既定では `CMAKE_GENERATOR=Ninja` を image 側で固定します。`jax.export` の calling convention は installed JAX wheel の supported range に追従させ、`python3 scripts/ci/check_jax_export_stack.py` で実際の version range を確認します。C++ 側の smoke は root `CMakeLists.txt` と `tests/cpp/smoke/jax_export_header_smoke.cpp` で行います。
+template 既定では `CMAKE_GENERATOR=Ninja` を image 側で固定します。`jax.export` の calling convention は installed JAX wheel の supported range に追従させ、`python3 scripts/ci/check_jax_export_stack.py` で実際の version range を確認します。この smoke は次を一度に見ます。
+
+- `jax.export` による StableHLO export
+- `iree-base-compiler` による StableHLO -> VM flatbuffer compile
+- `iree-base-runtime` による `local-task` 実行
+- `jaxlib/include` の XLA FFI header
+- root `CMakeLists.txt` と `tests/cpp/smoke/jax_export_header_smoke.cpp` の C++ smoke
 
 なので、現時点では Docker image 側に追加の CMake setup は不要です。必要になったら compiler、debugger、language server を用途別に足します。
 
@@ -192,6 +200,7 @@ make docker-codex-host-docker
 python3 scripts/ci/check_jax_export_stack.py
 cmake -S . -B build/cpp/dev -DPROJECT_TEMPLATE_ENABLE_CPP_SMOKE=ON
 cmake --build build/cpp/dev --target project_template_cpp_smoke
+ctest --test-dir build/cpp/dev --output-on-failure
 python3 scripts/ci/run_container_pack.py --pack docker/packs/default.toml --print-only
 python3 scripts/ci/run_in_repo_container.py --pack docker/packs/default.toml --shell-session --tty
 ```

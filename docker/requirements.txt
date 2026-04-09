@@ -6,6 +6,8 @@ optax
 scipy
 scipy-stubs
 flatbuffers
+iree-base-compiler
+iree-base-runtime
 
 # Testing
 pytest>=8

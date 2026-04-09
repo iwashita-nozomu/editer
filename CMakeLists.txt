@@ -36,6 +36,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
+include(CTest)
+
 find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
 include(ProjectTemplateJaxExport)
 project_template_detect_jaxlib_include(PROJECT_TEMPLATE_JAXLIB_INCLUDE_DIR)
@@ -57,5 +59,8 @@ if(PROJECT_TEMPLATE_ENABLE_CPP_SMOKE)
     tests/cpp/smoke/jax_export_header_smoke.cpp
   )
   target_link_libraries(project_template_cpp_smoke PRIVATE project_template_cpp)
+  if(BUILD_TESTING)
+    add_test(NAME project_template_cpp_smoke COMMAND project_template_cpp_smoke)
+  endif()
   install(TARGETS project_template_cpp_smoke RUNTIME DESTINATION bin)
 endif()

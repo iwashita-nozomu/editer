@@ -126,6 +126,7 @@ make server-check
 python3 scripts/ci/check_jax_export_stack.py
 cmake -S . -B build/cpp/dev -DPROJECT_TEMPLATE_ENABLE_CPP_SMOKE=ON
 cmake --build build/cpp/dev --target project_template_cpp_smoke
+ctest --test-dir build/cpp/dev --output-on-failure
 python3 scripts/ci/run_container_pack.py --pack docker/packs/default.toml --print-only
 python3 scripts/ci/run_codex_in_repo_container.py --print-only
 ```
