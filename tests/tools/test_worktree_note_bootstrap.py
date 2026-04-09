@@ -38,6 +38,7 @@ def test_bootstrap_worktree_notes_and_append_log(tmp_path: Path) -> None:
                 "- Scope refreshed at:",
                 "- Action log path:",
                 "- Branch summary path:",
+                "- User request contract path:",
                 "- Kickoff checks completed:",
                 "- Next step after kickoff:",
                 "",
@@ -62,6 +63,7 @@ def test_bootstrap_worktree_notes_and_append_log(tmp_path: Path) -> None:
                 "## Working Notes During Execution",
                 "- Action log path: `notes/worktrees/worktree_<topic>_YYYY-MM-DD.md`",
                 "- Branch summary path: `notes/branches/<branch_topic>.md`",
+                "- User request contract path: `reports/agents/<run-id>/user_request_contract.md`",
                 "",
                 "## Required Checks Before Commit",
                 "- `make ci-quick`",
@@ -113,6 +115,8 @@ def test_bootstrap_worktree_notes_and_append_log(tmp_path: Path) -> None:
             "test",
             "--message",
             "ran smoke checks",
+            "--request-clause-id",
+            "R1",
             "--next",
             "prepare closeout",
             "--ref",
@@ -127,5 +131,6 @@ def test_bootstrap_worktree_notes_and_append_log(tmp_path: Path) -> None:
 
     action_log_text = action_log.read_text(encoding="utf-8")
     assert "ran smoke checks" in action_log_text
+    assert "request_clause_ids: R1" in action_log_text
     assert "refs: reports/demo" in action_log_text
     assert "next: prepare closeout" in action_log_text
