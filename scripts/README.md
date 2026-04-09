@@ -15,6 +15,8 @@ ownership と surface 種別は [documents/SHARED_RUNTIME_SURFACES.md](/mnt/l/wo
   - 主要なチェックをまとめて実行します。
 - [ci/pre_review.sh](/mnt/l/workspace/project_template/scripts/ci/pre_review.sh)
   - review 前の基礎 gate をまとめて実行します。
+- [ci/check_agent_canon_pr.sh](/mnt/l/workspace/project_template/scripts/ci/check_agent_canon_pr.sh)
+  - shared canon 変更の PR 前に、surface drift、agent check、docs check、quick CI をまとめて実行します。
 - [ci/run_docs_checks.sh](/mnt/l/workspace/project_template/scripts/ci/run_docs_checks.sh)
   - repo-wide の Markdown 体裁とリンクを確認します。
 - [ci/check_docker_build.sh](/mnt/l/workspace/project_template/scripts/ci/check_docker_build.sh)
@@ -153,6 +155,7 @@ bash scripts/sync_agent_canon.sh link-root
 bash scripts/sync_agent_canon.sh check
 bash scripts/sync_agent_canon.sh snapshot
 bash scripts/sync_agent_canon.sh status
+make agent-canon-pr-check
 python3 scripts/ci/check_experiment_registry.py
 python3 scripts/experiments/create_experiment_topic.py my_topic
 python3 scripts/experiments/sync_experiment_registry_context.py --topic my_topic --branch work/my-topic-YYYYMMDD

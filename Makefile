@@ -1,4 +1,4 @@
-.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-links agent-canon-snapshot agent-canon-status docker-check docker-build-check docker-build-check-host-docker docker-run server-check experiment-check docker-shell docker-codex docker-codex-host-docker fresh-clone-check template-check task-start doc-start task-close user-preference-log
+.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-links agent-canon-snapshot agent-canon-status agent-canon-pr-check docker-check docker-build-check docker-build-check-host-docker docker-run server-check experiment-check docker-shell docker-codex docker-codex-host-docker fresh-clone-check template-check task-start doc-start task-close user-preference-log
 
 # ★推奨: 統合 CI（pytest + pyright + ruff）
 ci:
@@ -57,6 +57,10 @@ agent-canon-snapshot:
 # subtree / snapshot 設定を確認
 agent-canon-status:
 	bash scripts/sync_agent_canon.sh status
+
+# shared canon 専用の PR gate
+agent-canon-pr-check:
+	bash scripts/ci/check_agent_canon_pr.sh
 
 # Dockerfile と requirements の整合
 docker-check:
