@@ -5,28 +5,82 @@
 
 この README は人間向けの入口です。エージェント向けの入口は `agents/README.md` です。
 
-## このテンプレートに残すもの
+## テンプレート構造
+
+この repo は、project 固有の実装、実験、文書、開発環境、agent runtime を同じ root から扱えるように分けています。
+clone 直後にまず見る入口はこの README、agent に作業させる入口は `agents/README.md`、実際の初期化入口は `scripts/start_repository.sh` です。
+
+```text
+.
+├── README.md                         # 人間向けの全体入口
+├── QUICK_START.md                    # 最短の手動起動手順
+├── AGENTS.md, CLAUDE.md              # agent runtime entrypoint。vendor snapshot への symlink
+├── Makefile                          # 日常 check / bootstrap / validation の短い入口
+├── pyproject.toml                    # Python project metadata と tool 設定
+├── CMakeLists.txt                    # C++ を使う場合の root entrypoint
+├── python/                           # Python 実装本体
+├── tests/                            # pytest と runtime/tooling のテスト
+├── documents/                        # repo-wide な規約、workflow、設計、環境文書の正本
+├── notes/                            # 実験・調査・運用で育てる知見とテーマ別メモ
+├── references/                       # 外部仕様や参照資料など、正本ではない補助資料
+├── agents/                           # shared agent canon の root view。vendor への symlink
+├── .agents/, .claude/, .codex/       # Codex / Claude / shared agent runtime view
+├── vendor/agent-canon/               # shared agent canon の committed snapshot
+├── tools/                            # shared automation view。vendor への symlink
+├── scripts/                          # repo-local bootstrap 専用 script
+├── docker/                           # canonical container、runtime pack、devcontainer の元設定
+├── .devcontainer/                    # VS Code dev container entrypoint
+├── .github/                          # CI workflow と PR template
+├── experiments/                      # 実験 topic、run artifact、report
+├── cmake/                            # C++ helper module
+├── src/, include/, lib/              # C / C++ を使う project 向けの実装置き場
+├── reports/                          # 実行結果、broken link report、agent run bundle などの生成先
+└── .vscode/                          # 推奨拡張など editor 補助
+```
+
+### Repo-Local と Shared Canon の境界
 
 - `documents/`
   - 規約、設計、開発環境、実験手法の正本です。
+  - 変更が project 固有のルールならここに置き、shared agent canon の保守説明は `vendor/agent-canon/documents/` に置きます。
 - `notes/`
   - 実験や調査をまたいで残したい知見、補助メモ、テーマ整理を置きます。
+  - その場限りの run log ではなく、後続作業で再利用する知識だけを残します。
 - `agents/`
   - エージェントチーム定義、運用ルール、workflow の正本です。
+  - root の `agents/` は `vendor/agent-canon/agents` への symlink です。shared workflow を直すときは `vendor/agent-canon/` 側を正本として扱います。
 - `tools/`
   - shared automation、agent helper、CI/check、container runner の入口です。
   - agent helper、CI / review / validation、container runner、experiment helper、Markdown helper の実装はここに置きます。
+  - root の `tools/` は `vendor/agent-canon/tools` への symlink です。project 固有の slug 置換や bare remote 初期化はここに置きません。
 - `scripts/`
   - repo-local bootstrap の入口です。
   - template 固有の slug 置換、display name 置換、bare remote 初期化だけをここに置きます。
+  - `$start-repository` skill は `scripts/start_repository.sh` を呼び、その wrapper が `scripts/init_from_template.sh`、`make agent-canon-ensure-latest`、必要な post-commit validation をまとめます。
 - `docker/`
   - 共通開発環境、runtime pack、nested Codex profile の定義です。
+  - host / devcontainer / nested Codex で同じ runtime 前提を使うため、Dockerfile、requirements、pack toml をここに集めます。
 - `experiments/`
   - 実験コード、run ごとの生成物、report を置く場所です。使わないプロジェクトでは空でも構いません。
+  - topic 一覧は `experiments/registry.toml`、topic template は `experiments/_template/`、run report は `experiments/report/` に置きます。
 - `python/`
   - 実装本体、共通 runtime、テスト対象コードの主置き場です。
 - `tests/`
   - pytest ベースのテストを置く場所です。
+  - shared agent/tooling の mirror test は `vendor/agent-canon/tests/` に正本があり、root `tests/` からも runtime surface として参照できます。
+
+### Bootstrap と Validation の入口
+
+- `make start-repository ARGS='--project-slug your-project --display-name "Your Project"'`
+  - clone 直後の推奨入口です。内部で `scripts/start_repository.sh` を呼びます。
+- `bash scripts/start_repository.sh --validate-only`
+  - init 変更を commit したあと、`agent-canon` snapshot、fresh clone、quick CI をまとめて確認します。
+- `make agent-canon-ensure-latest`
+  - `vendor/agent-canon/` snapshot を configured `agent-canon` remote の `main` と揃えます。
+- `make agent-checks`
+  - shared surface、skill mirror、agent runtime alignment、research perspective smoke を確認します。
+- `make ci-quick`
+  - docs、experiment registry、pytest、pyright、pydocstyle を流します。
 
 ## 基本方針
 
@@ -69,9 +123,10 @@ shared agent canon は `vendor/agent-canon/` に committed snapshot として同
 ## 新規 clone 直後の最短手順
 
 ```bash
-bash scripts/init_from_template.sh --project-slug your-project --display-name "Your Project"
-make fresh-clone-check
-make ci-quick
+bash scripts/start_repository.sh --project-slug your-project --display-name "Your Project"
+git add -A
+git commit -m "chore: initialize project from template"
+bash scripts/start_repository.sh --validate-only
 ```
 
 最短 runbook は `documents/template-bootstrap.md`、notes を育てる方針は `documents/notes-lifecycle.md` を見ます。
