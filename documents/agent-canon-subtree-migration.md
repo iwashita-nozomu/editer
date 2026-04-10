@@ -29,6 +29,9 @@ bash tools/sync_agent_canon.sh push
 
 task 開始時は `ensure-latest` を使います。
 clean worktree なら upstream `agent-canon` の最新を必要時だけ取り込み、dirty worktree で stale が見つかれば停止します。
+`agent-canon` remote が未設定で `/mnt/git/agent-canon.git` が存在する場合は、自動でその remote を追加します。
+fresh clone で subtree metadata が無い場合でも、local snapshot が upstream の祖先である fast-forward 更新なら snapshot import に切り替えて取り込みます。
+local と upstream が diverge している場合は上書きせず停止します。
 
 ## 使い分け
 
