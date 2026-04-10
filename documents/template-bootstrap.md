@@ -12,10 +12,10 @@ cd <your-project>
 ## 2. 初期化
 
 repo 名、表示名、bare remote 名を変える場合は次を使います。
-agent に任せる場合は `$start-repository` を指定し、この script を呼ばせます。
+agent に任せる場合は `$start-repository` を指定し、この tool を呼ばせます。
 
 ```bash
-bash scripts/init_from_template.sh \
+bash scripts/start_repository.sh \
   --project-slug your-project \
   --display-name "Your Project"
 ```
@@ -23,7 +23,7 @@ bash scripts/init_from_template.sh \
 必要なら dry-run:
 
 ```bash
-bash scripts/init_from_template.sh \
+bash scripts/start_repository.sh \
   --project-slug your-project \
   --display-name "Your Project" \
   --dry-run
@@ -35,10 +35,10 @@ bash scripts/init_from_template.sh \
 ## 3. 受け入れ確認
 
 fresh clone と runtime surface が壊れていないことを確認します。
+init 変更を commit したあと、同じ tool で確認できます。
 
 ```bash
-make fresh-clone-check
-make ci-quick
+bash scripts/start_repository.sh --validate-only
 ```
 
 ## 4. 開発環境

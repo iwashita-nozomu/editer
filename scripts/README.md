@@ -24,7 +24,10 @@ shared automation は `tools/` を使います。
 
 - [init_from_template.sh](/mnt/l/workspace/project_template/scripts/init_from_template.sh)
   - clone 直後に project slug、display name、bare remote 名、project-local `agent-canon` bare repo などを初期化します。
-  - agent に任せる場合は `$start-repository` skill からこの script を呼ばせます。
+- [start_repository.sh](/mnt/l/workspace/project_template/scripts/start_repository.sh)
+  - `$start-repository` skill から呼ぶ token-efficient wrapper です。
+  - 既定では dry-run、初期化、`make agent-canon-ensure-latest` までを 1 command にまとめます。
+  - init 変更を commit したあとは `--validate-only` で `make fresh-clone-check` と `make ci-quick` まで流します。
 
 ## 参照先
 
