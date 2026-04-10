@@ -12,6 +12,7 @@ cd <your-project>
 ## 2. 初期化
 
 repo 名、表示名、bare remote 名を変える場合は次を使います。
+agent に任せる場合は `$start-repository` を指定し、この script を呼ばせます。
 
 ```bash
 bash scripts/init_from_template.sh \
@@ -27,6 +28,9 @@ bash scripts/init_from_template.sh \
   --display-name "Your Project" \
   --dry-run
 ```
+
+既定では `/mnt/git/your-project-agent-canon.git` も初期化し、clone に含まれる `vendor/agent-canon/` snapshot を seed します。
+既存の shared `agent-canon` remote を使い続ける場合だけ、`--skip-agent-canon-bare-repo` を付けます。
 
 ## 3. 受け入れ確認
 
