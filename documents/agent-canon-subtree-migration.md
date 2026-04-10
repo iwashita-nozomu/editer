@@ -22,9 +22,13 @@
 
 ```bash
 bash tools/sync_agent_canon.sh status
+bash tools/sync_agent_canon.sh ensure-latest
 bash tools/sync_agent_canon.sh pull
 bash tools/sync_agent_canon.sh push
 ```
+
+task 開始時は `ensure-latest` を使います。
+clean worktree なら upstream `agent-canon` の最新を必要時だけ取り込み、dirty worktree で stale が見つかれば停止します。
 
 ## 使い分け
 
