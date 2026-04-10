@@ -59,6 +59,8 @@ ownership と validation は [SHARED_RUNTIME_SURFACES.md](/mnt/l/workspace/proje
   - worktree kickoff の user-facing 入口です。
 - `tools/sync_agent_canon.sh`
   - shared agent canon surface の drift check と再同期です。task 開始時は `ensure-latest` で upstream `agent-canon` の最新を確認します。
+- `tools/agent_tools/waterfall_gate_check.py`
+  - `reports/agents/<run-id>/` の中間 waterfall gate が次段へ進める状態か確認します。
 - `tools/push_origin.sh`
   - commit 後の canonical push 入口です。
 

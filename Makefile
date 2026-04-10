@@ -1,4 +1,4 @@
-.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-links agent-canon-snapshot agent-canon-status agent-canon-ensure-latest agent-canon-pr-check docker-check docker-build-check docker-build-check-host-docker docker-run devcontainer-render server-check experiment-check docker-shell docker-codex docker-codex-host-docker fresh-clone-check template-check task-start doc-start task-close user-preference-log
+.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-links agent-canon-snapshot agent-canon-status agent-canon-ensure-latest agent-canon-pr-check docker-check docker-build-check docker-build-check-host-docker docker-run devcontainer-render server-check experiment-check docker-shell docker-codex docker-codex-host-docker fresh-clone-check template-check task-start doc-start task-close waterfall-gate-check user-preference-log
 
 # ★推奨: 統合 CI（pytest + pyright + ruff）
 ci:
@@ -26,6 +26,10 @@ doc-start:
 # machine-driven task close gate
 task-close:
 	python3 tools/agent_tools/task_close.py $(ARGS)
+
+# machine-driven intermediate waterfall gate check
+waterfall-gate-check:
+	python3 tools/agent_tools/waterfall_gate_check.py $(ARGS)
 
 # machine-driven user preference note append
 user-preference-log:
