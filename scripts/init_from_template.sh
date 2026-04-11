@@ -201,7 +201,6 @@ PY
 
 seed_agent_canon_bare_repo() {
   local bare_repo_path="${BARE_GIT_ROOT}/${AGENT_CANON_BARE_REPO}"
-  local seed_sha=""
 
   if [[ "${SKIP_AGENT_CANON_BARE_REPO}" == "1" ]]; then
     echo "agent_canon_bare_repo=skipped"
@@ -218,32 +217,9 @@ seed_agent_canon_bare_repo() {
     return
   fi
 
-  if [[ ! -d "${bare_repo_path}" ]]; then
-    git init --bare "${bare_repo_path}" >/dev/null
-    echo "created agent_canon_bare_repo=${bare_repo_path}"
-  fi
-
-  if git --git-dir="${bare_repo_path}" rev-parse --verify refs/heads/main >/dev/null 2>&1; then
-    echo "agent_canon_bare_repo=already_has_main:${bare_repo_path}"
-  else
-    if git subtree --help >/dev/null 2>&1; then
-      seed_sha="$(git subtree split --prefix=vendor/agent-canon HEAD)"
-      echo "agent_canon_seed_method=subtree_split"
-    else
-      seed_sha="$(git commit-tree HEAD:vendor/agent-canon -m "chore: seed agent-canon snapshot")"
-      echo "agent_canon_seed_method=commit_tree_snapshot"
-    fi
-    git push "${bare_repo_path}" "${seed_sha}:refs/heads/main" >/dev/null
-    git --git-dir="${bare_repo_path}" symbolic-ref HEAD refs/heads/main
-    echo "seeded agent_canon_bare_repo=${bare_repo_path}"
-  fi
-
-  if git remote get-url agent-canon >/dev/null 2>&1; then
-    git remote set-url agent-canon "${bare_repo_path}"
-  else
-    git remote add agent-canon "${bare_repo_path}"
-  fi
-  echo "agent_canon_remote=${bare_repo_path}"
+  bash tools/update_agent_canon.sh register-local-bare \
+    --bare-repo "${bare_repo_path}" \
+    --branch main
 }
 
 seed_agent_canon_bare_repo

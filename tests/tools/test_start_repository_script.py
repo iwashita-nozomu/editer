@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-import shutil
 import subprocess
 
 
@@ -36,11 +35,10 @@ def test_start_repository_wrapper_seeds_agent_canon_without_subtree(tmp_path: Pa
     missing_git_exec.mkdir()
 
     run(["git", "clone", "--no-local", str(REPO_ROOT), str(clone_dir)], cwd=tmp_path)
-    for relative_path in (
-        Path("scripts/init_from_template.sh"),
-        Path("scripts/start_repository.sh"),
-    ):
-        shutil.copy2(REPO_ROOT / relative_path, clone_dir / relative_path)
+    run(
+        ["rsync", "-a", "--delete", "--exclude", ".git", f"{REPO_ROOT}/", str(clone_dir)],
+        cwd=tmp_path,
+    )
 
     env = os.environ.copy()
     env["TEMPLATE_BARE_GIT_ROOT"] = str(git_root)

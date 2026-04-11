@@ -32,6 +32,20 @@ bash scripts/start_repository.sh \
 既定では `/mnt/git/your-project-agent-canon.git` も初期化し、clone に含まれる `vendor/agent-canon/` snapshot を seed します。
 既存の shared `agent-canon` remote を使い続ける場合だけ、`--skip-agent-canon-bare-repo` を付けます。
 
+派生 repo から `agent-canon` だけ更新したいときは次を使います。
+
+```bash
+bash tools/update_agent_canon.sh plan
+bash tools/update_agent_canon.sh apply
+```
+
+project-local bare repo を後から登録するときは次です。
+
+```bash
+bash tools/update_agent_canon.sh register-local-bare \
+  --bare-repo /mnt/git/your-project-agent-canon.git
+```
+
 ## 3. 受け入れ確認
 
 fresh clone と runtime surface が壊れていないことを確認します。
