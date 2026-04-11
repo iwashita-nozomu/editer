@@ -1,1 +1,0 @@
-../../vendor/agent-canon/notes/themes/AGENT_PHILOSOPHY.md
