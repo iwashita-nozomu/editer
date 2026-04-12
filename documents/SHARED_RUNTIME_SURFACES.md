@@ -18,6 +18,7 @@ source of truth は `vendor/agent-canon/` にありますが、root 側では「
   - `.claude/`
   - `.codex/`
 - shared workflow / review / agent helper
+  - `agents/workflows/`
   - `agents/workflows/implementation-waterfall-workflow.md`
   - `documents/REVIEW_PROCESS.md`
   - `documents/AGENTS_COORDINATION.md`
@@ -34,7 +35,6 @@ source of truth は `vendor/agent-canon/` にありますが、root 側では「
   - `README.md`
   - `QUICK_START.md`
   - `documents/README.md`
-  - `agents/workflows/README.md`
   - `scripts/README.md`
   - `notes/README.md`
 - implementation / environment 本体
