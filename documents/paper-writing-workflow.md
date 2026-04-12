@@ -1,1 +1,0 @@
-../vendor/agent-canon/documents/paper-writing-workflow.md

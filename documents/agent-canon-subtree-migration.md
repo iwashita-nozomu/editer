@@ -51,6 +51,6 @@ local と upstream が diverge している場合は上書きせず fail-closed 
 
 ## 参照先
 
-- `documents/agent-canon-pr-workflow.md`
+- `agents/workflows/agent-canon-pr-workflow.md`
 - `vendor/agent-canon/documents/agent-canon-subtree-migration.md`
 - `vendor/agent-canon/documents/SHARED_RUNTIME_SURFACES.md`

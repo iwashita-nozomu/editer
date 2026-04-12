@@ -1,1 +1,0 @@
-../vendor/agent-canon/documents/academic-writing-workflow.md

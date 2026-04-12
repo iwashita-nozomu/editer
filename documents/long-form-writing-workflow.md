@@ -1,1 +1,0 @@
-../vendor/agent-canon/documents/long-form-writing-workflow.md

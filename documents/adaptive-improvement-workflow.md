@@ -1,1 +1,0 @@
-../vendor/agent-canon/documents/adaptive-improvement-workflow.md

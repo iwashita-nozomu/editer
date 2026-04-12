@@ -76,7 +76,7 @@ bash scripts/start_repository.sh --validate-only
 - agent workflow:
   - `agents/README.md`
 - workflow canon:
-  - `documents/WORKFLOW_GUIDE.md`
+  - `agents/workflows/README.md`
 - worktree kickoff:
   - `bash tools/worktree_start.sh <branch-name> [worktree-path]`
 

@@ -18,7 +18,7 @@ source of truth は `vendor/agent-canon/` にありますが、root 側では「
   - `.claude/`
   - `.codex/`
 - shared workflow / review / agent helper
-  - `documents/implementation-waterfall-workflow.md`
+  - `agents/workflows/implementation-waterfall-workflow.md`
   - `documents/REVIEW_PROCESS.md`
   - `documents/AGENTS_COORDINATION.md`
   - `tools/`
@@ -34,7 +34,7 @@ source of truth は `vendor/agent-canon/` にありますが、root 側では「
   - `README.md`
   - `QUICK_START.md`
   - `documents/README.md`
-  - `documents/WORKFLOW_GUIDE.md`
+  - `agents/workflows/README.md`
   - `scripts/README.md`
   - `notes/README.md`
 - implementation / environment 本体
@@ -57,7 +57,7 @@ bash tools/sync_agent_canon.sh check
 
 ## PR 導線
 
-- template 側から shared canon を直すときは `documents/agent-canon-pr-workflow.md`
+- template 側から shared canon を直すときは `agents/workflows/agent-canon-pr-workflow.md`
 - upstream sync の構造は `documents/agent-canon-subtree-migration.md`
 
 ## 補足

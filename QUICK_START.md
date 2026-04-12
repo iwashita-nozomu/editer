@@ -6,7 +6,7 @@
 
 - [README.md](/mnt/l/workspace/project_template/README.md)
 - [documents/README.md](/mnt/l/workspace/project_template/documents/README.md)
-- [documents/WORKFLOW_GUIDE.md](/mnt/l/workspace/project_template/documents/WORKFLOW_GUIDE.md)
+- [agents/workflows/README.md](/mnt/l/workspace/project_template/agents/workflows/README.md)
 - [documents/linux-wsl-host-requirements.md](/mnt/l/workspace/project_template/documents/linux-wsl-host-requirements.md)
 - [documents/template-bootstrap.md](/mnt/l/workspace/project_template/documents/template-bootstrap.md)
 - [documents/conventions/README.md](/mnt/l/workspace/project_template/documents/conventions/README.md)
@@ -15,8 +15,8 @@
 
 実験を扱う場合は追加で次を見ます。
 
-- [documents/experiment-workflow.md](/mnt/l/workspace/project_template/documents/experiment-workflow.md)
-- [documents/research-workflow.md](/mnt/l/workspace/project_template/documents/research-workflow.md)
+- [agents/workflows/experiment-workflow.md](/mnt/l/workspace/project_template/agents/workflows/experiment-workflow.md)
+- [agents/workflows/research-workflow.md](/mnt/l/workspace/project_template/agents/workflows/research-workflow.md)
 - [documents/experiment-registry.md](/mnt/l/workspace/project_template/documents/experiment-registry.md)
 - [experiments/README.md](/mnt/l/workspace/project_template/experiments/README.md)
 
@@ -29,7 +29,7 @@ agent を使う場合は次を見ます。
 
 - 既定の統合先は `main` です。
 - 短期 branch は必要なときだけ切り、長期の分岐運用は避けます。
-- branch 側で file 構成を変えた場合は、`documents/main-integration-workflow.md` を見て integration worktree で戻します。
+- branch 側で file 構成を変えた場合は、`agents/workflows/main-integration-workflow.md` を見て integration worktree で戻します。
 - 変更の前に、対象ディレクトリと必要な更新を先に決めます。
 - Python と Markdown は常に対象に含まれる前提で確認します。
 
@@ -51,7 +51,7 @@ python3 -m pyright
 ## 3. 実装前の確認
 
 - `documents/conventions/README.md` と `documents/coding-conventions-python.md` を先に見ます。
-- agent workflow を使う変更なら `documents/WORKFLOW_GUIDE.md` と `agents/canonical/CODEX_WORKFLOW.md` を確認します。
+- agent workflow を使う変更なら `agents/workflows/README.md` と `agents/canonical/CODEX_WORKFLOW.md` を確認します。
 
 ```bash
 make ci-quick

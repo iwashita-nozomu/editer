@@ -1,1 +1,0 @@
-../vendor/agent-canon/documents/main-integration-workflow.md
