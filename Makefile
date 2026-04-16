@@ -2,10 +2,14 @@
 
 # ★推奨: 統合 CI（pytest + pyright + ruff）
 ci:
+	bash tools/sync_agent_canon.sh check
+	python3 tools/agent_tools/check_agent_runtime_alignment.py
 	bash tools/ci/run_all_checks.sh
 
 # CI 高速モード（ruff skip）
 ci-quick:
+	bash tools/sync_agent_canon.sh check
+	python3 tools/agent_tools/check_agent_runtime_alignment.py
 	bash tools/ci/run_all_checks.sh --quick
 
 # template fresh clone acceptance
