@@ -42,11 +42,14 @@ bash tools/update_agent_canon.sh proposal-branch
 bash tools/update_agent_canon.sh push-proposal
 ```
 
+source repo が設定されていれば、`apply` は先に remote snapshot を最新化してから local vendored snapshot を取り込みます。
+
 project-local bare repo を後から登録するときは次です。
 
 ```bash
 bash tools/update_agent_canon.sh register-local-bare \
-  --bare-repo /mnt/git/your-project-agent-canon.git
+  --bare-repo /mnt/git/your-project-agent-canon.git \
+  --source-repo /mnt/l/workspace/agent-canon
 ```
 
 shared canon の変更を maintainer に渡すときは、`push-proposal` で project-local bare repo の proposal branch へ投げます。maintainer はその branch を fetch して整理用 branch に merge します。
