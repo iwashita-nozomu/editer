@@ -1,13 +1,15 @@
-.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-links agent-canon-snapshot agent-canon-status agent-canon-ensure-latest agent-canon-update-plan agent-canon-update agent-canon-proposal-branch agent-canon-push-proposal agent-canon-register-local-bare agent-canon-pr-check docker-check docker-build-check docker-build-check-host-docker docker-run devcontainer-render server-check experiment-check docker-shell docker-codex docker-codex-host-docker fresh-clone-check template-check start-repository task-start doc-start task-close waterfall-gate-check user-preference-log
+.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-latest-check agent-canon-links agent-canon-snapshot agent-canon-status agent-canon-ensure-latest agent-canon-update-plan agent-canon-update agent-canon-proposal-branch agent-canon-push-proposal agent-canon-register-local-bare agent-canon-pr-check docker-check docker-build-check docker-build-check-host-docker docker-run devcontainer-render server-check experiment-check docker-shell docker-codex docker-codex-host-docker fresh-clone-check template-check start-repository task-start doc-start task-close waterfall-gate-check user-preference-log
 
 # ★推奨: 統合 CI（pytest + pyright + ruff）
 ci:
+	bash tools/ci/check_agent_canon_latest.sh
 	bash tools/sync_agent_canon.sh check
 	python3 tools/agent_tools/check_agent_runtime_alignment.py
 	bash tools/ci/run_all_checks.sh
 
 # CI 高速モード（ruff skip）
 ci-quick:
+	bash tools/ci/check_agent_canon_latest.sh
 	bash tools/sync_agent_canon.sh check
 	python3 tools/agent_tools/check_agent_runtime_alignment.py
 	bash tools/ci/run_all_checks.sh --quick
@@ -49,10 +51,15 @@ docs-check:
 
 # agent runtime / skill drift checks
 agent-checks:
+	bash tools/ci/check_agent_canon_latest.sh
 	bash tools/sync_agent_canon.sh check
 	python3 tools/docs/mirror_skill_shims.py --target .claude/skills --prune --check
 	python3 tools/agent_tools/check_agent_runtime_alignment.py
 	python3 tools/agent_tools/smoke_test_research_perspective_pack.py
+
+# read-only gate for upstream agent-canon freshness
+agent-canon-latest-check:
+	bash tools/ci/check_agent_canon_latest.sh
 
 # shared surface drift only
 agent-canon-check:
