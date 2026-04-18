@@ -5,6 +5,7 @@ managed_runner = "tools/experiments/run_managed_experiment.py"
 report_root = "experiments/report"
 integration_branch = "main"
 topic_template_dir = "experiments/_template"
+required_eval_artifacts = ["summary.json", "cases.jsonl"]
 
 [[topics]]
 name = "_template"

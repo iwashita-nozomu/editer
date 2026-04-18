@@ -10,6 +10,7 @@ report 名は `run_name` とそろえ、`experiments/<topic>/result/<run_name>/`
 - exact command
 - `result/<run_name>/` の path
 - `run_manifest.json`
+- `eval_manifest.json`
 - `summary.json`
 - `cases.jsonl`
 
