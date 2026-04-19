@@ -97,6 +97,8 @@ bash tools/run_comprehensive_review.sh
 - `docker/Dockerfile` か `docker/requirements.txt` を更新したら `make docker-build-check` を流します。
 - repo-wide な tool 導入案や Docker 変更では `agents/templates/environment_change_proposal.md` に triggering code requirement と blocked command を先に記録します。
 - container 内では `PYTHONPATH=/workspace/python` を前提にします。
+- Jupyter notebook runtime は canonical container に入れます。
+- repo-local `.venv` は host では作らず、container 内だけ `make python-env-status` と `make python-env-prepare` を使います。
 - C++ を使う場合の canonical CMake entrypoint は root `CMakeLists.txt` です。
 - out-of-source build tree は `build/cpp/<profile>/`、再利用する local install tree は `.state/cpp-install/<profile>/`、再利用する local `jax.export` artifact は `.state/jax-export/<profile>/` に置きます。
 - Markdown の体裁ルールは `.markdownlint.json` と `documents/conventions/common/05_docs.md` を基準にします。
@@ -115,6 +117,8 @@ docker run --rm -it \
 codex --version
 docker --version
 codex login
+make python-env-status
+make python-env-prepare
 ```
 
 build 可否だけを確認したい場合は次です。

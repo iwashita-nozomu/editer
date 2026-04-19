@@ -22,6 +22,11 @@ psutil
 pydocstyle
 ruff
 
+# Notebook Runtime
+jupyterlab
+notebook
+ipykernel
+
 # Documentation & Formatting
 mdformat
 mdformat-myst

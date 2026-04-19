@@ -27,6 +27,8 @@ ownership と validation は [SHARED_RUNTIME_SURFACES.md](/mnt/l/workspace/proje
   - repo workspace を mount した container command を実行します。
 - `tools/ci/run_codex_in_repo_container.py`
   - nested Codex を canonical container 内で起動します。
+- `tools/ci/python_env_policy.py`
+  - host では `.venv` を禁止し、container では canonical `.venv` だけを許可する machine-readable helper です。
 - `tools/ci/check_server_readiness.py`
   - main server host の readiness を確認します。
 - `tools/ci/check_experiment_registry.py`

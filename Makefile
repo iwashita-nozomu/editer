@@ -1,4 +1,4 @@
-.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-latest-check agent-canon-links agent-canon-snapshot agent-canon-status agent-canon-ensure-latest agent-canon-update-plan agent-canon-update agent-canon-proposal-branch agent-canon-push-proposal agent-canon-register-local-bare agent-canon-pr-check docker-check docker-build-check docker-build-check-host-docker docker-run devcontainer-render server-check experiment-check docker-shell docker-codex docker-codex-host-docker fresh-clone-check template-check start-repository task-start doc-start task-close waterfall-gate-check user-preference-log
+.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-latest-check agent-canon-links agent-canon-snapshot agent-canon-status agent-canon-ensure-latest agent-canon-update-plan agent-canon-update agent-canon-proposal-branch agent-canon-push-proposal agent-canon-register-local-bare agent-canon-pr-check docker-check python-env-status python-env-prepare docker-build-check docker-build-check-host-docker docker-run devcontainer-render server-check experiment-check docker-shell docker-codex docker-codex-host-docker fresh-clone-check template-check start-repository task-start doc-start task-close waterfall-gate-check user-preference-log
 
 # ★推奨: 統合 CI（pytest + pyright + ruff）
 ci:
@@ -103,6 +103,14 @@ agent-canon-pr-check:
 # Dockerfile と requirements の整合
 docker-check:
 	bash tools/docker_dependency_validator.sh
+
+# 現在の runtime で repo-local .venv が許可されるかを表示
+python-env-status:
+	python3 tools/ci/python_env_policy.py
+
+# 許可される runtime で canonical .venv を準備
+python-env-prepare:
+	python3 tools/ci/python_env_policy.py --create
 
 # Docker イメージ build 可否の確認
 docker-build-check:

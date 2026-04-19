@@ -123,20 +123,45 @@ python3 tools/ci/run_python_in_dockerfile.py docker/Dockerfile tools/docs/check_
 
 ## Python Environment Rule
 
-この template は repo-local virtual environment を作りません。
 canonical environment は Docker image と `docker/requirements.txt` です。
+repo-local `.venv` は host runtime では作らず、container runtime でだけ canonical tool から許可します。
+
+許可事項:
+
+- container 内で `python3 tools/ci/python_env_policy.py --create` を使って `.venv` を作る
+- notebook kernel や補助 package を `.venv` に追加したい場合も `.venv` だけを使う
 
 禁止事項:
 
-- `python3-venv` を canonical Docker image に入れる
-- `python -m venv`、`virtualenv`、`conda create`、`uv venv`、`pipenv`、`poetry env` で repo-local env を作る
-- `.venv/`、`venv/`、`env/`、`.conda/`、`conda-env/` を workspace に作る
+- host runtime で repo-local `.venv` を作る
+- `venv/`、`env/`、`.conda/`、`conda-env/`、`.venv-*` を workspace に作る
+- canonical tool を通さずに別経路の env manager を repo の既定手順にする
 
 環境 drift check は Python に依存しない次の入口を使います。
 
 ```bash
 bash tools/docker_dependency_validator.sh
+python3 tools/ci/python_env_policy.py
+python3 tools/ci/python_env_policy.py --create
 ```
+
+`.venv` 作成時は `--system-site-packages` を使い、canonical image に入っている Jupyter / analysis / test package をそのまま見せます。
+
+## Jupyter Notebook
+
+notebook runtime package は `docker/requirements.txt` を正本にします。VS Code では `ms-toolsai.jupyter` を推奨拡張として配布済みです。
+
+よく使う流れ:
+
+```bash
+make python-env-status
+make python-env-prepare
+. .venv/bin/activate
+python -m ipykernel install --user --name project-template
+jupyter lab --ip=0.0.0.0 --no-browser
+```
+
+VS Code で notebook を開く場合は、container 内の `.venv/bin/python` を kernel として選べば十分です。host 側に `.venv` を作る運用は canonical にしません。
 
 ## Docker In Docker
 
