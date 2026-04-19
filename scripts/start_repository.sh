@@ -20,8 +20,9 @@ Wrapper options:
 
 Default init flow:
   1. scripts/init_from_template.sh --dry-run ...
-  2. scripts/init_from_template.sh ...
-  3. make agent-canon-ensure-latest
+  2. make agent-canon-ensure-latest
+  3. scripts/init_from_template.sh ...
+  4. make agent-canon-ensure-latest
 
 Post-commit validation:
   bash scripts/start_repository.sh --validate-only
@@ -38,10 +39,21 @@ VALIDATE_ONLY=0
 RUN_FRESH_CLONE_CHECK=1
 RUN_CI_QUICK=1
 INIT_ARGS=()
+PRE_INIT_AGENT_CANON_RAN=0
 
 run_step() {
   echo "==> $*"
   "$@"
+}
+
+run_agent_canon_preflight() {
+  if [[ -n "$(git status --short)" ]]; then
+    echo "agent_canon_preflight=blocked_dirty_worktree"
+    echo "agent_canon_preflight_reason=commit_or_stash_then_run_make_agent-canon-ensure-latest"
+    return 0
+  fi
+  run_step make agent-canon-ensure-latest
+  PRE_INIT_AGENT_CANON_RAN=1
 }
 
 while [[ $# -gt 0 ]]; do
@@ -116,9 +128,13 @@ if [[ "${PREFLIGHT_DRY_RUN}" == "1" ]]; then
   run_step bash "${INIT_SCRIPT}" "${INIT_ARGS[@]}" --dry-run
 fi
 
+if [[ "${RUN_AGENT_CANON_CHECK}" == "1" ]]; then
+  run_agent_canon_preflight
+fi
+
 run_step bash "${INIT_SCRIPT}" "${INIT_ARGS[@]}"
 
-if [[ "${RUN_AGENT_CANON_CHECK}" == "1" ]]; then
+if [[ "${RUN_AGENT_CANON_CHECK}" == "1" && "${PRE_INIT_AGENT_CANON_RAN}" == "1" ]]; then
   run_step make agent-canon-ensure-latest
 fi
 

@@ -81,7 +81,8 @@ def test_start_repository_wrapper_seeds_agent_canon_without_subtree(tmp_path: Pa
 
     assert "agent_canon_seed_method=commit_tree_snapshot" in result.stdout
     assert "agent_canon_proposal_branch=canon-proposal/seeded-project" in result.stdout
-    assert "agent_canon_latest=already_current_tree" in result.stdout
+    assert "agent_canon_preflight=blocked_dirty_worktree" in result.stdout
+    assert "agent_canon_preflight_reason=commit_or_stash_then_run_make_agent-canon-ensure-latest" in result.stdout
     assert "start_repository_init=pass" in result.stdout
 
     run(
