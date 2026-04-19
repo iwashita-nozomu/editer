@@ -6,6 +6,7 @@ repo 全体で先に見るのは、言語非依存の規約です。
 ## 先に読む
 
 - [coding-conventions-project.md](/mnt/l/workspace/project_template/documents/coding-conventions-project.md)
+  - repo-wide の共通運用、Markdown 書式修正、Bash 配置ルールの正本
 - [coding-conventions-testing.md](/mnt/l/workspace/project_template/documents/coding-conventions-testing.md)
 - [coding-conventions-reviews.md](/mnt/l/workspace/project_template/documents/coding-conventions-reviews.md)
 - [coding-conventions-experiments.md](/mnt/l/workspace/project_template/documents/coding-conventions-experiments.md)
