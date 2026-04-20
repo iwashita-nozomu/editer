@@ -3,7 +3,7 @@
 `docker/` は、この template の共通開発環境と container runtime 運用の正本です。
 単に `docker build` を置くだけでなく、build / smoke / workspace mount / nested Codex を pack と profile で再利用できる形にします。
 
-host 側の前提は [linux-wsl-host-requirements.md](/mnt/l/workspace/project_template/documents/linux-wsl-host-requirements.md) を正本にします。
+host 側の前提は [linux-wsl-host-requirements.md](../documents/linux-wsl-host-requirements.md) を正本にします。
 
 ## Primary Files
 
@@ -254,7 +254,7 @@ template 既定では `CMAKE_GENERATOR=Ninja` を image 側で固定します。
 
 なので、現時点では Docker image 側に追加の CMake setup は不要です。必要になったら compiler、debugger、language server を用途別に足します。
 
-canonical CMake layout と build artifact の再利用方針は [cpp-build-layout.md](/mnt/l/workspace/project_template/documents/cpp-build-layout.md) を見ます。要点は次です。
+canonical CMake layout と build artifact の再利用方針は [cpp-build-layout.md](../documents/cpp-build-layout.md) を見ます。要点は次です。
 
 - root `CMakeLists.txt`
   - canonical entrypoint

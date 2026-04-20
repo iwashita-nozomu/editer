@@ -5,23 +5,23 @@ repo 全体で先に見るのは、言語非依存の規約です。
 
 ## 先に読む
 
-- [coding-conventions-project.md](/mnt/l/workspace/project_template/documents/coding-conventions-project.md)
+- [coding-conventions-project.md](../coding-conventions-project.md)
   - repo-wide の共通運用、Markdown 書式修正、Bash 配置ルールの正本
-- [coding-conventions-testing.md](/mnt/l/workspace/project_template/documents/coding-conventions-testing.md)
-- [coding-conventions-reviews.md](/mnt/l/workspace/project_template/documents/coding-conventions-reviews.md)
-- [coding-conventions-experiments.md](/mnt/l/workspace/project_template/documents/coding-conventions-experiments.md)
+- [coding-conventions-testing.md](../coding-conventions-testing.md)
+- [coding-conventions-reviews.md](../coding-conventions-reviews.md)
+- [coding-conventions-experiments.md](../coding-conventions-experiments.md)
 
 ## 補足規約
 
-- [coding-conventions-house-style.md](/mnt/l/workspace/project_template/documents/coding-conventions-house-style.md)
-- [coding-conventions-python.md](/mnt/l/workspace/project_template/documents/coding-conventions-python.md)
-- [coding-conventions-cpp.md](/mnt/l/workspace/project_template/documents/coding-conventions-cpp.md)
-- [coding-conventions-logging.md](/mnt/l/workspace/project_template/documents/coding-conventions-logging.md)
+- [coding-conventions-house-style.md](../coding-conventions-house-style.md)
+- [coding-conventions-python.md](../coding-conventions-python.md)
+- [coding-conventions-cpp.md](../coding-conventions-cpp.md)
+- [coding-conventions-logging.md](../coding-conventions-logging.md)
 
 ## 参考補助
 
-- [20_benchmark_policy.md](/mnt/l/workspace/project_template/documents/conventions/python/20_benchmark_policy.md)
-- [30_experiment_directory_structure.md](/mnt/l/workspace/project_template/documents/conventions/python/30_experiment_directory_structure.md)
+- [20_benchmark_policy.md](python/20_benchmark_policy.md)
+- [30_experiment_directory_structure.md](python/30_experiment_directory_structure.md)
 
 ## 運用
 

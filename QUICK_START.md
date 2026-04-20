@@ -4,26 +4,26 @@
 
 ## 1. 最初に読む
 
-- [README.md](/mnt/l/workspace/project_template/README.md)
-- [documents/README.md](/mnt/l/workspace/project_template/documents/README.md)
-- [agents/workflows/README.md](/mnt/l/workspace/project_template/agents/workflows/README.md)
-- [documents/linux-wsl-host-requirements.md](/mnt/l/workspace/project_template/documents/linux-wsl-host-requirements.md)
-- [documents/template-bootstrap.md](/mnt/l/workspace/project_template/documents/template-bootstrap.md)
-- [documents/conventions/README.md](/mnt/l/workspace/project_template/documents/conventions/README.md)
-- [documents/coding-conventions-python.md](/mnt/l/workspace/project_template/documents/coding-conventions-python.md)
-- [documents/cpp-build-layout.md](/mnt/l/workspace/project_template/documents/cpp-build-layout.md)
+- [README.md](README.md)
+- [documents/README.md](documents/README.md)
+- [agents/workflows/README.md](agents/workflows/README.md)
+- [documents/linux-wsl-host-requirements.md](documents/linux-wsl-host-requirements.md)
+- [documents/template-bootstrap.md](documents/template-bootstrap.md)
+- [documents/conventions/README.md](documents/conventions/README.md)
+- [documents/coding-conventions-python.md](documents/coding-conventions-python.md)
+- [documents/cpp-build-layout.md](documents/cpp-build-layout.md)
 
 実験を扱う場合は追加で次を見ます。
 
-- [agents/workflows/experiment-workflow.md](/mnt/l/workspace/project_template/agents/workflows/experiment-workflow.md)
-- [agents/workflows/research-workflow.md](/mnt/l/workspace/project_template/agents/workflows/research-workflow.md)
-- [documents/experiment-registry.md](/mnt/l/workspace/project_template/documents/experiment-registry.md)
-- [experiments/README.md](/mnt/l/workspace/project_template/experiments/README.md)
+- [agents/workflows/experiment-workflow.md](agents/workflows/experiment-workflow.md)
+- [agents/workflows/research-workflow.md](agents/workflows/research-workflow.md)
+- [documents/experiment-registry.md](documents/experiment-registry.md)
+- [experiments/README.md](experiments/README.md)
 
 agent を使う場合は次を見ます。
 
-- [agents/README.md](/mnt/l/workspace/project_template/agents/README.md)
-- [documents/AGENTS_COORDINATION.md](/mnt/l/workspace/project_template/documents/AGENTS_COORDINATION.md)
+- [agents/README.md](agents/README.md)
+- [documents/AGENTS_COORDINATION.md](documents/AGENTS_COORDINATION.md)
 
 ## 2. 作業の始め方
 
@@ -33,11 +33,10 @@ agent を使う場合は次を見ます。
 - 変更の前に、対象ディレクトリと必要な更新を先に決めます。
 - Python と Markdown は常に対象に含まれる前提で確認します。
 
-template から起こした直後に repo 名や bare remote 名を変えるなら次です。
+template から起こした直後に repo 名や bare remote 名を変えるなら wrapper から始めます。
 
 ```bash
-bash scripts/init_from_template.sh --project-slug your-project --display-name "Your Project"
-make fresh-clone-check
+bash scripts/start_repository.sh --project-slug your-project --display-name "Your Project"
 ```
 
 最低限の確認:
@@ -47,6 +46,8 @@ git status --short
 make ci-quick
 python3 -m pyright
 ```
+
+`make ci-quick` を host で直接流す場合は `docker/requirements.txt` 相当の Python tool が入っている前提です。canonical runtime は container なので、迷う場合は devcontainer か `docker/` 配下の runner から実行します。
 
 ## 3. 実装前の確認
 

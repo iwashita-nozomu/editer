@@ -46,7 +46,22 @@ run_step() {
   "$@"
 }
 
+init_args_include_force() {
+  local arg=""
+  for arg in "${INIT_ARGS[@]}"; do
+    if [[ "$arg" == "--force" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 run_agent_canon_preflight() {
+  if init_args_include_force; then
+    echo "agent_canon_preflight=blocked_init_force"
+    echo "agent_canon_preflight_reason=wrapper_skips_make_agent-canon-ensure-latest_when_init_force_is_requested"
+    return 0
+  fi
   if [[ -n "$(git status --short)" ]]; then
     echo "agent_canon_preflight=blocked_dirty_worktree"
     echo "agent_canon_preflight_reason=commit_or_stash_then_run_make_agent-canon-ensure-latest"

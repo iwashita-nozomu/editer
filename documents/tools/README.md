@@ -4,7 +4,7 @@
 詳細な台帳ではなく、いま残すべき実行導線だけを整理します。
 
 agent/worktree helper、review / validation runner、docs-check helper、container runtime helper、experiment scaffold / registry helper のうち shared canon に属するものは `vendor/agent-canon/` が正本です。
-ownership と validation は [SHARED_RUNTIME_SURFACES.md](/mnt/l/workspace/project_template/documents/SHARED_RUNTIME_SURFACES.md) を参照し、この文書では root 側の実行入口だけを案内します。
+ownership と validation は [SHARED_RUNTIME_SURFACES.md](../SHARED_RUNTIME_SURFACES.md) を参照し、この文書では root 側の実行入口だけを案内します。
 
 ## 置き場所の固定ルール
 
@@ -73,6 +73,6 @@ ownership と validation は [SHARED_RUNTIME_SURFACES.md](/mnt/l/workspace/proje
 
 ## 参照先
 
-- [scripts/README.md](/mnt/l/workspace/project_template/scripts/README.md)
-- [SHARED_RUNTIME_SURFACES.md](/mnt/l/workspace/project_template/documents/SHARED_RUNTIME_SURFACES.md)
-- [TOOLS_DIRECTORY.md](/mnt/l/workspace/project_template/documents/tools/TOOLS_DIRECTORY.md)
+- [scripts/README.md](../../scripts/README.md)
+- [SHARED_RUNTIME_SURFACES.md](../SHARED_RUNTIME_SURFACES.md)
+- [TOOLS_DIRECTORY.md](TOOLS_DIRECTORY.md)

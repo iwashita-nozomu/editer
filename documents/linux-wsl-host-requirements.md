@@ -126,8 +126,8 @@ docker context ls
 
 ## Related
 
-- [README.md](/mnt/l/workspace/project_template/README.md)
-- [QUICK_START.md](/mnt/l/workspace/project_template/QUICK_START.md)
-- [docker/README.md](/mnt/l/workspace/project_template/docker/README.md)
-- [server-host-contract.md](/mnt/l/workspace/project_template/documents/server-host-contract.md)
-- [TROUBLESHOOTING.md](/mnt/l/workspace/project_template/documents/TROUBLESHOOTING.md)
+- [README.md](../README.md)
+- [QUICK_START.md](../QUICK_START.md)
+- [docker/README.md](../docker/README.md)
+- [server-host-contract.md](server-host-contract.md)
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md)

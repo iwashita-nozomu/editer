@@ -3,7 +3,7 @@
 この文書は、C++ で実装する場合の最低限の方針をまとめます。
 現在の実装は主に Python ですが、将来の拡張に備えて記述しています。
 
-layout と build tree の正本は [cpp-build-layout.md](/mnt/l/workspace/project_template/documents/cpp-build-layout.md) です。
+layout と build tree の正本は [cpp-build-layout.md](cpp-build-layout.md) です。
 
 ## 1. 基本方針
 

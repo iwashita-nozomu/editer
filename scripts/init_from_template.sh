@@ -147,6 +147,9 @@ replacements: dict[str, list[tuple[str, str]]] = {
         ("  project-template bash", f"  {project_slug} bash"),
         ("/mnt/git/template.git", f"/mnt/git/{bare_repo}"),
     ],
+    "docker/README.md": [
+        ("python -m ipykernel install --user --name project-template", f"python -m ipykernel install --user --name {project_slug}"),
+    ],
     ".devcontainer/devcontainer.json": [
         ('"name": "project-template"', f'"name": "{project_slug}"'),
     ],
