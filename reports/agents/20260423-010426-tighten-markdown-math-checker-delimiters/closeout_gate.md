@@ -77,10 +77,12 @@
 ## Evidence
 
 - Product commit: `75ddb79`
+- Project closeout head: `6139a9a`
+- Shared canon main: `9e056c1`
 - Branch: `main`
 - Push targets:
   - `origin/main`
-  - `agent-canon/main` via `bash tools/sync_agent_canon.sh push`
+  - `/mnt/git/agent-canon.git` `main` via `/mnt/l/workspace/agent-canon`
 - Validation:
   - `python3 -m pytest tests/tools/test_check_markdown_math.py -q --tb=short`
   - `python3 -m pytest vendor/agent-canon/tests/tools/test_check_markdown_math.py -q --tb=short`
@@ -89,6 +91,8 @@
   - `make docs-check`
   - `make agent-checks`
   - `make agent-canon-pr-check`
+  - `python3 -m pytest /mnt/l/workspace/agent-canon/tests/tools/test_check_markdown_math.py -q --tb=short`
+  - `python3 /mnt/l/workspace/agent-canon/tools/docs/check_markdown_math.py /mnt/l/workspace/agent-canon/tests/tools/test_check_markdown_math.py /mnt/l/workspace/agent-canon/tools/docs/check_markdown_math.py`
 - Review artifacts:
   - `change_review.md`
   - `final_review.md`
