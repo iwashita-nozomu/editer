@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
 import subprocess
-
+from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -60,7 +59,9 @@ def test_start_repository_wrapper_seeds_agent_canon_without_subtree(tmp_path: Pa
     )
 
     assert "would seed agent_canon_bare_repo=" in dry_run.stdout
-    assert "would prepare agent_canon_proposal_branch=canon-proposal/seeded-project" in dry_run.stdout
+    assert (
+        "would prepare agent_canon_proposal_branch=canon-proposal/seeded-project" in dry_run.stdout
+    )
     assert "start_repository_mode=dry_run_only" in dry_run.stdout
     assert not agent_canon_bare.exists()
 
@@ -84,8 +85,7 @@ def test_start_repository_wrapper_seeds_agent_canon_without_subtree(tmp_path: Pa
     assert "agent_canon_preflight=blocked_init_force" in result.stdout
     assert (
         "agent_canon_preflight_reason="
-        "wrapper_skips_make_agent-canon-ensure-latest_when_init_force_is_requested"
-        in result.stdout
+        "wrapper_skips_make_agent-canon-ensure-latest_when_init_force_is_requested" in result.stdout
     )
     assert "start_repository_init=pass" in result.stdout
 
