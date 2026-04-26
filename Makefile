@@ -1,4 +1,9 @@
-.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-latest-check agent-canon-links agent-canon-snapshot agent-canon-status agent-canon-ensure-latest agent-canon-update-plan agent-canon-update agent-canon-proposal-branch agent-canon-push-proposal agent-canon-register-local-bare agent-canon-pr-check docker-check python-env-status python-env-prepare docker-build-check docker-build-check-host-docker docker-run devcontainer-render server-check experiment-check docker-shell docker-codex docker-codex-host-docker fresh-clone-check template-check start-repository task-start doc-start task-close waterfall-gate-check user-preference-log
+# @dependency-start
+# upstream implementation tools/agent_tools/evaluate_agent_run.py exposes agent-evaluate target
+# upstream implementation tools/agent_tools/task_close.py enforces closeout gates
+# @dependency-end
+
+.PHONY: ci ci-quick docs-check dev-setup tools-help agent-checks agent-canon-check agent-canon-latest-check agent-canon-links agent-canon-snapshot agent-canon-status agent-canon-ensure-latest agent-canon-update-plan agent-canon-update agent-canon-proposal-branch agent-canon-push-proposal agent-canon-register-local-bare agent-canon-pr-check docker-check python-env-status python-env-prepare docker-build-check docker-build-check-host-docker docker-run devcontainer-render server-check experiment-check docker-shell docker-codex docker-codex-host-docker fresh-clone-check template-check start-repository task-start doc-start task-close agent-evaluate waterfall-gate-check user-preference-log
 
 # ★推奨: 統合 CI（pytest + pyright + ruff）
 ci:
@@ -36,6 +41,10 @@ doc-start:
 # machine-driven task close gate
 task-close:
 	python3 tools/agent_tools/task_close.py $(ARGS)
+
+# machine-driven agent behavior evaluation
+agent-evaluate:
+	python3 tools/agent_tools/evaluate_agent_run.py $(ARGS)
 
 # machine-driven intermediate waterfall gate check
 waterfall-gate-check:
