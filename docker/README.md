@@ -1,4 +1,11 @@
 # Docker Runtime
+<!--
+@dependency-start
+upstream design ../documents/linux-wsl-host-requirements.md host runtime requirements
+downstream environment packs/default.toml default container pack
+downstream environment packs/default-host-docker.toml host-docker container pack
+@dependency-end
+-->
 
 `docker/` は、この template の共通開発環境と container runtime 運用の正本です。
 単に `docker build` を置くだけでなく、build / smoke / workspace mount / nested Codex を pack と profile で再利用できる形にします。

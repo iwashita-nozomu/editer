@@ -1,3 +1,7 @@
+# @dependency-start
+# upstream implementation ../../tools/docs/audit_and_fix_links.py link audit helper under test
+# upstream design ../../documents/TROUBLESHOOTING.md documentation maintenance guidance
+# @dependency-end
 """Tests for the markdown link audit helper."""
 
 from __future__ import annotations

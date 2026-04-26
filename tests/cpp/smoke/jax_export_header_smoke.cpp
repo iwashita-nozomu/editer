@@ -1,3 +1,7 @@
+// @dependency-start
+// upstream implementation ../../../include/project_template/jax_export_smoke.hpp header under test
+// upstream implementation ../../../CMakeLists.txt C++ build configuration
+// @dependency-end
 #include <project_template/jax_export_smoke.hpp>
 
 int main() {

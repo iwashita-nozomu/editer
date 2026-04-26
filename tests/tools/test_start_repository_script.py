@@ -1,3 +1,7 @@
+# @dependency-start
+# upstream implementation ../../scripts/start_repository.sh repository start wrapper
+# upstream design ../../documents/template-bootstrap.md bootstrap contract
+# @dependency-end
 """Tests for the start repository wrapper script."""
 
 from __future__ import annotations

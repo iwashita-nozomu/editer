@@ -1,3 +1,7 @@
+# @dependency-start
+# upstream implementation ../../tools/ci/python_env_policy.py Python environment policy helper
+# upstream design ../../documents/coding-conventions-python.md Python convention contract
+# @dependency-end
 """Tests for the repo-local Python environment policy helper."""
 
 from __future__ import annotations

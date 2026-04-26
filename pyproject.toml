@@ -1,3 +1,7 @@
+# @dependency-start
+# upstream design documents/coding-conventions-python.md Python convention contract
+# downstream implementation tests/tools/test_python_env_policy.py validates Python environment policy
+# @dependency-end
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"

@@ -1,4 +1,10 @@
 # src
+<!--
+@dependency-start
+upstream implementation ../include/project_template/jax_export_smoke.hpp header-only implementation surface
+upstream design ../cmake/README.md CMake layout guidance
+@dependency-end
+-->
 
 template 既定の C++ 実装は header-only です。
 通常は `include/project_template/*.hpp` に実装し、`src/` は使いません。

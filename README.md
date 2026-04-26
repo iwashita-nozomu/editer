@@ -1,4 +1,10 @@
 # Project Template
+<!--
+@dependency-start
+upstream design AGENTS.md agent runtime entrypoint
+downstream design QUICK_START.md quick-start reader path
+@dependency-end
+-->
 
 > [!IMPORTANT]
 > MCP server は起動成功率が低めです。MCP 前提の作業では、起動している前提で進めず、最初に接続状態と利用可否を確認してください。

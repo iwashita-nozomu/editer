@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# @dependency-start
+# upstream design ../documents/template-bootstrap.md bootstrap contract
+# upstream implementation init_from_template.sh template initialization helper
+# downstream implementation ../tests/tools/test_start_repository_script.py validates wrapper
+# @dependency-end
 set -euo pipefail
 
 usage() {

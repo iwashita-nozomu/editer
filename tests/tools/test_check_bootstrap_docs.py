@@ -1,3 +1,7 @@
+# @dependency-start
+# upstream implementation ../../tools/docs/check_bootstrap_docs.py bootstrap docs checker under test
+# upstream design ../../documents/template-bootstrap.md bootstrap documentation contract
+# @dependency-end
 """Tests for the bootstrap-facing doc validator."""
 
 from __future__ import annotations

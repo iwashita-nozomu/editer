@@ -1,4 +1,10 @@
 # CMake Layout
+<!--
+@dependency-start
+downstream implementation ../CMakeLists.txt CMake entrypoint
+downstream implementation ../tests/cpp/smoke/jax_export_header_smoke.cpp smoke build coverage
+@dependency-end
+-->
 
 この template で C++ を使うときの CMake 正本は root の `CMakeLists.txt` です。
 

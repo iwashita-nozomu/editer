@@ -1,4 +1,10 @@
 # Quick Start
+<!--
+@dependency-start
+upstream design README.md primary repository overview
+upstream design AGENTS.md runtime agent entrypoint
+@dependency-end
+-->
 
 このファイルは、テンプレート repo で作業を始めるための最短入口です。
 

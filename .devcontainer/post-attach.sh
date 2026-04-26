@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# @dependency-start
+# upstream environment devcontainer.json post attach entrypoint
+# upstream environment ../docker/README.md container runtime guidance
+# @dependency-end
 set -euo pipefail
 
 gpu_status="disabled"

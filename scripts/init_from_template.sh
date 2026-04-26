@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# @dependency-start
+# upstream design README.md template overview
+# downstream implementation start_repository.sh wraps template initialization
+# @dependency-end
 set -euo pipefail
 
 usage() {

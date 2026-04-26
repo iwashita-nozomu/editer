@@ -1,4 +1,8 @@
 #pragma once
+// @dependency-start
+// upstream implementation ../../CMakeLists.txt C++ build configuration
+// downstream implementation ../../tests/cpp/smoke/jax_export_header_smoke.cpp smoke test
+// @dependency-end
 
 #include <cstddef>
 #include <xla/ffi/api/c_api.h>

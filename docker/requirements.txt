@@ -1,3 +1,7 @@
+# @dependency-start
+# upstream environment README.md docker runtime guidance
+# upstream environment Dockerfile installs Python dependencies
+# @dependency-end
 # Core numerical computing
 jaxtyping
 typeguard

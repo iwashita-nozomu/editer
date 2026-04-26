@@ -1,3 +1,7 @@
+# @dependency-start
+# upstream environment ../README.md docker runtime guidance
+# upstream environment ../Dockerfile default runtime image
+# @dependency-end
 [pack]
 name = "default-host-docker"
 dockerfile = "docker/Dockerfile"

@@ -1,4 +1,10 @@
 # Experiments Hub
+<!--
+@dependency-start
+upstream design ../documents/experiment-registry.md experiment registry contract
+downstream environment registry.toml template-local registry
+@dependency-end
+-->
 
 `experiments/` は、server 上で回す実験コード、run ごとの生成物、1 run ごとの report をまとめる場所です。
 この template では、topic ごとの実験コードと run artifact を同じ tree に寄せます。

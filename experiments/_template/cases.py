@@ -1,3 +1,7 @@
+# @dependency-start
+# upstream design README.md experiment topic template
+# downstream implementation experimentcode.py consumes case definitions
+# @dependency-end
 """Minimal case definitions for one experiment topic."""
 
 from __future__ import annotations

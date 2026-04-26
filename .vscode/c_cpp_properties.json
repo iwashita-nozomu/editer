@@ -1,4 +1,10 @@
 {
+  "_dependency_manifest": [
+    "@dependency-start",
+    "upstream implementation ../CMakeLists.txt C++ build configuration",
+    "upstream design ../cmake/README.md CMake layout guidance",
+    "@dependency-end"
+  ],
   "version": 4,
   "configurations": [
     {

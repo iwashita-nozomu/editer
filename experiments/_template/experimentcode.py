@@ -1,3 +1,7 @@
+# @dependency-start
+# upstream design README.md experiment topic template
+# upstream implementation cases.py case definitions
+# @dependency-end
 """Minimal experiment entrypoint that writes JSON/JSONL outputs."""
 
 from __future__ import annotations

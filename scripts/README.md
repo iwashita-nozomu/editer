@@ -1,4 +1,10 @@
 # scripts
+<!--
+@dependency-start
+upstream design ../documents/template-bootstrap.md bootstrap contract
+downstream implementation start_repository.sh repository start wrapper
+@dependency-end
+-->
 
 `scripts/` は repo-local bootstrap の置き場です。
 shared automation は `tools/` を使います。

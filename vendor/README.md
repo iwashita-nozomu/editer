@@ -1,4 +1,10 @@
 # vendor
+<!--
+@dependency-start
+upstream design ../documents/agent-canon-subtree-migration.md shared canon subtree contract
+downstream design agent-canon/README.md vendored shared canon overview
+@dependency-end
+-->
 
 `vendor/` は、外部で管理される shared asset を、この repo に snapshot として取り込む場所です。
 

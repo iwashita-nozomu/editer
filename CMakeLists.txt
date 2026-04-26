@@ -1,3 +1,7 @@
+# @dependency-start
+# upstream design cmake/README.md CMake layout guidance
+# downstream implementation tests/cpp/smoke/jax_export_header_smoke.cpp validates header build
+# @dependency-end
 cmake_minimum_required(VERSION 3.22)
 
 project(project_template LANGUAGES CXX)

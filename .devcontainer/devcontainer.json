@@ -1,4 +1,10 @@
 {
+  "_dependency_manifest": [
+    "@dependency-start",
+    "upstream environment ../docker/README.md docker runtime guidance",
+    "downstream implementation generate-runtime-compose.sh renders devcontainer compose",
+    "@dependency-end"
+  ],
   "name": "project-template",
   "initializeCommand": "bash .devcontainer/generate-runtime-compose.sh",
   "dockerComposeFile": "docker-compose.generated.yml",

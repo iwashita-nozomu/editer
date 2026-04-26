@@ -1,3 +1,7 @@
+# @dependency-start
+# upstream design ../documents/experiment-registry.md experiment registry contract
+# downstream implementation ../tools/experiments/run_managed_experiment.py consumes registry
+# @dependency-end
 schema_version = 1
 
 [defaults]

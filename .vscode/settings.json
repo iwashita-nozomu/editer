@@ -1,4 +1,10 @@
 {
+  "_dependency_manifest": [
+    "@dependency-start",
+    "upstream implementation ../pyproject.toml Python project configuration",
+    "upstream implementation ../CMakeLists.txt C++ build configuration",
+    "@dependency-end"
+  ],
   "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
   "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
   "cmake.configureOnOpen": true,

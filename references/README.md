@@ -1,4 +1,10 @@
 # References
+<!--
+@dependency-start
+upstream design ../AGENTS.md reference sweep requirement
+downstream design workflow/implementation-waterfall.md implementation workflow literature note
+@dependency-end
+-->
 
 このディレクトリは、実装、実験、workflow 設計で参照した一次資料や索引を置く場所です。
 topic ごとの論文束や reference note をまとめる場合は、ここを入口にします。

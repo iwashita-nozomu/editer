@@ -1,4 +1,11 @@
 # Experiment Topic Template
+<!--
+@dependency-start
+upstream design ../README.md experiments hub guidance
+downstream implementation cases.py case scaffold
+downstream implementation experimentcode.py run scaffold
+@dependency-end
+-->
 
 このディレクトリは、新しい experiment topic を始めるための最小雛形です。
 server 上でそのまま回せるように、`cases.py`、`experimentcode.py`、`result/` の入口をそろえています。

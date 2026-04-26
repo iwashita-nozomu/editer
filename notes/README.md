@@ -1,4 +1,10 @@
 # Notes Hub
+<!--
+@dependency-start
+upstream design ../documents/notes-lifecycle.md note lifecycle contract
+downstream design ../memory/README.md stable memory promotion target
+@dependency-end
+-->
 
 `notes/` は、この template で長く残したい知見、比較、補助メモの置き場です。
 規約や設計の一次情報は `documents/` に残し、ここではそれに昇格させる前の知見や、run をまたいで残したい判断を扱います。
