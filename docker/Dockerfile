@@ -1,3 +1,8 @@
+# @dependency-start
+# upstream environment README.md docker runtime guidance
+# downstream implementation ../tools/ci/check_fresh_clone.sh uses rsync for workspace overlay
+# downstream implementation ../tools/docker_dependency_validator.sh validates canonical image tools
+# @dependency-end
 FROM nvidia/cuda:12.2.0-devel-ubuntu22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ARG NODE_VERSION=22.14.0
@@ -7,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates curl git docker.io \
     build-essential pkg-config cmake ninja-build \
     python3 python3-dev python3-pip python3-venv \
-    openssh-client graphviz xz-utils \
+    openssh-client graphviz rsync xz-utils \
  && rm -rf /var/lib/apt/lists/*
 
 # Codex CLI 用の Node.js は apt repo に依存させず、公式 tarball から入れる
