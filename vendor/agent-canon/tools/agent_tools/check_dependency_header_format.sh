@@ -49,6 +49,17 @@ done
 
 cd "$ROOT_DIR"
 
+is_checkable_suffix() {
+  case "$1" in
+    *.bash|*.cfg|*.css|*.h|*.hpp|*.html|*.c|*.cc|*.cpp|*.md|*.py|*.rst|*.sh|*.toml|*.txt|*.yaml|*.yml|*.zsh)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
 collect_paths() {
   if [[ ${#INPUT_PATHS[@]} -gt 0 ]]; then
     printf '%s\n' "${INPUT_PATHS[@]}"
@@ -134,6 +145,7 @@ check_file() {
   done < "$file"
 
   if [[ "$start_count" -eq 0 && "$end_count" -eq 0 ]]; then
+    is_checkable_suffix "$file" || return 0
     if [[ "$REQUIRE_HEADER" -eq 1 ]]; then
       echo "$file: missing dependency manifest markers"
       return 1

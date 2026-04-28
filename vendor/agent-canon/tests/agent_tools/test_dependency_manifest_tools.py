@@ -109,6 +109,46 @@ class DependencyManifestToolTest(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("DEPENDENCY_HEADER_FORMAT=pass", result.stdout)
 
+    def test_scan_skips_strict_json_without_manifest(self) -> None:
+        """Strict JSON is commentless and is not part of required header coverage."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            source = root / "source.json"
+            source.write_text('{"ok": true}\n', encoding="utf-8")
+
+            result = run_tool(
+                str(SCAN),
+                "--root",
+                str(root),
+                "--fail-missing",
+                str(source),
+                root=root,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("DEPENDENCY_HEADER_SCAN_SKIPPED=1", result.stdout)
+            self.assertIn("DEPENDENCY_HEADER_SCAN_MISSING=0", result.stdout)
+            self.assertIn("DEPENDENCY_HEADER_SCAN=pass", result.stdout)
+
+    def test_require_header_skips_strict_json_without_manifest(self) -> None:
+        """Strict JSON without manifest markers remains valid under require-header."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            root = Path(tmp_dir)
+            source = root / "source.json"
+            source.write_text('{"ok": true}\n', encoding="utf-8")
+
+            result = run_tool(
+                str(FORMAT),
+                "--root",
+                str(root),
+                "--require-header",
+                str(source),
+                root=root,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("DEPENDENCY_HEADER_FORMAT=pass", result.stdout)
+
     def test_format_rejects_invalid_direction(self) -> None:
         """The format checker rejects unknown directions."""
         with tempfile.TemporaryDirectory() as tmp_dir:

@@ -33,6 +33,7 @@ overlay_current_tree() {
 }
 
 git clone --no-local "${ROOT_DIR}" "${CLONE_DIR}" >/dev/null
+git config --global --add safe.directory "${CLONE_DIR}"
 overlay_current_tree
 cd "${CLONE_DIR}"
 if [[ -n "$(git status --short)" ]]; then
@@ -66,11 +67,13 @@ PY
 bash tools/sync_agent_canon.sh check
 AGENT_CANON_TEST_REMOTE="${TMP_DIR}/agent-canon-upstream.git"
 AGENT_CANON_TEST_WORK="${TMP_DIR}/agent-canon-work"
-AGENT_CANON_SPLIT_SHA="$(git subtree split --prefix=vendor/agent-canon HEAD)"
+AGENT_CANON_SPLIT_SHA="$(git subtree split --prefix=vendor/agent-canon HEAD 2>/dev/null \
+  || git subtree split --ignore-joins --prefix=vendor/agent-canon HEAD)"
 git init --bare "${AGENT_CANON_TEST_REMOTE}" >/dev/null
 git push "${AGENT_CANON_TEST_REMOTE}" "${AGENT_CANON_SPLIT_SHA}:refs/heads/main" >/dev/null
 git --git-dir="${AGENT_CANON_TEST_REMOTE}" symbolic-ref HEAD refs/heads/main
 git clone "${AGENT_CANON_TEST_REMOTE}" "${AGENT_CANON_TEST_WORK}" >/dev/null
+git config --global --add safe.directory "${AGENT_CANON_TEST_WORK}"
 (
   cd "${AGENT_CANON_TEST_WORK}"
   printf "fresh clone fallback marker\n" > .fresh-clone-agent-canon-marker
