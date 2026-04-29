@@ -1,4 +1,5 @@
 # @dependency-start
+# responsibility Registers experiment metadata for template experiment workflows.
 # upstream design ../documents/experiment-registry.md experiment registry contract
 # downstream implementation ../tools/experiments/run_managed_experiment.py consumes registry
 # @dependency-end

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # @dependency-start
+# responsibility Runs post attach shell automation.
 # upstream environment devcontainer.json post attach entrypoint
 # upstream environment ../docker/README.md container runtime guidance
 # @dependency-end

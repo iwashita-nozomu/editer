@@ -1,6 +1,7 @@
 # Quick Start
 <!--
 @dependency-start
+responsibility Documents Quick Start for this repository.
 upstream design README.md primary repository overview
 upstream design AGENTS.md runtime agent entrypoint
 @dependency-end

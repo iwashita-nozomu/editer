@@ -1,6 +1,7 @@
 # src
 <!--
 @dependency-start
+responsibility Documents src for this repository.
 upstream implementation ../include/project_template/jax_export_smoke.hpp header-only implementation surface
 upstream design ../cmake/README.md CMake layout guidance
 @dependency-end

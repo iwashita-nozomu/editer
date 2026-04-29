@@ -1,6 +1,7 @@
 # Docker Runtime
 <!--
 @dependency-start
+responsibility Documents Docker Runtime for this repository.
 upstream design ../documents/linux-wsl-host-requirements.md host runtime requirements
 downstream environment packs/default.toml default container pack
 downstream environment packs/default-host-docker.toml host-docker container pack

@@ -1,5 +1,6 @@
 #pragma once
 // @dependency-start
+// responsibility Maintains the repository-owned text surface include/project_template/jax_export_smoke.hpp.
 // upstream implementation ../../CMakeLists.txt C++ build configuration
 // downstream implementation ../../tests/cpp/smoke/jax_export_header_smoke.cpp smoke test
 // @dependency-end

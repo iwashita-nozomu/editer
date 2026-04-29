@@ -1,6 +1,7 @@
 # CMake Layout
 <!--
 @dependency-start
+responsibility Documents CMake Layout for this repository.
 downstream implementation ../CMakeLists.txt CMake entrypoint
 downstream implementation ../tests/cpp/smoke/jax_export_header_smoke.cpp smoke build coverage
 @dependency-end

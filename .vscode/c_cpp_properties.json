@@ -1,6 +1,7 @@
 {
   "_dependency_manifest": [
     "@dependency-start",
+    "responsibility Configures VS Code C and C++ language settings.",
     "upstream implementation ../CMakeLists.txt C++ build configuration",
     "upstream design ../cmake/README.md CMake layout guidance",
     "@dependency-end"

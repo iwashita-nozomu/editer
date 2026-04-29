@@ -1,6 +1,7 @@
 # vendor
 <!--
 @dependency-start
+responsibility Documents vendor for this repository.
 upstream design ../documents/agent-canon-subtree-migration.md shared canon subtree contract
 downstream design agent-canon/README.md vendored shared canon overview
 @dependency-end

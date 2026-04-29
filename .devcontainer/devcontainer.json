@@ -1,6 +1,7 @@
 {
   "_dependency_manifest": [
     "@dependency-start",
+    "responsibility Defines the VS Code devcontainer runtime entrypoint.",
     "upstream environment ../docker/README.md docker runtime guidance",
     "downstream implementation generate-runtime-compose.sh renders devcontainer compose",
     "@dependency-end"

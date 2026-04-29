@@ -1,4 +1,5 @@
 # @dependency-start
+# responsibility Tests test worktree note bootstrap behavior.
 # upstream implementation ../../tools/agent_tools/bootstrap_worktree_notes.py bootstrap helper
 # upstream implementation ../../tools/agent_tools/work_log.py worktree log helper
 # upstream design ../../documents/worktree-lifecycle.md worktree lifecycle contract

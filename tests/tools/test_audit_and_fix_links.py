@@ -1,4 +1,5 @@
 # @dependency-start
+# responsibility Tests test audit and fix links behavior.
 # upstream implementation ../../tools/docs/audit_and_fix_links.py link audit helper under test
 # upstream design ../../documents/TROUBLESHOOTING.md documentation maintenance guidance
 # @dependency-end

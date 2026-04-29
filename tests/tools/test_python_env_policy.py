@@ -1,4 +1,5 @@
 # @dependency-start
+# responsibility Tests test python env policy behavior.
 # upstream implementation ../../tools/ci/python_env_policy.py Python environment policy helper
 # upstream design ../../documents/coding-conventions-python.md Python convention contract
 # @dependency-end

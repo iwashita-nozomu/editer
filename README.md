@@ -1,6 +1,7 @@
 # Project Template
 <!--
 @dependency-start
+responsibility Documents Project Template for this repository.
 upstream design AGENTS.md agent runtime entrypoint
 downstream design QUICK_START.md quick-start reader path
 @dependency-end

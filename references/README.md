@@ -1,6 +1,7 @@
 # References
 <!--
 @dependency-start
+responsibility Documents References for this repository.
 upstream design ../AGENTS.md reference sweep requirement
 downstream design workflow/implementation-waterfall.md implementation workflow literature note
 @dependency-end

@@ -1,6 +1,7 @@
 # Experiment Reports
 <!--
 @dependency-start
+responsibility Documents Experiment Reports for this repository.
 upstream design ../README.md experiments hub guidance
 upstream design ../../documents/experiment-report-style.md report style contract
 @dependency-end

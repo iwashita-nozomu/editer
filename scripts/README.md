@@ -1,6 +1,7 @@
 # scripts
 <!--
 @dependency-start
+responsibility Documents scripts for this repository.
 upstream design ../documents/template-bootstrap.md bootstrap contract
 downstream implementation start_repository.sh repository start wrapper
 @dependency-end

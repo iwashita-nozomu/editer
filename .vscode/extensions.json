@@ -1,6 +1,7 @@
 {
   "_dependency_manifest": [
     "@dependency-start",
+    "responsibility Lists recommended VS Code extensions for template users.",
     "upstream design ../README.md repository overview",
     "upstream environment ../docker/README.md development environment guidance",
     "@dependency-end"

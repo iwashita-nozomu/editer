@@ -1,6 +1,7 @@
 # Implementation Waterfall Literature Note
 <!--
 @dependency-start
+responsibility Documents Implementation Waterfall Literature Note for this repository.
 upstream design ../README.md references directory guidance
 upstream design ../../vendor/agent-canon/agents/workflows/implementation-waterfall-workflow.md implemented workflow
 @dependency-end

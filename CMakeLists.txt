@@ -1,4 +1,5 @@
 # @dependency-start
+# responsibility Defines the CMake build configuration.
 # upstream design cmake/README.md CMake layout guidance
 # downstream implementation tests/cpp/smoke/jax_export_header_smoke.cpp validates header build
 # @dependency-end
