@@ -33,6 +33,7 @@ upstream design ../canonical/skills.md skill canon registry
 - 最初に top-level `goal.md` を更新し、今回の `Objective`、`Exit Criteria`、`Backlog`、`Loop Log` を固定します。これを tool 追加や prompt 修正より後回しにせず、`python3 tools/agent_tools/goal_loop.py status --goal-file goal.md` で確認します。
 - outer loop は agile、repo に持ち帰る各 change pass は waterfall にします。
 - 1 iteration につき 1 extension、1 waterfall run-id、1 change pass、1 decision state にします。
+- iteration 数は進捗カウンタであり、終了条件ではありません。loop は backlog と exit criteria で継続判断し、明示的な `goal_status: achieved` なしに完了扱いしません。
 - `Improvement Backlog:` を持ち、次に試す候補を優先順で管理します。
 - skill/workflow prompt を改善する場合は、変更前にテスト対象ごとの eval を `agents/evals/skill_workflow_prompt_eval.toml` に固定します。
 - prompt 修正前後で `python3 tools/agent_tools/evaluate_skill_workflow_prompts.py --manifest agents/evals/skill_workflow_prompt_eval.toml` を実行し、`EVAL_STATUS=pass` を evidence にします。

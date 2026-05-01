@@ -11,38 +11,43 @@ downstream implementation tools/agent_tools/goal_loop.py consumes this contract
 ## Loop Contract
 
 - goal_status: active
-- max_iterations: 5
+- run_safety_cap: 5
 - current_iteration: 2
-- active_run_id:
+- active_run_id: 20260501-oop-readability-loop
 - stop_reason:
 
 ## Objective
 
-Improve all skill and workflow prompt surfaces so every current and future skill/workflow
-is covered by frozen eval definitions, prompt drift is detected mechanically, and
-skill-driven agent behavior is monitored through run-bundle behavior evals until no
-prompt or behavior deviation remains.
+Improve OOP readability across all repository code using
+`tools/agent_tools/analyze_oop_readability.py` as the fixed mechanical
+evaluation. The loop should keep running backlog-driven iterations until the
+accepted OOP risk is reduced enough to stop explicitly, without changing runtime
+behavior, public API semantics, or numerical algorithms.
 
 ## Exit Criteria
 
-- [ ] G1: Repository dependency review passes with `bash tools/agent_tools/run_repo_dependency_review.sh --fail-missing`.
-- [ ] G2: Code dependency extraction is reviewed with `bash tools/agent_tools/scan_code_dependencies.sh` for the affected surface.
-- [ ] G3: OOP/readability analysis is run with `python3 tools/agent_tools/analyze_oop_readability.py` and findings are fixed or documented.
-- [ ] G4: Repo-wide static analysis or CI passes with `make ci`, or the documented fallback `python3 -m pyright` plus `python3 -m ruff check python tests --select D,E,F,I,UP`.
-- [ ] G5: Objective-specific prompt and behavior eval completion evidence is recorded.
+- [x] G1: Repository dependency review passes with `bash tools/agent_tools/run_repo_dependency_review.sh --fail-missing`.
+- [x] G2: Code dependency extraction is reviewed with `bash tools/agent_tools/scan_code_dependencies.sh` for the affected surface.
+- [ ] G3: OOP/readability analysis is run over all code paths before and after the current iteration with the same path set and threshold.
+- [ ] G4: The current iteration reduces accepted OOP findings or score-risk concentration without adding behavior changes.
+- [ ] G5: Repo-wide static analysis or CI passes with `make ci`, or the documented fallback `python3 -m pyright` plus `python3 -m ruff check python tests --select D,E,F,I,UP`.
+- [ ] G6: Objective-specific completion evidence, baseline report, final report, and next backlog decision are recorded.
 
 ## Backlog
 
-- [x] B1: Add a machine-readable eval manifest for all discoverable skill shims, human skill docs, and workflow docs.
-- [x] B2: Add a deterministic eval runner and tests for skill/workflow prompt drift.
-- [x] B3: Update the adaptive-improvement-loop skill and workflow prompts to require eval-driven repair/rerun.
-- [x] B4: Run the eval, fix all deviations, then rerun until the eval passes.
-- [ ] B5: Add behavior-monitoring eval coverage so skill/workflow prompts require run-bundle agent behavior evidence, not only static prompt text.
-- [ ] B6: Extend run-bundle agent evaluation to check behavior signals, subagent lifecycle evidence, diff-check evidence, prompt eval evidence, and feedback-resolution evidence mechanically.
-- [ ] B7: Update eval documentation and workflows so behavior evals are managed beside prompt evals.
-- [ ] B8: Rerun prompt eval, behavior eval tests, dependency review, readability/OOP analysis, and CI until all gates pass.
+- [x] B1: Establish the all-code OOP readability baseline and hotspot ranking.
+- [x] B2: Classify hotspot findings into behavior-preserving refactor candidates and intentional/value-object exceptions.
+- [x] B3: Apply iteration 1 behavior-preserving refactor pass to AgentCanon helper hotspots.
+- [x] B4: Rerun iteration 1 all-code OOP readability evaluation and compare baseline versus final counts.
+- [ ] B5: Continue with iteration 2 on the next highest accepted hotspot cluster.
+- [ ] B6: Rerun the all-code OOP readability evaluation after iteration 2.
+- [ ] B7: Record remaining backlog and explicit continue/stop decision.
 
 ## Loop Log
 
-- iteration 1: started eval-driven all-skill/all-workflow prompt hardening.
-- iteration 2: started behavior-monitoring eval hardening for skill/workflow execution.
+- iteration 1: started all-code OOP readability improvement loop.
+- iteration 1 result: all-code OOP findings decreased from 834 to 828. This was
+  a completed extension, not loop termination.
+- iteration 2: continue the loop on the next accepted hotspot cluster; remaining
+  backlog is led by `PrimitiveDerivativeBridgePass.cpp`, `smolyak.hpp`,
+  `native_autodiff.hpp`, and `kokkos_backend.hpp`.

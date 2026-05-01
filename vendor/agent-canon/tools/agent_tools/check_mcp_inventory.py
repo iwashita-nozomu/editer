@@ -22,7 +22,6 @@ from typing import Any, cast
 
 from workflow_monitor import append_monitoring
 
-
 @dataclass(frozen=True)
 class McpServer:
     """One configured MCP server entry."""
