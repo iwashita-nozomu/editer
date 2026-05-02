@@ -159,6 +159,24 @@ python3 tools/ci/python_env_policy.py --create
 
 notebook runtime package は `docker/requirements.txt` を正本にします。VS Code では `ms-toolsai.jupyter` を推奨拡張として配布済みです。
 
+host browser から container 内 JupyterLab を開く既定入口:
+
+```bash
+make docker-jupyter
+```
+
+VS Code では `Tasks: Run Task` から `Docker: Start JupyterLab` を選ぶと同じ入口を実行します。
+
+既定では container port `8888` を host `8888` に公開し、token は `project-template` です。
+port や token を変える場合:
+
+```bash
+JUPYTER_HOST_PORT=8890 JUPYTER_TOKEN=my-token make docker-jupyter
+```
+
+起動後は `http://127.0.0.1:8888/lab?token=project-template` を開きます。
+`JUPYTER_HOST_PORT` を変えた場合は URL の port も同じ値にします。
+
 よく使う流れ:
 
 ```bash

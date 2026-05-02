@@ -204,7 +204,7 @@ make tools-help
 
 `docker/Dockerfile` には Codex CLI と `docker` CLI を同梱します。container runtime の正本は [docker/README.md](docker/README.md) で、build / smoke は `docker/packs/*.toml` と `tools/ci/run_container_pack.py` から実行します。コンテナに入ったあと、認証は各自の OpenAI アカウントで行います。対話認証は `codex login`、API key を使う場合は `printenv OPENAI_API_KEY | codex login --with-api-key` を使えます。`jax.export` を使う前提で `python3-dev`、`cmake`、`ninja-build` も canonical image に入れ、calling convention は installed JAX wheel の supported range に追従させます。host から validation を直接流すより、container を canonical entrypoint にします。
 
-Jupyter notebook runtime も canonical image に含めます。host 側では repo-local `.venv` を作らず、devcontainer や nested Codex など container 内でだけ `make python-env-status` と `make python-env-prepare` を使って `.venv` を用意します。
+Jupyter notebook runtime も canonical image に含めます。host browser から使う場合は `make docker-jupyter` を実行し、既定では `http://127.0.0.1:8888/lab?token=project-template` を開きます。host port は `JUPYTER_HOST_PORT=8890`、token は `JUPYTER_TOKEN=my-token` のように上書きできます。host 側では repo-local `.venv` を作らず、devcontainer や nested Codex など container 内でだけ `make python-env-status` と `make python-env-prepare` を使って `.venv` を用意します。
 
 `docker/Dockerfile` か `docker/requirements.txt` を更新した変更では、`make docker-build-check` を通して build 可否を確認します。ローカルに `docker` / `podman` がない場合は、GitHub Actions の `Docker Build` workflow を使います。
 

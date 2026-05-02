@@ -41,6 +41,8 @@ ENV PROJECT_TEMPLATE_CPP_BUILD_ROOT=/workspace/build/cpp
 ENV PROJECT_TEMPLATE_CPP_INSTALL_ROOT=/workspace/.state/cpp-install
 ENV PROJECT_TEMPLATE_JAX_EXPORT_ROOT=/workspace/.state/jax-export
 
+EXPOSE 8888
+
 # Canonical image 側で safe.directory を固定し、/mnt/git を mount した
 # local bare remote への push/pull を container 内からもそのまま通す。
 RUN set -eux; \
