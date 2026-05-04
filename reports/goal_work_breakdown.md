@@ -9,38 +9,33 @@ upstream implementation ../vendor/agent-canon/tools/agent_tools/goal_loop.py gen
 ## Summary
 
 - goal_file: `/mnt/l/workspace/project_template/vendor/agent-canon/goal.md`
-- goal_status_field: `active`
-- goal_loop_status: `continue`
-- next_action: `run_next_iteration`
-- open_exit_criteria: `9`
-- open_backlog_items: `9`
+- goal_status_field: `achieved`
+- goal_loop_status: `achieved`
+- next_action: `close_goal_loop`
+- open_exit_criteria: `0`
+- open_backlog_items: `0`
 - optional_goal_items: `5`
 
 ## Progress Log
 
-This report is cumulative. Add one row per finished or validated slice so the
-closeout path can show intent, evidence, and intermediate results in one place.
+This report is cumulative. Each row records intent, evidence, and the
+resulting slice-level outcome that contributed to closeout.
 
 | Slice | Intent | Evidence | Result |
 | ----- | ------ | -------- | ------ |
-| Token efficiency | Reduce Codex footprint without regressing skill or behavior evals. | [reports/token_efficiency_comparison.md](token_efficiency_comparison.md) with `TOKEN_FOOTPRINT_RATIO=0.306`; `evaluate_skill_workflow_prompts.py` passed; `check_agent_runtime_alignment.py` passed. | `G9` has measured pass evidence, but the goal still has other open exit criteria. |
+| Model routing | Route simple coding to the cheapest suitable model while keeping code-reading on Spark. | `vendor/agent-canon/agents/TASK_WORKFLOWS.md`; `vendor/agent-canon/agents/canonical/CODEX_WORKFLOW.md`; `vendor/agent-canon/tools/agent_tools/check_agent_runtime_alignment.py`. | `G2` is covered by the routing workflow and runtime alignment checks. |
+| Slide workflow | Standardize slide production on a fixed template with slot mapping and layout review. | `vendor/agent-canon/agents/workflows/slide-production-workflow.md`; `vendor/agent-canon/agents/evals/skill_workflow_prompt_eval.toml`; `vendor/agent-canon/documents/codex-configuration-slides.md`. | `G3` has a dedicated workflow surface and prompt-eval coverage. |
+| Hypothesis validation | Require read-first survey, checklist creation, tool selection, and rejection analysis before edits. | `vendor/agent-canon/agents/workflows/hypothesis-validation-workflow.md`; `vendor/agent-canon/agents/evals/skill_workflow_prompt_eval.toml`; `vendor/agent-canon/agents/workflows/adaptive-improvement-workflow.md`. | `G4` and the prompt-repair side of `G5` are covered by workflow and eval hooks. |
+| AgentCanon unification | Keep vendor main, the template snapshot, and runtime views aligned through the canonical update lane. | `vendor/agent-canon` main at `d2a63dc`; root gitlink update; `check_agent_runtime_alignment.py` pass. | `G8` is complete and the shared canon lane is synchronized. |
+| Token efficiency | Reduce Codex footprint without regressing skill or behavior evals. | [reports/token_efficiency_comparison.md](token_efficiency_comparison.md) with `TOKEN_FOOTPRINT_RATIO=0.306`; `evaluate_skill_workflow_prompts.py` passed; `check_agent_runtime_alignment.py` passed. | `G9` has measured pass evidence and the target ratio is below 0.5. |
+| Cumulative report | Keep a single progress report that records per-slice intent, path, evidence, and intermediate results. | This section, the token-efficiency report, and the goal work breakdown. | `G6` is now represented as a cumulative closeout artifact. |
+| Closeout | Confirm repo-wide gates, dependency review, and goal-loop completion. | `run_repo_dependency_review.sh --fail-missing`; `check_convention_compliance.py`; `make ci`; `goal_loop.py status`. | `NEXT_ACTION=close_goal_loop` and the loop can close. |
 
 ## Work Units
 
 | Unit ID | Source | Work To Do | Evidence To Produce | Status |
 | ------- | ------ | ---------- | ------------------- | ------ |
-| GW1 | exit_criteria:G1 | The goal contract, workflow, and backlog are written from the TODO | specific artifact path, command output, or review decision | open |
-| GW2 | exit_criteria:G2 | Model-routing workflow and prompt surfaces route simple coding to the | specific artifact path, command output, or review decision | open |
-| GW3 | exit_criteria:G3 | Slide workflow uses a fixed PPT template and supports text, equation, | specific artifact path, command output, or review decision | open |
-| GW4 | exit_criteria:G4 | Hypothesis-validation workflow enforces read-first survey, checklist | specific artifact path, command output, or review decision | open |
-| GW5 | exit_criteria:G5 | Coding workflow prompts are revised when tools discard or rewrite | specific artifact path, command output, or review decision | open |
-| GW6 | exit_criteria:G6 | The goal run produces a cumulative quantitative closeout report that | specific artifact path, command output, or review decision | open |
-| GW7 | exit_criteria:G7 | Repository dependency review, prompt evals, and template `make ci` | `run_repo_dependency_review.sh` output | open |
-| GW8 | exit_criteria:G8 | AgentCanon main, the template snapshot branch, and repo-local runtime | specific artifact path, command output, or review decision | open |
-| GW9 | exit_criteria:G9 | The token-efficient workflow slice shows at least 50% lower token | `reports/token_efficiency_comparison.md`; `TOKEN_FOOTPRINT_RATIO=0.306` | evidence-recorded |
-| GW10 | backlog:B1 | Draft the goal work breakdown from the TODO into checkable work | specific artifact path, command output, or review decision | open |
-| GW11 | backlog:B2 | Survey existing routing, slide, hypothesis, coding, and reporting | specific artifact path, command output, or review decision | open |
-| GW12 | backlog:B3 | Implement the model-routing slice and its eval coverage first. | specific artifact path, command output, or review decision | open |
+| none | none | No unchecked goal items. | closeout evidence | complete |
 
 ## Optional Goal Item Catalog
 
