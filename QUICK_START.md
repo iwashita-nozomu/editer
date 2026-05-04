@@ -106,6 +106,7 @@ bash tools/run_comprehensive_review.sh
 - repo-wide な tool 導入案や Docker 変更では `agents/templates/environment_change_proposal.md` に triggering code requirement と blocked command を先に記録します。
 - container 内では `PYTHONPATH=/workspace/python` を前提にします。
 - Jupyter notebook runtime は canonical container に入れます。
+- host browser から container 内 JupyterLab を使う場合は `make docker-jupyter` を実行し、`http://127.0.0.1:8888/lab?token=project-template` を開きます。port / token は `JUPYTER_HOST_PORT` と `JUPYTER_TOKEN` で変更できます。
 - repo-local `.venv` は host では作らず、container 内だけ `make python-env-status` と `make python-env-prepare` を使います。
 - C++ を使う場合の canonical CMake entrypoint は root `CMakeLists.txt` です。
 - out-of-source build tree は `build/cpp/<profile>/`、再利用する local install tree は `.state/cpp-install/<profile>/`、再利用する local `jax.export` artifact は `.state/jax-export/<profile>/` に置きます。
