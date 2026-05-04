@@ -16,6 +16,15 @@ upstream implementation ../vendor/agent-canon/tools/agent_tools/goal_loop.py gen
 - open_backlog_items: `9`
 - optional_goal_items: `5`
 
+## Progress Log
+
+This report is cumulative. Add one row per finished or validated slice so the
+closeout path can show intent, evidence, and intermediate results in one place.
+
+| Slice | Intent | Evidence | Result |
+| ----- | ------ | -------- | ------ |
+| Token efficiency | Reduce Codex footprint without regressing skill or behavior evals. | [reports/token_efficiency_comparison.md](token_efficiency_comparison.md) with `TOKEN_FOOTPRINT_RATIO=0.306`; `evaluate_skill_workflow_prompts.py` passed; `check_agent_runtime_alignment.py` passed. | `G9` has measured pass evidence, but the goal still has other open exit criteria. |
+
 ## Work Units
 
 | Unit ID | Source | Work To Do | Evidence To Produce | Status |
@@ -28,7 +37,7 @@ upstream implementation ../vendor/agent-canon/tools/agent_tools/goal_loop.py gen
 | GW6 | exit_criteria:G6 | The goal run produces a cumulative quantitative closeout report that | specific artifact path, command output, or review decision | open |
 | GW7 | exit_criteria:G7 | Repository dependency review, prompt evals, and template `make ci` | `run_repo_dependency_review.sh` output | open |
 | GW8 | exit_criteria:G8 | AgentCanon main, the template snapshot branch, and repo-local runtime | specific artifact path, command output, or review decision | open |
-| GW9 | exit_criteria:G9 | The token-efficient workflow slice shows at least 50% lower token | specific artifact path, command output, or review decision | open |
+| GW9 | exit_criteria:G9 | The token-efficient workflow slice shows at least 50% lower token | `reports/token_efficiency_comparison.md`; `TOKEN_FOOTPRINT_RATIO=0.306` | evidence-recorded |
 | GW10 | backlog:B1 | Draft the goal work breakdown from the TODO into checkable work | specific artifact path, command output, or review decision | open |
 | GW11 | backlog:B2 | Survey existing routing, slide, hypothesis, coding, and reporting | specific artifact path, command output, or review decision | open |
 | GW12 | backlog:B3 | Implement the model-routing slice and its eval coverage first. | specific artifact path, command output, or review decision | open |
