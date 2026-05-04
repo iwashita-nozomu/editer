@@ -16,7 +16,7 @@ host 側の前提は [linux-wsl-host-requirements.md](../documents/linux-wsl-hos
 ## Primary Files
 
 - `Dockerfile`
-  - canonical container image 定義です。
+  - canonical container image 定義です。GitHub-backed AgentCanon 運用のため `gh` も標準同梱します。
 - `requirements.txt`
   - repo-wide の Python 依存です。
 - `packs/default.toml`
@@ -313,6 +313,7 @@ make docker-shell
 make docker-codex
 make docker-codex-host-docker
 python3 tools/ci/check_jax_export_stack.py
+gh --version
 cmake -S . -B build/cpp/dev -DPROJECT_TEMPLATE_ENABLE_CPP_SMOKE=ON
 cmake --build build/cpp/dev --target project_template_cpp_smoke
 ctest --test-dir build/cpp/dev --output-on-failure

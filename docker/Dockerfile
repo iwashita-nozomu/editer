@@ -15,6 +15,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-client graphviz rsync xz-utils \
  && rm -rf /var/lib/apt/lists/*
 
+# GitHub CLI は AgentCanon / template の PR・release 運用で使うため、
+# GitHub CLI 公式 apt repository から canonical image に入れる。
+RUN mkdir -p -m 755 /etc/apt/keyrings \
+ && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+    -o /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+ && chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+ && printf 'deb [arch=%s signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\n' "$(dpkg --print-architecture)" \
+    > /etc/apt/sources.list.d/github-cli.list \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends gh \
+ && gh --version \
+ && rm -rf /var/lib/apt/lists/*
+
 # Codex CLI 用の Node.js は apt repo に依存させず、公式 tarball から入れる
 RUN curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz" \
     | tar -xJ --strip-components=1 -C /usr/local \
