@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.22)
 
 project(project_template LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -54,9 +54,44 @@ target_include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/include"
     "${PROJECT_TEMPLATE_JAXLIB_INCLUDE_DIR}"
 )
-target_compile_features(project_template_cpp INTERFACE cxx_std_17)
+target_compile_features(project_template_cpp INTERFACE cxx_std_20)
 
 option(PROJECT_TEMPLATE_ENABLE_CPP_SMOKE "Build the template C++ smoke target." ON)
+
+add_library(
+  editor_proto
+  src/workspace_registry.cpp
+  src/duplicate_policy.cpp
+)
+target_link_libraries(editor_proto PUBLIC project_template_cpp)
+target_include_directories(editor_proto PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+add_executable(
+  editor_proto_cli
+  src/editor_proto_cli.cpp
+)
+target_link_libraries(editor_proto_cli PRIVATE editor_proto)
+install(TARGETS editor_proto_cli RUNTIME DESTINATION bin)
+
+
+if(BUILD_TESTING)
+  add_executable(
+    editor_proto_workspace_test
+    tests/cpp/prototype/workspace_registry_test.cpp
+  )
+  target_link_libraries(editor_proto_workspace_test PRIVATE editor_proto)
+  add_test(NAME editor_proto_workspace_test COMMAND editor_proto_workspace_test)
+endif()
+
+
+if(BUILD_TESTING)
+  add_executable(
+    editor_proto_duplicate_policy_test
+    tests/cpp/prototype/duplicate_policy_test.cpp
+  )
+  target_link_libraries(editor_proto_duplicate_policy_test PRIVATE editor_proto)
+  add_test(NAME editor_proto_duplicate_policy_test COMMAND editor_proto_duplicate_policy_test)
+endif()
 
 if(PROJECT_TEMPLATE_ENABLE_CPP_SMOKE)
   add_executable(
