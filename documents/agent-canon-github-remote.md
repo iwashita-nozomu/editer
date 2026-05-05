@@ -1,0 +1,1 @@
+../vendor/agent-canon/documents/agent-canon-github-remote.md

@@ -2,6 +2,7 @@
 # responsibility Defines Python packaging, dependency, and tool configuration.
 # upstream design documents/coding-conventions-python.md Python convention contract
 # downstream implementation tests/tools/test_python_env_policy.py validates Python environment policy
+# downstream implementation tests/tools/test_update_latest_result.py imports shared tools in pyright
 # @dependency-end
 [build-system]
 requires = ["setuptools>=68", "wheel"]
@@ -67,8 +68,9 @@ exclude = [
   "./.worktrees",
 ]
 
-# ローカルパッケージ解決のため、python を追加します。
-extraPaths = ["./python"]
+# ローカルパッケージと shared tool surface 解決のため、python、repo root、AgentCanon
+# submodule root を追加します。
+extraPaths = ["./python", ".", "./vendor/agent-canon"]
 stubPath = "./python/typings"
 
 
