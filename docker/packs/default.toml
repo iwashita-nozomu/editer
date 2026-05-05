@@ -32,8 +32,10 @@ commands = [
   "cmake -S . -B build/cpp/docker-smoke -DPROJECT_TEMPLATE_ENABLE_CPP_SMOKE=ON",
   "cmake --build build/cpp/docker-smoke --target project_template_cpp_smoke",
   "ctest --test-dir build/cpp/docker-smoke --output-on-failure",
+  "bash docker/register_safe_directories.sh /workspace",
   "safe_dirs=\"$(git config --get-all safe.directory || true)\"",
   "printf '%s\\n' \"$safe_dirs\" | grep -Fx /workspace >/dev/null",
+  "if [ -d vendor ]; then for vendor_dir in vendor/*; do [ -d \"$vendor_dir\" ] || continue; printf '%s\\n' \"$safe_dirs\" | grep -Fx \"/workspace/${vendor_dir}\" >/dev/null; done; fi",
 ]
 
 [runtime]

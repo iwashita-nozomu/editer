@@ -26,6 +26,11 @@ if [ -d /root/.codex ] || [ -d "${HOME:-/root}/.codex" ]; then
   codex_home_status="mounted"
 fi
 
+codex_login_status="unauthenticated"
+if command -v codex >/dev/null 2>&1 && codex login status >/dev/null 2>&1; then
+  codex_login_status="authenticated"
+fi
+
 gh_config_status="not-mounted"
 if [ -d /root/.config/gh ] || [ -d "${HOME:-/root}/.config/gh" ]; then
   gh_config_status="mounted"
@@ -70,6 +75,7 @@ echo "gpu: ${gpu_status}"
 echo "/mnt/git: ${mnt_git_status}"
 echo "docker-socket: ${docker_socket_status}"
 echo "host-codex-home: ${codex_home_status}"
+echo "codex-login: ${codex_login_status}"
 echo "host-gh-config: ${gh_config_status}"
 echo "host-ssh-dir: ${ssh_dir_status}"
 echo "ssh-agent: ${ssh_agent_status}"

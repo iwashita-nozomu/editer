@@ -3,6 +3,7 @@
     "@dependency-start",
     "responsibility Defines the VS Code devcontainer runtime entrypoint.",
     "upstream environment ../docker/README.md docker runtime guidance",
+    "upstream implementation ../docker/register_safe_directories.sh registers workspace and vendor safe directories",
     "downstream implementation generate-runtime-compose.sh renders devcontainer compose",
     "@dependency-end"
   ],
@@ -11,6 +12,7 @@
   "dockerComposeFile": "docker-compose.generated.yml",
   "service": "workspace",
   "workspaceFolder": "/workspace",
+  "postCreateCommand": "bash docker/register_safe_directories.sh /workspace",
   "postAttachCommand": "bash .devcontainer/post-attach.sh",
   "shutdownAction": "stopCompose",
   "overrideCommand": false

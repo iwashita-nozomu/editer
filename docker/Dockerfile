@@ -46,6 +46,9 @@ RUN pip install --no-cache-dir "jax[cuda12]"
 COPY docker/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+COPY docker/register_safe_directories.sh /usr/local/bin/project-template-register-safe-directories
+RUN chmod +x /usr/local/bin/project-template-register-safe-directories
+
 WORKDIR /workspace
 ENV PYTHONPATH=/workspace/python
 ENV CMAKE_GENERATOR=Ninja
@@ -55,10 +58,10 @@ ENV PROJECT_TEMPLATE_JAX_EXPORT_ROOT=/workspace/.state/jax-export
 
 EXPOSE 8888
 
-# Canonical image 側では workspace だけを safe.directory に固定する。
-# Template / AgentCanon 固有の mirror path は documents の remote policy に置く。
+# Canonical image 側では workspace を safe.directory に固定する。
+# mount 済み workspace では同じ helper が vendor 直下の directory も動的に登録する。
 RUN set -eux; \
-    git config --global --add safe.directory /workspace
+    project-template-register-safe-directories /workspace
 
 # docker CLI は同梱するが、build/run をコンテナ内から行うときは
 # host socket の mount か別 daemon が必要。
