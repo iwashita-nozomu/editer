@@ -58,7 +58,7 @@ add_executable(
   editor_gui_proto
   src/editor_gui_proto.cpp
 )
-target_link_libraries(editor_gui_proto PRIVATE editor_proto)
+target_link_libraries(editor_gui_proto PRIVATE editor_proto ${CMAKE_DL_LIBS})
 install(TARGETS editor_gui_proto RUNTIME DESTINATION bin)
 
 if(BUILD_TESTING)
