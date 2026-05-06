@@ -54,12 +54,20 @@ add_executable(
 target_link_libraries(editor_proto_cli PRIVATE editor_proto)
 install(TARGETS editor_proto_cli RUNTIME DESTINATION bin)
 
+add_executable(
+  editor_gui_proto
+  src/editor_gui_proto.cpp
+)
+target_link_libraries(editor_gui_proto PRIVATE editor_proto)
+install(TARGETS editor_gui_proto RUNTIME DESTINATION bin)
+
 if(BUILD_TESTING)
   add_test(NAME editor_proto_cli_demo COMMAND editor_proto_cli demo)
   add_test(NAME editor_proto_cli_open_file COMMAND editor_proto_cli open-file /Repo/src/main.cpp)
   add_test(NAME editor_proto_cli_open_dir COMMAND editor_proto_cli open-dir /Work/ProjectA)
   add_test(NAME editor_proto_cli_scroll COMMAND editor_proto_cli scroll 100 -10)
   add_test(NAME editor_proto_cli_scroll_invalid COMMAND editor_proto_cli scroll nope -10)
+  add_test(NAME editor_gui_proto_smoke COMMAND editor_gui_proto --smoke)
   set_tests_properties(editor_proto_cli_scroll_invalid PROPERTIES WILL_FAIL TRUE)
 endif()
 
