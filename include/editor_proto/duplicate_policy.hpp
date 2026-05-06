@@ -1,3 +1,9 @@
+// @dependency-start
+// responsibility Defines duplicate-open decision policy for the editor prototype.
+// upstream implementation workspace_registry.hpp provides duplicate notice and action types
+// downstream implementation ../../src/duplicate_policy.cpp implements resolver behavior
+// downstream implementation ../../tests/cpp/prototype/duplicate_policy_test.cpp validates policy choices
+// @dependency-end
 #pragma once
 
 #include "editor_proto/workspace_registry.hpp"

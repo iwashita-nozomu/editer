@@ -2,7 +2,7 @@
 <!--
 @dependency-start
 responsibility Records Codex token footprint comparison evidence.
-upstream implementation ../../tools/agent_tools/compare_codex_token_footprints.py generates this report
+upstream implementation ../tools/agent_tools/compare_codex_token_footprints.py generates this report
 @dependency-end
 -->
 

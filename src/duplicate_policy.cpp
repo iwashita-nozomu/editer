@@ -1,3 +1,8 @@
+// @dependency-start
+// responsibility Implements duplicate-open decision policy for the editor prototype.
+// upstream implementation ../include/editor_proto/duplicate_policy.hpp declares resolver API
+// downstream implementation ../tests/cpp/prototype/duplicate_policy_test.cpp validates resolver choices
+// @dependency-end
 #include "editor_proto/duplicate_policy.hpp"
 
 namespace editor_proto {

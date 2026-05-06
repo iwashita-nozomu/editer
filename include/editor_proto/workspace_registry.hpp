@@ -1,3 +1,9 @@
+// @dependency-start
+// responsibility Defines workspace duplicate detection and scroll core APIs.
+// downstream implementation ../../src/workspace_registry.cpp implements registry and scroll behavior
+// downstream implementation ../../src/editor_gui_proto.cpp uses workspace duplicate notices in the GUI
+// downstream implementation ../../tests/cpp/prototype/workspace_registry_test.cpp validates core behavior
+// @dependency-end
 #pragma once
 
 #include <string>

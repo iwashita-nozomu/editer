@@ -1,4 +1,13 @@
 # プロトタイプ一時完成までの実行計画
+<!--
+@dependency-start
+responsibility Captures the initial execution plan for the editor prototype.
+upstream design editor_kickoff_questions_ja.md defines the Japanese editor requirements
+downstream implementation ../include/editor_proto/workspace_registry.hpp declares core workspace APIs
+downstream implementation ../src/workspace_registry.cpp implements core workspace behavior
+downstream implementation ../src/editor_gui_proto.cpp implements the current native GUI prototype
+@dependency-end
+-->
 
 ## ゴール（今回達成）
 - ウィンドウ/ディレクトリ重複検知コアを実装

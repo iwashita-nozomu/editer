@@ -1,3 +1,8 @@
+// @dependency-start
+// responsibility Validates duplicate-open policy decisions for the C++ prototype.
+// upstream implementation ../../../include/editor_proto/duplicate_policy.hpp declares duplicate resolver API
+// upstream implementation ../../../src/duplicate_policy.cpp implements resolver behavior
+// @dependency-end
 #include "editor_proto/duplicate_policy.hpp"
 
 #include <cassert>

@@ -1,4 +1,12 @@
 # 専用コードエディター要件（v0.1 最小核）
+<!--
+@dependency-start
+responsibility Captures the initial Japanese requirements for the dedicated editor prototype.
+upstream design ../README.md documents repository entrypoints and project context
+downstream design prototype_execution_plan_ja.md narrows these requirements into the initial prototype plan
+downstream implementation ../src/editor_gui_proto.cpp implements the current native GUI prototype
+@dependency-end
+-->
 
 あなたの最新意図を反映し、**まずは核機能だけ**に絞った仕様。
 
