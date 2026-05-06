@@ -17,7 +17,8 @@ downstream implementation tools/agent_tools/goal_loop.py consumes this contract
 
 ## Objective
 
-Organize documentation and the AgentCanon update path, remove redundant files, and eliminate convention violations.
+Keep the repository goal loop passable with current, inspectable evidence for
+all exit criteria and backlog items.
 
 ## Exit Criteria
 
@@ -37,6 +38,16 @@ Organize documentation and the AgentCanon update path, remove redundant files, a
 
 ## Loop Log
 
-- iteration evidence: expanded AgentCanon goal loop default backlog in commit `50a27a8`; consolidated AgentCanon update docs and removed obsolete tool index in commit `a1ae42d`.
-- validation evidence: `run_repo_dependency_review.sh --fail-missing` pass; `scan_code_dependencies.sh` pass; OOP/readability pass with score 74 and zero warn/error density; `make agent-checks`, `make docs-check`, and `make ci` pass.
-- closeout evidence: `reports/agents/20260502-093419-organize-agentcanon-update-documentation/` records clause mapping, schedule GW1-GW10 complete, workflow monitoring, evaluation `140/140`, and no remaining follow-up.
+- iteration evidence: current tree contains cleanup and prototype commits
+  `0d7d94e` and `0e6236f`, with AgentCanon sync commits `5e6782e` and
+  `d40e13d`; `main` is synchronized with `origin/main`.
+- validation evidence: current-state audit ran
+  `bash tools/agent_tools/run_repo_dependency_review.sh --fail-missing`
+  (`REPO_DEPENDENCY_REVIEW=pass`), explicit affected-surface
+  `bash tools/agent_tools/scan_code_dependencies.sh` (`CODE_DEPENDENCY_SCAN=pass
+  files=7`), `python3 tools/agent_tools/analyze_oop_readability.py`
+  (`OOP_READABILITY=pass`, score `94`, grade `low-risk`, warn/error density
+  `0.0`), and `make ci` (`CI チェック完了: すべて成功`).
+- closeout evidence: `reports/goal_work_breakdown.md` contains the current
+  prompt-to-artifact completion audit checklist; `goal_loop.py status` and MCP
+  `goal.loop_status` both report `NEXT_ACTION=close_goal_loop`.
