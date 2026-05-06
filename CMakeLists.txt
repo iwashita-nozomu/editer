@@ -61,6 +61,25 @@ add_executable(
 target_link_libraries(editor_gui_proto PRIVATE editor_proto ${CMAKE_DL_LIBS})
 install(TARGETS editor_gui_proto RUNTIME DESTINATION bin)
 
+add_executable(
+  mado
+  src/editor_gui_proto.cpp
+)
+target_link_libraries(mado PRIVATE editor_proto ${CMAKE_DL_LIBS})
+
+set(MADO_RUNTIME_BINARY "${CMAKE_CURRENT_SOURCE_DIR}/.state/cpp-install/mado/bin/mado")
+foreach(mado_target editor_gui_proto mado)
+  target_compile_definitions(
+    ${mado_target}
+    PRIVATE
+      MADO_SOURCE_ROOT="${CMAKE_CURRENT_SOURCE_DIR}"
+      MADO_BUILD_DIR="${CMAKE_BINARY_DIR}"
+      MADO_RUNTIME_BINARY="${MADO_RUNTIME_BINARY}"
+  )
+endforeach()
+
+install(TARGETS mado RUNTIME DESTINATION bin)
+
 if(BUILD_TESTING)
   add_test(NAME editor_proto_cli_demo COMMAND editor_proto_cli demo)
   add_test(NAME editor_proto_cli_open_file COMMAND editor_proto_cli open-file /Repo/src/main.cpp)
@@ -68,6 +87,7 @@ if(BUILD_TESTING)
   add_test(NAME editor_proto_cli_scroll COMMAND editor_proto_cli scroll 100 -10)
   add_test(NAME editor_proto_cli_scroll_invalid COMMAND editor_proto_cli scroll nope -10)
   add_test(NAME editor_gui_proto_smoke COMMAND editor_gui_proto --smoke)
+  add_test(NAME mado_update_no_restart COMMAND mado --update --no-restart)
   set_tests_properties(editor_proto_cli_scroll_invalid PROPERTIES WILL_FAIL TRUE)
 endif()
 

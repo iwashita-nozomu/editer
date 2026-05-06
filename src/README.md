@@ -26,9 +26,18 @@ cmake -S . -B build/cpp/dev -G Ninja
 cmake --build build/cpp/dev --target editor_proto_cli editor_gui_proto
 build/cpp/dev/bin/editor_proto_cli demo
 build/cpp/dev/bin/editor_gui_proto
+build/cpp/dev/bin/mado --test-workspace
 ```
 
-`editor_gui_proto` は Close button、window close control、Esc、または `Ctrl+Q` まで表示を続けます。
+GUI prototype の名前は Mado で、短縮 command は `mado` です。
+`mado.yaml` で app name、font size、keybindings、update path を上書きできます。
+`mado --update` は CMake target `mado` を rebuild し、`.state/cpp-install/mado/bin/mado` を置き換えて再起動します。
+CI や手動更新だけの確認では `mado --update --no-restart` を使います。
+`mado --test-workspace` は [fixtures/mado_workspace](../fixtures/mado_workspace/manual_checklist.md) を root として開きます。
+
+`editor_gui_proto` と `mado` は Close button、window close control、Esc、または configured quit key まで表示を続けます。
 常駐 file pane は使わず、`Files` button または `Ctrl+O` で root 配下 file picker を floating window として開きます。
 選択した file は editor pane で直接編集でき、`Ctrl+S` で実 file に保存します。
-Shell は常駐 pane ではなく、`Ctrl+@` または `Shell` button で root directory の floating terminal window を開きます。
+Prompt は常駐 pane ではなく、`Ctrl+@` または `Prompt` button で root directory の same-design floating prompt window を前面に開きます。
+prompt では Enter または `Run` で root directory を cwd にして command を実行します。
+人間が行う動作確認は [Mado Manual Checklist](../fixtures/mado_workspace/manual_checklist.md) に追記します。

@@ -1,0 +1,26 @@
+# @dependency-start
+# responsibility Defines the default Mado runtime configuration for the native editor prototype.
+# upstream implementation src/editor_gui_proto.cpp reads app, font, keybinding, and update settings
+# downstream design src/README.md documents Mado startup and update commands
+# downstream design fixtures/mado_workspace/manual_checklist.md lists manual runtime checks
+# @dependency-end
+
+app:
+  name: Mado
+
+font:
+  size: 14
+
+keybindings:
+  open_files: Ctrl+O
+  save: Ctrl+S
+  prompt: Ctrl+@
+  demo: Ctrl+D
+  quit: Ctrl+Q
+  focus_editor: Ctrl+1
+  focus_notice: Ctrl+2
+
+update:
+  source_root: .
+  build_dir: build/cpp/dev
+  runtime_binary: .state/cpp-install/mado/bin/mado
