@@ -40,3 +40,6 @@ reports/*.patch
 # Reusable local C++ / jax.export artifacts
 .state/cpp-install/
 .state/jax-export/
+
+# Mado manual workspace generated binaries
+fixtures/mado_workspace/a.out

@@ -2,7 +2,7 @@
 # responsibility Defines the default Mado runtime configuration for the native editor prototype.
 # upstream implementation src/editor_gui_proto.cpp reads app, font, keybinding, update, and logging settings
 # downstream design src/README.md documents Mado startup and update commands
-# downstream design fixtures/mado_workspace/manual_checklist.md lists manual runtime checks
+# downstream design documents/mado_manual_checklist.md lists manual runtime checks
 # @dependency-end
 
 app:
@@ -19,6 +19,8 @@ keybindings:
   quit: Ctrl+Q
   focus_editor: Ctrl+1
   focus_notice: Ctrl+2
+  focus_files: Ctrl+3
+  focus_prompt: Ctrl+4
 
 update:
   source_root: .
@@ -27,4 +29,5 @@ update:
 
 logging:
   enabled: true
+  stdout: false
   dir: .state/cpp-install/mado/logs

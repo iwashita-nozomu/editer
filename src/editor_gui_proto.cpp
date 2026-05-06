@@ -10,11 +10,13 @@
 #include <array>
 #include <cctype>
 #include <chrono>
+#include <csignal>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <dlfcn.h>
 #include <filesystem>
+#include <functional>
 #include <fstream>
 #include <iterator>
 #include <iostream>
@@ -73,12 +75,14 @@ constexpr long X_BUTTON_PRESS_MASK_SHIFT = 2;
 constexpr long X_EXPOSURE_MASK_SHIFT = 15;
 constexpr long X_STRUCTURE_NOTIFY_MASK_SHIFT = 17;
 
+constexpr unsigned int X_SHIFT_MASK_SHIFT = 0;
 constexpr unsigned int X_CONTROL_MASK_SHIFT = 2;
 constexpr unsigned int X_BUTTON_PRIMARY = 1U;
 constexpr unsigned int X_BUTTON_SCROLL_UP = 4U;
 constexpr unsigned int X_BUTTON_SCROLL_DOWN = 5U;
 
 constexpr KeySym X_KEY_BACK_SPACE = 0xff08;
+constexpr KeySym X_KEY_TAB = 0xff09;
 constexpr KeySym X_KEY_RETURN = 0xff0d;
 constexpr KeySym X_KEY_KEYPAD_ENTER = 0xff8d;
 constexpr KeySym X_KEY_ESCAPE = 0xff1b;
@@ -122,7 +126,11 @@ constexpr int PROMPT_BUTTON_RIGHT_PAD = 16;
 constexpr int PROMPT_OUTPUT_BOTTOM_PAD = 16;
 constexpr int PROMPT_MIN_CONTENT_WIDTH = 96;
 constexpr int PROMPT_SCROLL_STEP_LINES = 3;
+constexpr char PROMPT_COPY_CONTROL_CHAR = 3;
+constexpr char PROMPT_CLEAR_CONTROL_CHAR = 12;
 constexpr int COMMAND_READ_BUFFER_SIZE = 1024;
+constexpr int CURRENT_EXE_PATH_BUFFER_SIZE = 4096;
+constexpr int HOST_NAME_BUFFER_SIZE = 256;
 constexpr int PIPE_READ_END = 0;
 constexpr int PIPE_WRITE_END = 1;
 constexpr int COMMAND_EXIT_STATUS_OK = 0;
@@ -153,6 +161,16 @@ constexpr std::string_view TEST_WORKSPACE_DIR = "fixtures/mado_workspace";
 constexpr std::string_view DEFAULT_LOG_DIR = ".state/cpp-install/mado/logs";
 constexpr std::string_view LOG_FILE_PREFIX = "mado-";
 constexpr std::string_view LOG_FILE_SUFFIX = ".log";
+constexpr std::string_view MADO_CHECKLIST_FILE = "documents/mado_manual_checklist.md";
+constexpr std::string_view MADO_COMMAND_LIST_FILE = "documents/mado_command_list.md";
+constexpr std::string_view MADO_CHECKLIST_LABEL = "Mado Checklist";
+constexpr std::string_view MADO_COMMAND_LIST_LABEL = "Mado Commands";
+constexpr std::string_view MADO_HOST_BINARY_ENV = "MADO_HOST_BINARY";
+constexpr std::string_view MADO_HOST_ROOT_ENV = "MADO_HOST_ROOT";
+constexpr std::string_view MADO_HOST_LAUNCH_ENV = "MADO_HOST_LAUNCH";
+constexpr std::size_t ROOT_ACCENT_COLOR_COUNT = 6;
+constexpr std::array<const char*, ROOT_ACCENT_COLOR_COUNT> ROOT_ACCENT_COLORS{
+    "#4f8cff", "#37a66b", "#d8892c", "#c084fc", "#2dd4bf", "#f472b6"};
 
 namespace ui {
 
@@ -331,6 +349,7 @@ constexpr long kExposureMask = 1L << X_EXPOSURE_MASK_SHIFT;
 constexpr long kStructureNotifyMask = 1L << X_STRUCTURE_NOTIFY_MASK_SHIFT;
 
 constexpr unsigned int kControlMask = 1U << X_CONTROL_MASK_SHIFT;
+constexpr unsigned int kShiftMask = 1U << X_SHIFT_MASK_SHIFT;
 constexpr unsigned int kButton1 = X_BUTTON_PRIMARY;
 
 constexpr KeySym kBackSpace = X_KEY_BACK_SPACE;
@@ -557,6 +576,8 @@ struct KeyBindings {
   KeyBinding quit{true, 'q', "Ctrl+Q"};
   KeyBinding focus_editor{true, '1', "Ctrl+1"};
   KeyBinding focus_notice{true, '2', "Ctrl+2"};
+  KeyBinding focus_files{true, '3', "Ctrl+3"};
+  KeyBinding focus_prompt{true, '4', "Ctrl+4"};
 };
 
 struct AppConfig {
@@ -567,6 +588,7 @@ struct AppConfig {
   std::filesystem::path build_dir{std::filesystem::path(MADO_BUILD_DIR)};
   std::filesystem::path runtime_binary{std::filesystem::path(MADO_RUNTIME_BINARY)};
   bool log_enabled{true};
+  bool log_stdout{};
   std::filesystem::path log_dir{std::filesystem::path(std::string(DEFAULT_LOG_DIR))};
   std::filesystem::path log_file{};
 };
@@ -662,6 +684,10 @@ void apply_config_value(AppConfig& config, const std::string& section, const std
     config.keys.focus_editor = parse_key_binding(value, config.keys.focus_editor);
   } else if (section == "keybindings" && key == "focus_notice") {
     config.keys.focus_notice = parse_key_binding(value, config.keys.focus_notice);
+  } else if (section == "keybindings" && key == "focus_files") {
+    config.keys.focus_files = parse_key_binding(value, config.keys.focus_files);
+  } else if (section == "keybindings" && key == "focus_prompt") {
+    config.keys.focus_prompt = parse_key_binding(value, config.keys.focus_prompt);
   } else if (section == "update" && key == "source_root") {
     config.source_root = value;
   } else if (section == "update" && key == "build_dir") {
@@ -670,6 +696,8 @@ void apply_config_value(AppConfig& config, const std::string& section, const std
     config.runtime_binary = value;
   } else if (section == "logging" && key == "enabled") {
     config.log_enabled = parse_bool(value, config.log_enabled);
+  } else if (section == "logging" && key == "stdout") {
+    config.log_stdout = parse_bool(value, config.log_stdout);
   } else if (section == "logging" && key == "dir") {
     config.log_dir = value;
   } else if (section == "logging" && key == "file") {
@@ -718,6 +746,50 @@ std::filesystem::path resolve_from_source(const std::filesystem::path& source_ro
                                           const std::filesystem::path& path) {
   if (path.is_absolute()) return path;
   return source_root / path;
+}
+
+std::string current_executable_path() {
+  std::array<char, CURRENT_EXE_PATH_BUFFER_SIZE> buffer{};
+  const ssize_t count = readlink("/proc/self/exe", buffer.data(), buffer.size() - 1U);
+  if (count <= 0) return "mado";
+  buffer[static_cast<std::size_t>(count)] = '\0';
+  return buffer.data();
+}
+
+std::string local_host_name() {
+  std::array<char, HOST_NAME_BUFFER_SIZE> buffer{};
+  if (gethostname(buffer.data(), buffer.size()) != 0) return "unknown-host";
+  buffer.back() = '\0';
+  return buffer.data();
+}
+
+std::string shell_single_quote(std::string_view value) {
+  std::string quoted{"'"};
+  for (char ch : value) {
+    if (ch == '\'') {
+      quoted += "'\\''";
+    } else {
+      quoted.push_back(ch);
+    }
+  }
+  quoted.push_back('\'');
+  return quoted;
+}
+
+std::string host_launch_command(const std::filesystem::path& root_path) {
+  return shell_single_quote(current_executable_path()) + " --host-launch --root " +
+         shell_single_quote(root_path.string());
+}
+
+void print_ssh_helper(std::string ssh_host) {
+  if (ssh_host.empty()) ssh_host = local_host_name();
+  const std::string binary = current_executable_path();
+  std::cout << "mado() {\n"
+            << "  local mado_root=\"${1:-$PWD}\"\n"
+            << "  if [ \"$#\" -gt 0 ]; then shift; fi\n"
+            << "  ssh " << shell_single_quote(ssh_host) << ' ' << shell_single_quote(binary)
+            << " --host-launch --root \"$mado_root\" \"$@\"\n"
+            << "}\n";
 }
 
 int run_program(const std::vector<std::string>& args) {
@@ -834,9 +906,10 @@ class NativeEditorApp {
     load_font();
     x11_.map_window(display_, window_);
 
-    if (!files_.empty()) {
+    if (!open_startup_documents() && !files_.empty()) {
       open_file(0, true);
-    } else {
+    }
+    if (files_.empty()) {
       status_ = "no editable files under " + root_label();
     }
     log("native X11 window ready");
@@ -857,6 +930,25 @@ class NativeEditorApp {
       std::this_thread::sleep_for(std::chrono::milliseconds(EVENT_LOOP_SLEEP_MS));
     }
     debug_log("app.stop", "main window closed");
+  }
+
+  bool run_log_test() {
+    debug_log("logtest.start", "root=" + root_label());
+    open_startup_documents();
+    debug_log("files.open", "log-test root=" + root_label());
+    debug_log("prompt.open", "log-test root=" + root_label() + " shell=" + shell_path());
+    debug_log("prompt.context", prompt_context_line() + " " + docker_hint_line());
+    append_prompt_line("log-test output line 1");
+    append_prompt_line("log-test output line 2");
+    move_prompt_selection(-1, false);
+    move_prompt_selection(1, true);
+    copy_prompt_selection();
+    debug_log("prompt.close", "log-test");
+    debug_log("files.close", "log-test");
+    debug_log("logtest.finish", "clipboard_bytes=" + std::to_string(prompt_clipboard_.size()));
+    return verify_log_events({"app.start", "logtest.start", "file.open", "files.open",
+                              "prompt.open", "prompt.context", "prompt.output", "prompt.copy",
+                              "prompt.close", "files.close", "logtest.finish"});
   }
 
   ~NativeEditorApp() {
@@ -889,6 +981,7 @@ class NativeEditorApp {
     unsigned long text{};
     unsigned long muted{};
     unsigned long accent{};
+    unsigned long root_accent{};
     unsigned long ok{};
     unsigned long warn{};
   };
@@ -920,6 +1013,14 @@ class NativeEditorApp {
   }
 
   void refresh_project_files() {
+    const std::filesystem::path active_path =
+        !files_.empty() && active_file_ < files_.size() ? files_[active_file_].path
+                                                        : std::filesystem::path{};
+    std::vector<std::filesystem::path> tab_paths;
+    for (const std::size_t index : open_tabs_) {
+      if (index < files_.size()) tab_paths.push_back(files_[index].path);
+    }
+
     files_.clear();
     std::error_code ec;
     const auto options = std::filesystem::directory_options::skip_permission_denied;
@@ -938,10 +1039,51 @@ class NativeEditorApp {
       it.increment(ec);
       if (ec) ec.clear();
     }
+    add_builtin_document(resolve_from_source(config_.source_root,
+                                             std::filesystem::path(std::string(MADO_CHECKLIST_FILE))),
+                         std::string(MADO_CHECKLIST_LABEL));
+    add_builtin_document(resolve_from_source(config_.source_root,
+                                             std::filesystem::path(std::string(MADO_COMMAND_LIST_FILE))),
+                         std::string(MADO_COMMAND_LIST_LABEL));
     std::sort(files_.begin(), files_.end(), [](const EditorFile& left, const EditorFile& right) {
       return left.label < right.label;
     });
-    if (active_file_ >= files_.size()) active_file_ = {};
+    restore_open_tabs(tab_paths);
+    const std::size_t restored_active = find_file_index(active_path);
+    active_file_ = restored_active < files_.size() ? restored_active : 0U;
+  }
+
+  void add_builtin_document(const std::filesystem::path& path, std::string label) {
+    std::error_code ec;
+    if (!std::filesystem::is_regular_file(path, ec) || find_file_index(path) < files_.size()) return;
+    const std::uintmax_t size = std::filesystem::file_size(path, ec);
+    if (ec || size > MAX_FILE_BYTES) return;
+    files_.push_back({path, std::move(label), "", {}, false});
+  }
+
+  std::filesystem::path comparable_path(const std::filesystem::path& path) const {
+    std::error_code ec;
+    const std::filesystem::path absolute = std::filesystem::absolute(path, ec);
+    if (ec) return path.lexically_normal();
+    const std::filesystem::path canonical = std::filesystem::weakly_canonical(absolute, ec);
+    return ec ? absolute.lexically_normal() : canonical;
+  }
+
+  std::size_t find_file_index(const std::filesystem::path& path) const {
+    if (path.empty()) return files_.size();
+    const std::filesystem::path target = comparable_path(path);
+    for (std::size_t index = 0; index < files_.size(); ++index) {
+      if (comparable_path(files_[index].path) == target) return index;
+    }
+    return files_.size();
+  }
+
+  void restore_open_tabs(const std::vector<std::filesystem::path>& tab_paths) {
+    open_tabs_.clear();
+    for (const std::filesystem::path& path : tab_paths) {
+      const std::size_t index = find_file_index(path);
+      if (index < files_.size()) remember_open_tab(index);
+    }
   }
 
   bool should_skip_directory(const std::filesystem::path& path) const {
@@ -967,6 +1109,7 @@ class NativeEditorApp {
     palette_.text = color("#e6edf3", white_);
     palette_.muted = color("#9aa7b2", white_);
     palette_.accent = color("#4f8cff", white_);
+    palette_.root_accent = root_accent_color();
     palette_.ok = color("#37a66b", white_);
     palette_.warn = color("#d8892c", white_);
   }
@@ -976,6 +1119,23 @@ class NativeEditorApp {
     if (x11_.parse_color(display_, colormap_, spec, &parsed) == 0) return fallback;
     if (x11_.alloc_color(display_, colormap_, &parsed) == 0) return fallback;
     return parsed.pixel;
+  }
+
+  unsigned long root_accent_color() {
+    const std::size_t index = std::hash<std::string>{}(root_label()) % ROOT_ACCENT_COLORS.size();
+    return color(ROOT_ACCENT_COLORS[index], palette_.accent);
+  }
+
+  std::string prompt_context_line() const {
+    return "context: host=" + local_host_name() + " root=" + root_label();
+  }
+
+  std::string docker_hint_line() const {
+    return "docker: docker compose exec <service> sh";
+  }
+
+  std::string ssh_hint_line() const {
+    return "ssh: eval \"$(mado --ssh-helper <host>)\" then run mado <remote-path>";
   }
 
   bool handle_event(const XEvent& event) {
@@ -1062,6 +1222,11 @@ class NativeEditorApp {
     const int length = x11_.lookup_string(&key_event, buffer, sizeof(buffer), &key, nullptr);
 
     if (key == kEscape) return false;
+    if (key == X_KEY_TAB && (key_event.state & kControlMask) != 0U) {
+      focus_file_picker_window();
+      draw();
+      return true;
+    }
     if (matches_binding(key_event, key, buffer, length, config_.keys.prompt)) {
       open_prompt_window();
       draw();
@@ -1079,6 +1244,16 @@ class NativeEditorApp {
     }
     if (matches_binding(key_event, key, buffer, length, config_.keys.open_files)) {
       open_file_picker();
+      draw();
+      return true;
+    }
+    if (matches_binding(key_event, key, buffer, length, config_.keys.focus_files)) {
+      focus_file_picker_window();
+      draw();
+      return true;
+    }
+    if (matches_binding(key_event, key, buffer, length, config_.keys.focus_prompt)) {
+      focus_prompt_window();
       draw();
       return true;
     }
@@ -1131,6 +1306,18 @@ class NativeEditorApp {
     char buffer[KEY_LOOKUP_BUFFER_SIZE]{};
     KeySym key{};
     const int length = x11_.lookup_string(&key_event, buffer, sizeof(buffer), &key, nullptr);
+    if (key == X_KEY_TAB && (key_event.state & kControlMask) != 0U) {
+      focus_prompt_window();
+      return true;
+    }
+    if (matches_binding(key_event, key, buffer, length, config_.keys.focus_editor)) {
+      focus_main_window();
+      return true;
+    }
+    if (matches_binding(key_event, key, buffer, length, config_.keys.focus_prompt)) {
+      focus_prompt_window();
+      return true;
+    }
     if (key == kEscape) {
       close_file_picker();
       return true;
@@ -1161,6 +1348,23 @@ class NativeEditorApp {
     char buffer[KEY_LOOKUP_BUFFER_SIZE]{};
     KeySym key{};
     const int length = x11_.lookup_string(&key_event, buffer, sizeof(buffer), &key, nullptr);
+    if (key == X_KEY_TAB && (key_event.state & kControlMask) != 0U) {
+      focus_main_window();
+      return true;
+    }
+    if (matches_binding(key_event, key, buffer, length, config_.keys.focus_editor)) {
+      focus_main_window();
+      return true;
+    }
+    if (matches_binding(key_event, key, buffer, length, config_.keys.focus_files)) {
+      focus_file_picker_window();
+      return true;
+    }
+    if (key == X_KEY_UP || key == X_KEY_DOWN) {
+      move_prompt_selection(key == X_KEY_UP ? -1 : 1, (key_event.state & kShiftMask) != 0U);
+      draw_prompt_window();
+      return true;
+    }
     if (key == kEscape) {
       close_prompt_window();
       return true;
@@ -1176,12 +1380,19 @@ class NativeEditorApp {
       return true;
     }
     if ((key_event.state & kControlMask) != 0U && length == 1) {
-      if (buffer[0] == 'q' || buffer[0] == 'Q') {
+      const char key_char = static_cast<char>(std::tolower(static_cast<unsigned char>(buffer[0])));
+      if (key_char == 'c' || buffer[0] == PROMPT_COPY_CONTROL_CHAR) {
+        copy_prompt_selection();
+        draw_prompt_window();
+        return true;
+      }
+      if (key_char == 'q') {
         close_prompt_window();
         return true;
       }
-      if (buffer[0] == 'l' || buffer[0] == 'L') {
+      if (key_char == 'l' || buffer[0] == PROMPT_CLEAR_CONTROL_CHAR) {
         prompt_lines_.clear();
+        prompt_selection_active_ = false;
         draw_prompt_window();
         return true;
       }
@@ -1229,7 +1440,12 @@ class NativeEditorApp {
         case HitAction::ClosePicker:
         case HitAction::ClosePrompt:
         case HitAction::RunPrompt:
+          break;
         case HitAction::SelectFile:
+          if (hit.index >= 0) {
+            open_file(static_cast<std::size_t>(hit.index), false);
+            focus_pane_ = FocusPane::Editor;
+          }
           break;
       }
       draw();
@@ -1344,11 +1560,30 @@ class NativeEditorApp {
     }
   }
 
+  bool open_startup_documents() {
+    const std::size_t checklist = find_file_index(resolve_from_source(
+        config_.source_root, std::filesystem::path(std::string(MADO_CHECKLIST_FILE))));
+    const std::size_t commands = find_file_index(resolve_from_source(
+        config_.source_root, std::filesystem::path(std::string(MADO_COMMAND_LIST_FILE))));
+    bool opened = false;
+    if (checklist < files_.size()) {
+      open_file(checklist, true);
+      opened = true;
+    }
+    if (commands < files_.size()) {
+      open_file(commands, true);
+      opened = true;
+    }
+    if (checklist < files_.size()) open_file(checklist, false);
+    return opened;
+  }
+
   void open_file(std::size_t index, bool through_registry) {
     if (index >= files_.size()) return;
     active_file_ = index;
     EditorFile& file = files_[active_file_];
     if (!load_file(file)) return;
+    remember_open_tab(active_file_);
     file.cursor = file.content.size();
     focus_pane_ = FocusPane::Editor;
     if (through_registry) {
@@ -1357,6 +1592,12 @@ class NativeEditorApp {
     }
     status_ = "opened " + file.label;
     debug_log("file.open", "path=" + file.path.string() + " bytes=" + std::to_string(file.content.size()));
+  }
+
+  void remember_open_tab(std::size_t index) {
+    if (std::find(open_tabs_.begin(), open_tabs_.end(), index) == open_tabs_.end()) {
+      open_tabs_.push_back(index);
+    }
   }
 
   bool load_file(EditorFile& file) {
@@ -1411,6 +1652,9 @@ class NativeEditorApp {
     x11_.set_wm_protocols(display_, prompt_window_, &wm_delete_, 1);
     prompt_lines_.clear();
     prompt_lines_.push_back("root: " + root_label());
+    prompt_lines_.push_back(prompt_context_line());
+    prompt_lines_.push_back(docker_hint_line());
+    prompt_lines_.push_back("host-launch: " + host_launch_command(root_path_));
     prompt_lines_.push_back("Enter runs command. Esc closes this prompt.");
     scroll_prompt_to_bottom();
     x11_.map_window(display_, prompt_window_);
@@ -1418,6 +1662,7 @@ class NativeEditorApp {
     focus_pane_ = FocusPane::Prompt;
     status_ = "prompt opened at " + root_label();
     debug_log("prompt.open", "root=" + root_label() + " shell=" + shell_path());
+    debug_log("prompt.context", prompt_context_line() + " " + docker_hint_line());
   }
 
   void close_prompt_window() {
@@ -1466,6 +1711,16 @@ class NativeEditorApp {
       close(pipe_fds[PIPE_WRITE_END]);
       std::error_code ec;
       std::filesystem::current_path(root_path_, ec);
+      const std::string runtime_bin = current_executable_path();
+      const std::filesystem::path runtime_dir = std::filesystem::path(runtime_bin).parent_path();
+      const char* old_path = std::getenv("PATH");
+      const std::string nested_path =
+          runtime_dir.string() + (old_path == nullptr ? "" : ":" + std::string(old_path));
+      setenv("PATH", nested_path.c_str(), 1);
+      setenv(std::string(MADO_HOST_BINARY_ENV).c_str(), runtime_bin.c_str(), 1);
+      setenv(std::string(MADO_HOST_ROOT_ENV).c_str(), root_path_.string().c_str(), 1);
+      const std::string host_launch = host_launch_command(root_path_);
+      setenv(std::string(MADO_HOST_LAUNCH_ENV).c_str(), host_launch.c_str(), 1);
       const std::string shell = shell_path();
       execlp(shell.c_str(), shell.c_str(), "-lc", command.c_str(), nullptr);
       _exit(COMMAND_EXEC_FAILURE_EXIT);
@@ -1536,6 +1791,123 @@ class NativeEditorApp {
     prompt_scroll_offset_ = amount > prompt_scroll_offset_ ? 0U : prompt_scroll_offset_ - amount;
   }
 
+  void move_prompt_selection(int delta, bool extend) {
+    if (prompt_lines_.empty()) return;
+    if (!prompt_selection_active_) {
+      prompt_selection_cursor_ = prompt_lines_.size() - 1U;
+      prompt_selection_anchor_ = prompt_selection_cursor_;
+      prompt_selection_active_ = true;
+    }
+    if (delta < 0) {
+      const std::size_t amount = static_cast<std::size_t>(-delta);
+      prompt_selection_cursor_ =
+          amount > prompt_selection_cursor_ ? 0U : prompt_selection_cursor_ - amount;
+    } else {
+      prompt_selection_cursor_ =
+          std::min(prompt_lines_.size() - 1U,
+                   prompt_selection_cursor_ + static_cast<std::size_t>(delta));
+    }
+    if (!extend) prompt_selection_anchor_ = prompt_selection_cursor_;
+    ensure_prompt_line_visible(prompt_selection_cursor_);
+    status_ = "prompt output selected";
+  }
+
+  void ensure_prompt_line_visible(std::size_t index) {
+    if (prompt_lines_.empty()) return;
+    const std::size_t visible = static_cast<std::size_t>(prompt_visible_rows());
+    const std::size_t end = prompt_lines_.size() - prompt_scroll_offset_;
+    const std::size_t start = end > visible ? end - visible : 0U;
+    if (index >= start && index < end) return;
+    const std::size_t wanted_end =
+        index < start ? std::min(prompt_lines_.size(), index + visible) : index + 1U;
+    prompt_scroll_offset_ = prompt_lines_.size() - wanted_end;
+  }
+
+  std::pair<std::size_t, std::size_t> prompt_selection_range() const {
+    if (!prompt_selection_active_ || prompt_lines_.empty()) return {0U, 0U};
+    const std::size_t first = std::min(prompt_selection_anchor_, prompt_selection_cursor_);
+    const std::size_t last = std::max(prompt_selection_anchor_, prompt_selection_cursor_);
+    return {first, std::min(last, prompt_lines_.size() - 1U)};
+  }
+
+  bool prompt_line_selected(std::size_t index) const {
+    if (!prompt_selection_active_ || prompt_lines_.empty()) return false;
+    const auto [first, last] = prompt_selection_range();
+    return index >= first && index <= last;
+  }
+
+  std::string selected_prompt_text() const {
+    if (!prompt_selection_active_ || prompt_lines_.empty()) return {};
+    const auto [first, last] = prompt_selection_range();
+    std::ostringstream out;
+    for (std::size_t index = first; index <= last; ++index) {
+      if (index > first) out << '\n';
+      out << prompt_lines_[index];
+    }
+    return out.str();
+  }
+
+  void copy_prompt_selection() {
+    std::string selected = selected_prompt_text();
+    if (selected.empty() && !prompt_lines_.empty()) {
+      selected = prompt_lines_.back();
+      prompt_selection_anchor_ = prompt_lines_.size() - 1U;
+      prompt_selection_cursor_ = prompt_selection_anchor_;
+      prompt_selection_active_ = true;
+    }
+    if (selected.empty()) return;
+    prompt_clipboard_ = selected;
+    const bool system_copied = copy_to_system_clipboard(selected);
+    status_ = system_copied ? "prompt selection copied" : "prompt selection copied internally";
+    debug_log("prompt.copy", "bytes=" + std::to_string(selected.size()) +
+                                 (system_copied ? " system=true" : " system=false"));
+  }
+
+  bool copy_to_system_clipboard(const std::string& text_value) const {
+    return write_clipboard_command({"xclip", "-selection", "clipboard"}, text_value) ||
+           write_clipboard_command({"xsel", "--clipboard", "--input"}, text_value) ||
+           write_clipboard_command({"wl-copy"}, text_value);
+  }
+
+  bool write_clipboard_command(const std::vector<std::string>& args,
+                               const std::string& text_value) const {
+    if (args.empty()) return false;
+    int pipe_fds[2]{};
+    if (pipe(pipe_fds) != 0) return false;
+    const pid_t pid = fork();
+    if (pid < 0) {
+      close(pipe_fds[PIPE_READ_END]);
+      close(pipe_fds[PIPE_WRITE_END]);
+      return false;
+    }
+    if (pid == 0) {
+      close(pipe_fds[PIPE_WRITE_END]);
+      dup2(pipe_fds[PIPE_READ_END], STDIN_FILENO);
+      close(pipe_fds[PIPE_READ_END]);
+      std::vector<char*> argv;
+      argv.reserve(args.size() + 1U);
+      for (const std::string& arg : args) argv.push_back(const_cast<char*>(arg.c_str()));
+      argv.push_back(nullptr);
+      execvp(argv.front(), argv.data());
+      _exit(COMMAND_EXEC_FAILURE_EXIT);
+    }
+    close(pipe_fds[PIPE_READ_END]);
+    auto previous_sigpipe = std::signal(SIGPIPE, SIG_IGN);
+    std::size_t written = 0;
+    while (written < text_value.size()) {
+      const ssize_t count =
+          write(pipe_fds[PIPE_WRITE_END], text_value.data() + written, text_value.size() - written);
+      if (count <= 0) break;
+      written += static_cast<std::size_t>(count);
+    }
+    close(pipe_fds[PIPE_WRITE_END]);
+    std::signal(SIGPIPE, previous_sigpipe);
+    int status = COMMAND_EXIT_STATUS_OK;
+    waitpid(pid, &status, 0);
+    return written == text_value.size() && WIFEXITED(status) &&
+           WEXITSTATUS(status) == COMMAND_EXIT_STATUS_OK;
+  }
+
   EditorFile* current_file() {
     if (files_.empty() || active_file_ >= files_.size()) return nullptr;
     return &files_[active_file_];
@@ -1549,6 +1921,33 @@ class NativeEditorApp {
   void set_focus(FocusPane pane) {
     focus_pane_ = pane;
     status_ = "focus " + pane_name(pane);
+  }
+
+  void focus_main_window() {
+    if (display_ == nullptr || window_ == 0) return;
+    x11_.set_input_focus(display_, window_, X_REVERT_TO_PARENT, X_CURRENT_TIME);
+    focus_pane_ = FocusPane::Editor;
+    status_ = "main window focused";
+    debug_log("window.focus", "main");
+    draw();
+  }
+
+  void focus_file_picker_window() {
+    open_file_picker();
+    if (display_ == nullptr || picker_window_ == 0) return;
+    x11_.set_input_focus(display_, picker_window_, X_REVERT_TO_PARENT, X_CURRENT_TIME);
+    status_ = "files window focused";
+    debug_log("window.focus", "files");
+    draw_file_picker();
+  }
+
+  void focus_prompt_window() {
+    open_prompt_window();
+    if (display_ == nullptr || prompt_window_ == 0) return;
+    x11_.set_input_focus(display_, prompt_window_, X_REVERT_TO_PARENT, X_CURRENT_TIME);
+    status_ = "prompt window focused";
+    debug_log("window.focus", "prompt");
+    draw_prompt_window();
   }
 
   std::string pane_name(FocusPane pane) const {
@@ -1625,17 +2024,46 @@ class NativeEditorApp {
   }
 
   void debug_log(std::string_view event, std::string message) {
-    if (!log_stream_) return;
+    if (!log_stream_ && !config_.log_stdout) return;
     const auto now = std::chrono::system_clock::now().time_since_epoch();
     const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
-    log_stream_ << "ts_ms=" << millis << " event=" << event
-                << " message=\"" << sanitize_log_value(std::move(message)) << "\"\n";
-    log_stream_.flush();
+    std::ostringstream line;
+    line << "ts_ms=" << millis << " event=" << event
+         << " message=\"" << sanitize_log_value(std::move(message)) << '"';
+    if (log_stream_) {
+      log_stream_ << line.str() << '\n';
+      log_stream_.flush();
+    }
+    if (config_.log_stdout) std::cout << line.str() << '\n';
   }
 
   void log(std::string message) {
     status_ = std::move(message);
     debug_log("status", status_);
+  }
+
+  bool verify_log_events(const std::vector<std::string>& events) {
+    if (active_log_path_.empty()) {
+      std::cerr << "log-test: no active log path\n";
+      return false;
+    }
+    if (log_stream_) log_stream_.flush();
+    std::ifstream in(active_log_path_);
+    if (!in) {
+      std::cerr << "log-test: failed to read " << active_log_path_ << "\n";
+      return false;
+    }
+    const std::string content((std::istreambuf_iterator<char>(in)),
+                              std::istreambuf_iterator<char>());
+    bool ok = true;
+    for (const std::string& event : events) {
+      if (content.find("event=" + event) == std::string::npos) {
+        std::cerr << "log-test: missing event=" << event << "\n";
+        ok = false;
+      }
+    }
+    std::cout << "log-test: " << (ok ? "pass " : "fail ") << active_log_path_ << "\n";
+    return ok;
   }
 
   void draw() {
@@ -1700,9 +2128,25 @@ class NativeEditorApp {
          rect.y + ui::TAB_HEADER_BOTTOM, palette_.border);
 
     const EditorFile* file = current_file();
-    const std::string title = file == nullptr ? "No file" : file->label + (file->dirty ? " *" : "");
-    text(window_, rect.x + ui::TAB_LABEL_X, rect.y + ui::TAB_BASELINE,
-         truncate(title, rect.width - ui::EDITOR_TEXT_WIDTH_PAD), palette_.text);
+    int tab_x = rect.x + ui::TAB_START_X;
+    if (open_tabs_.empty()) {
+      const std::string title = file == nullptr ? "No file" : file->label + (file->dirty ? " *" : "");
+      text(window_, rect.x + ui::TAB_LABEL_X, rect.y + ui::TAB_BASELINE,
+           truncate(title, rect.width - ui::EDITOR_TEXT_WIDTH_PAD), palette_.text);
+    } else {
+      for (const std::size_t index : open_tabs_) {
+        if (index >= files_.size() || tab_x + ui::TAB_WIDTH > rect.x + rect.width) continue;
+        const EditorFile& tab_file = files_[index];
+        const Rect tab{tab_x, rect.y + ui::TAB_TOP, ui::TAB_WIDTH, ui::TAB_HEIGHT};
+        fill(window_, tab, index == active_file_ ? palette_.panel : palette_.background);
+        line(window_, tab.x, tab.y, tab.x + tab.width, tab.y, palette_.border);
+        text(window_, tab.x + ui::TAB_LABEL_X, tab.y + ui::TAB_BASELINE,
+             truncate(tab_file.label + (tab_file.dirty ? " *" : ""), ui::TAB_TEXT_WIDTH),
+             palette_.text);
+        hits_.push_back({tab, HitAction::SelectFile, static_cast<int>(index)});
+        tab_x += ui::TAB_STEP;
+      }
+    }
 
     if (file == nullptr) {
       text(window_, rect.x + ui::EDITOR_TEXT_X, rect.y + ui::EDITOR_FIRST_LINE_Y,
@@ -1760,6 +2204,8 @@ class NativeEditorApp {
     picker_hits_.clear();
     fill(picker_window_, {0, 0, picker_width_, picker_height_}, palette_.panel);
     text(picker_window_, ui::TITLE_X, FILE_PICKER_STATUS_BASELINE, "Files", palette_.text);
+    line(picker_window_, 0, ui::HEADER_BOTTOM - ui::BORDER_OFFSET, picker_width_,
+         ui::HEADER_BOTTOM - ui::BORDER_OFFSET, palette_.root_accent);
     button(picker_window_, picker_hits_,
            {FILE_PICKER_CLOSE_X, ui::TOOLBAR_BUTTON_TOP, FILE_PICKER_CLOSE_WIDTH,
             ui::TOOLBAR_BUTTON_HEIGHT},
@@ -1799,6 +2245,8 @@ class NativeEditorApp {
            {close_x, ui::TOOLBAR_BUTTON_TOP, PROMPT_CLOSE_WIDTH, ui::TOOLBAR_BUTTON_HEIGHT},
            "Close", HitAction::ClosePrompt);
     line(prompt_window_, 0, ui::HEADER_BOTTOM, prompt_width_, ui::HEADER_BOTTOM, palette_.border);
+    line(prompt_window_, 0, ui::HEADER_BOTTOM - ui::BORDER_OFFSET, prompt_width_,
+         ui::HEADER_BOTTOM - ui::BORDER_OFFSET, palette_.root_accent);
 
     const int content_width =
         std::max(PROMPT_MIN_CONTENT_WIDTH, prompt_width_ - ui::TITLE_X - ui::TITLE_X);
@@ -1824,8 +2272,11 @@ class NativeEditorApp {
     const std::size_t start = end > visible ? end - visible : 0U;
     int y = PROMPT_OUTPUT_Y;
     for (std::size_t i = start; i < end; ++i) {
+      const Rect line_rect{ui::TITLE_X, y - line_height() + ui::BORDER_OFFSET, content_width,
+                           line_height()};
+      if (prompt_line_selected(i)) fill(prompt_window_, line_rect, palette_.accent);
       text(prompt_window_, ui::TITLE_X, y, truncate(prompt_lines_[i], content_width),
-           palette_.muted);
+           prompt_line_selected(i) ? palette_.text : palette_.muted);
       y += line_height();
     }
     x11_.flush(display_);
@@ -1879,7 +2330,7 @@ class NativeEditorApp {
 
   std::string shortcut_hint() const {
     return config_.keys.open_files.label + " files  " + config_.keys.save.label + " save  " +
-           config_.keys.prompt.label + " prompt";
+           config_.keys.prompt.label + " prompt  Ctrl+Tab switch";
   }
 
   X11 x11_;
@@ -1912,11 +2363,16 @@ class NativeEditorApp {
   std::vector<HitRegion> hits_;
   std::vector<HitRegion> picker_hits_;
   std::vector<HitRegion> prompt_hits_;
+  std::vector<std::size_t> open_tabs_;
   std::vector<std::string> prompt_lines_;
   std::string prompt_input_;
+  std::string prompt_clipboard_;
   std::string status_{"ready"};
   std::ofstream log_stream_;
   std::filesystem::path active_log_path_;
+  bool prompt_selection_active_{};
+  std::size_t prompt_selection_anchor_{};
+  std::size_t prompt_selection_cursor_{};
   std::string last_notice_kind_{"file"};
   editor_proto::DuplicateNotice last_notice_;
   editor_proto::WorkspaceRegistry registry_;
@@ -1924,7 +2380,8 @@ class NativeEditorApp {
 
 void print_usage() {
   std::cout << "usage: mado [--config path] [--root path|--test-workspace] "
-               "[--update] [--no-restart] [--smoke] [--log-file path] [--no-log]\n";
+               "[--update] [--no-restart] [--smoke] [--log] [--log-test] "
+               "[--log-file path] [--no-log] [--host-launch] [--ssh-helper host]\n";
 }
 
 }  // namespace
@@ -1939,6 +2396,11 @@ int main(int argc, char** argv) {
     bool root_set = false;
     bool log_file_set = false;
     bool log_disabled = false;
+    bool log_stdout = false;
+    bool log_test = false;
+    bool host_launch = false;
+    bool ssh_helper = false;
+    std::string ssh_helper_host;
     std::filesystem::path log_file_path;
     std::filesystem::path root_path = std::filesystem::current_path();
 
@@ -1961,15 +2423,31 @@ int main(int argc, char** argv) {
         update = true;
       } else if (arg == "--no-restart") {
         restart = false;
+      } else if (arg == "--log") {
+        log_stdout = true;
+      } else if (arg == "--log-test") {
+        log_test = true;
       } else if (arg == "--log-file" && i + 1 < argc) {
         log_file_path = argv[++i];
         log_file_set = true;
       } else if (arg == "--no-log") {
         log_disabled = true;
+      } else if (arg == "--host-launch") {
+        host_launch = true;
+      } else if (arg == "--ssh-helper") {
+        ssh_helper = true;
+        if (i + 1 < argc && std::string_view(argv[i + 1]).rfind("--", 0U) != 0U) {
+          ssh_helper_host = argv[++i];
+        }
       } else {
         print_usage();
         return 1;
       }
+    }
+
+    if (ssh_helper) {
+      print_ssh_helper(std::move(ssh_helper_host));
+      return 0;
     }
 
     AppConfig config = load_config(config_path);
@@ -1977,7 +2455,18 @@ int main(int argc, char** argv) {
       config.log_enabled = true;
       config.log_file = std::filesystem::absolute(log_file_path);
     }
-    if (log_disabled) config.log_enabled = false;
+    if (log_stdout) {
+      config.log_enabled = true;
+      config.log_stdout = true;
+    }
+    if (log_disabled) {
+      config.log_enabled = false;
+      config.log_stdout = false;
+    }
+    if (log_test && !config.log_file.empty()) {
+      std::error_code ec;
+      std::filesystem::remove(config.log_file, ec);
+    }
     if (smoke) {
       std::cout << config.app_name << " native smoke ok\n";
       std::cout << demo_text() << "\n";
@@ -1990,6 +2479,10 @@ int main(int argc, char** argv) {
     }
 
     NativeEditorApp app(std::move(config), std::filesystem::absolute(root_path));
+    if (host_launch) {
+      std::cout << "Mado host launch root=" << std::filesystem::absolute(root_path) << "\n";
+    }
+    if (log_test) return app.run_log_test() ? 0 : 1;
     app.run();
   } catch (const std::exception& exc) {
     std::cerr << exc.what() << "\n";

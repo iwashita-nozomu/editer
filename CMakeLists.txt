@@ -88,6 +88,16 @@ if(BUILD_TESTING)
   add_test(NAME editor_proto_cli_scroll_invalid COMMAND editor_proto_cli scroll nope -10)
   add_test(NAME editor_gui_proto_smoke COMMAND editor_gui_proto --smoke)
   add_test(NAME mado_update_no_restart COMMAND mado --update --no-restart)
+  add_test(
+    NAME mado_log_test
+    COMMAND
+      mado
+      --log
+      --log-test
+      --log-file
+      "${CMAKE_BINARY_DIR}/mado-log-test.log"
+      --test-workspace
+  )
   set_tests_properties(editor_proto_cli_scroll_invalid PROPERTIES WILL_FAIL TRUE)
 endif()
 
