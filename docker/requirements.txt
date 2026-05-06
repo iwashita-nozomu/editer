@@ -3,17 +3,6 @@
 # upstream environment README.md docker runtime guidance
 # upstream environment Dockerfile installs Python dependencies
 # @dependency-end
-# Core numerical computing
-jaxtyping
-typeguard
-equinox
-optax
-scipy
-scipy-stubs
-flatbuffers
-iree-base-compiler
-iree-base-runtime
-
 # Testing
 pytest>=8
 

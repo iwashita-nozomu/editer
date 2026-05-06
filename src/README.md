@@ -2,18 +2,18 @@
 <!--
 @dependency-start
 responsibility Documents src for this repository.
-upstream implementation ../include/project_template/jax_export_smoke.hpp header-only implementation surface
+upstream implementation ../include/editor_proto/workspace_registry.hpp workspace registry API
+upstream implementation ../include/editor_proto/duplicate_policy.hpp duplicate policy API
 upstream design ../cmake/README.md CMake layout guidance
 @dependency-end
 -->
 
-template 既定の C++ 実装は header-only です。
-通常は `include/project_template/*.hpp` に実装し、`src/` は使いません。
+`src/` は editor prototype の C++ translation unit を置く場所です。
+public API は `include/editor_proto/` に置き、実装は root `CMakeLists.txt` の
+`editor_proto` target から build します。
 
-`src/` を使うのは次のような特例だけです。
+現在の実装 surface は次です。
 
-- header-only だと compile time や ODR の負担が大きすぎる
-- 外部 library の binary link が必要
-- 明示的な translation unit 分離が必要
-
-`src/` に実装を置く場合は、なぜ header-only では駄目かを change note か設計文書に残します。
+- `workspace_registry.cpp`: open file / directory root duplicate detection and scroll calculation
+- `duplicate_policy.cpp`: duplicate notice default decision policy
+- `editor_proto_cli.cpp`: CLI smoke surface for the prototype

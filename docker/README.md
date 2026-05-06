@@ -65,7 +65,7 @@ runtime pack には次を 1 つの spec としてまとめます。
 
 `run_codex_in_repo_container.py` は、repo の canonical runtime を build し、その中で `codex` を起動する入口です。
 実行 profile の正本は `docker/codex-container-profiles.toml` です。
-project-scoped Codex config の正本は `.codex/config.toml` で、template 既定では `approval_policy = "never"` と `sandbox_mode = "danger-full-access"` を使います。つまり container 内で起動した Codex も、`jax_solver_util` と同じく最初から full access 前提です。
+project-scoped Codex config の正本は `.codex/config.toml` で、template 既定では `approval_policy = "never"` と `sandbox_mode = "danger-full-access"` を使います。つまり container 内で起動した Codex も最初から full access 前提です。
 Codex 認証は host-local state を正本にします。host 側で `codex login` または API key login を済ませ、container は host `~/.codex` の mount または `OPENAI_API_KEY` forward を使います。container 内で別の永続 auth state を作る運用は避けます。
 
 既定の挙動は次です。
@@ -104,7 +104,6 @@ python3 tools/ci/run_codex_in_repo_container.py --no-seed-host-codex --forward-e
 よく使う例:
 
 ```bash
-python3 tools/ci/run_repo_program.py tools/ci/check_jax_export_stack.py
 python3 tools/ci/run_repo_program.py tools/ci/check_docker_build.sh -- --pack docker/packs/default.toml
 python3 tools/ci/run_repo_program.py python3 -- --version
 python3 tools/ci/run_repo_program.py --skip-env-check --print-only cmake -- --version
@@ -318,26 +317,13 @@ repo maintenance helper が前提にする host-compatible tool も canonical im
   - `tools/ci/check_fresh_clone.sh` の workspace overlay で使います。
   - host に `rsync` が無い場合でも script は `tar` fallback で動きますが、canonical container では Dockerfile 側で `rsync` を提供します。
 
-JAX と C++ の接続を `jax.export` 前提で使う場合は、canonical image に次を同梱します。
+C++ editor prototype の build / test 用に、canonical image には次を同梱します。
 
-- `jax[cuda12]`
-- `flatbuffers`
-- `iree-base-compiler`
-- `iree-base-runtime`
-- `python3-dev`
 - `cmake`
 - `ninja-build`
 - `build-essential`
 
-template 既定では `CMAKE_GENERATOR=Ninja` を image 側で固定します。`jax.export` の calling convention は installed JAX wheel の supported range に追従させ、`python3 tools/ci/check_jax_export_stack.py` で実際の version range を確認します。この smoke は次を一度に見ます。
-
-- `jax.export` による StableHLO export
-- `iree-base-compiler` による StableHLO -> VM flatbuffer compile
-- `iree-base-runtime` による `local-task` 実行
-- `jaxlib/include` の XLA FFI header
-- root `CMakeLists.txt` と `tests/cpp/smoke/jax_export_header_smoke.cpp` の C++ smoke
-
-なので、現時点では Docker image 側に追加の CMake setup は不要です。必要になったら compiler、debugger、language server を用途別に足します。
+既定では `CMAKE_GENERATOR=Ninja` を image 側で固定します。必要になったら compiler、debugger、language server を用途別に足します。
 
 canonical CMake layout と build artifact の再利用方針は [cpp-build-layout.md](../documents/cpp-build-layout.md) を見ます。要点は次です。
 
@@ -349,8 +335,6 @@ canonical CMake layout と build artifact の再利用方針は [cpp-build-layou
   - out-of-source build tree
 - `.state/cpp-install/<profile>/`
   - reusable local install tree
-- `.state/jax-export/<profile>/`
-  - reusable local export artifact
 
 host に `docker` group が設定されていても、現在の shell がその group をまだ持っていない場合があります。`getent group docker` にユーザー名が出ても `id` に `docker` が無いときは、新しい login shell を開いてから `make docker-build-check` を実行します。一時確認だけなら `sg docker -c 'docker version'` で daemon 到達性を切り分けられます。
 
@@ -365,13 +349,11 @@ make server-check
 make docker-shell
 make docker-codex
 make docker-codex-host-docker
-python3 tools/ci/check_jax_export_stack.py
 gh --version
-cmake -S . -B build/cpp/dev -DPROJECT_TEMPLATE_ENABLE_CPP_SMOKE=ON
-cmake --build build/cpp/dev --target project_template_cpp_smoke
+cmake -S . -B build/cpp/dev
+cmake --build build/cpp/dev --target editor_proto_cli editor_proto_workspace_test editor_proto_duplicate_policy_test
 ctest --test-dir build/cpp/dev --output-on-failure
 python3 tools/ci/run_container_pack.py --pack docker/packs/default.toml --print-only
-python3 tools/ci/run_repo_program.py --print-only tools/ci/check_jax_export_stack.py
 python3 tools/ci/run_in_repo_container.py --pack docker/packs/default.toml --shell-session --tty
 ```
 

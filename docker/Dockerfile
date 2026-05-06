@@ -3,7 +3,7 @@
 # downstream implementation ../tools/ci/check_fresh_clone.sh uses rsync for workspace overlay
 # downstream implementation ../tools/docker_dependency_validator.sh validates canonical image tools
 # @dependency-end
-FROM nvidia/cuda:12.2.0-devel-ubuntu22.04
+FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 ARG NODE_VERSION=22.14.0
 
@@ -39,9 +39,6 @@ RUN curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-l
 
 RUN python3 -m pip install --upgrade pip
 
-# JAXは「コンテナ内同梱CUDA/cuDNN」を使う版（localじゃない）
-RUN pip install --no-cache-dir "jax[cuda12]"
-
 # その他依存パッケージ（requirements.txt で一元管理）
 COPY docker/requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
@@ -52,9 +49,8 @@ RUN chmod +x /usr/local/bin/project-template-register-safe-directories
 WORKDIR /workspace
 ENV PYTHONPATH=/workspace/python
 ENV CMAKE_GENERATOR=Ninja
-ENV PROJECT_TEMPLATE_CPP_BUILD_ROOT=/workspace/build/cpp
-ENV PROJECT_TEMPLATE_CPP_INSTALL_ROOT=/workspace/.state/cpp-install
-ENV PROJECT_TEMPLATE_JAX_EXPORT_ROOT=/workspace/.state/jax-export
+ENV EDITOR_MAKE_CPP_BUILD_ROOT=/workspace/build/cpp
+ENV EDITOR_MAKE_CPP_INSTALL_ROOT=/workspace/.state/cpp-install
 
 EXPOSE 8888
 
