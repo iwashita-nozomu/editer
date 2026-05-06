@@ -19,5 +19,7 @@ Use `mado --test-workspace` so the file picker opens this directory.
 - [ ] Prompt header shows the active shell name and path.
 - [ ] Prompt command runs with the test workspace as cwd.
 - [ ] Running a command appends output and auto-scrolls the prompt output to the newest lines.
+- [ ] Runtime log is written under `.state/cpp-install/mado/logs/` or the `--log-file` path.
+- [ ] Prompt command start, prompt output, file open, and file save events appear in the runtime log.
 - [ ] Editing `mado.yaml` font or keybindings and running `mado --update` rebuilds, replaces runtime binary, and restarts.
 - [ ] `mado --update --no-restart` rebuilds and replaces `.state/cpp-install/mado/bin/mado` without opening the GUI.

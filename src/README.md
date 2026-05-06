@@ -30,10 +30,12 @@ build/cpp/dev/bin/mado --test-workspace
 ```
 
 GUI prototype の名前は Mado で、短縮 command は `mado` です。
-`mado.yaml` で app name、font size、keybindings、update path を上書きできます。
+`mado.yaml` で app name、font size、keybindings、update path、runtime log path を上書きできます。
 `mado --update` は CMake target `mado` を rebuild し、`.state/cpp-install/mado/bin/mado` を置き換えて再起動します。
 CI や手動更新だけの確認では `mado --update --no-restart` を使います。
 `mado --test-workspace` は [fixtures/mado_workspace](../fixtures/mado_workspace/manual_checklist.md) を root として開きます。
+debug 用の実行ログは既定で `.state/cpp-install/mado/logs/` に出ます。
+一時的な出力先は `mado --log-file /tmp/mado.log --test-workspace` で指定でき、`--no-log` で無効化できます。
 
 `editor_gui_proto` と `mado` は Close button、window close control、Esc、または configured quit key まで表示を続けます。
 常駐 file pane は使わず、`Files` button または `Ctrl+O` で root 配下 file picker を floating window として開きます。

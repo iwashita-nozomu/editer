@@ -1,6 +1,6 @@
 # @dependency-start
 # responsibility Defines the default Mado runtime configuration for the native editor prototype.
-# upstream implementation src/editor_gui_proto.cpp reads app, font, keybinding, and update settings
+# upstream implementation src/editor_gui_proto.cpp reads app, font, keybinding, update, and logging settings
 # downstream design src/README.md documents Mado startup and update commands
 # downstream design fixtures/mado_workspace/manual_checklist.md lists manual runtime checks
 # @dependency-end
@@ -24,3 +24,7 @@ update:
   source_root: .
   build_dir: build/cpp/dev
   runtime_binary: .state/cpp-install/mado/bin/mado
+
+logging:
+  enabled: true
+  dir: .state/cpp-install/mado/logs

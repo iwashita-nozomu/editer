@@ -150,6 +150,9 @@ constexpr std::string_view BUILD_CACHE_FILE = "CMakeCache.txt";
 constexpr std::string_view BUILD_BINARY_DIR = "bin";
 constexpr std::string_view UPDATE_TEMP_SUFFIX = ".tmp";
 constexpr std::string_view TEST_WORKSPACE_DIR = "fixtures/mado_workspace";
+constexpr std::string_view DEFAULT_LOG_DIR = ".state/cpp-install/mado/logs";
+constexpr std::string_view LOG_FILE_PREFIX = "mado-";
+constexpr std::string_view LOG_FILE_SUFFIX = ".log";
 
 namespace ui {
 
@@ -563,6 +566,9 @@ struct AppConfig {
   std::filesystem::path source_root{std::filesystem::path(MADO_SOURCE_ROOT)};
   std::filesystem::path build_dir{std::filesystem::path(MADO_BUILD_DIR)};
   std::filesystem::path runtime_binary{std::filesystem::path(MADO_RUNTIME_BINARY)};
+  bool log_enabled{true};
+  std::filesystem::path log_dir{std::filesystem::path(std::string(DEFAULT_LOG_DIR))};
+  std::filesystem::path log_file{};
 };
 
 std::string trim(std::string value) {
@@ -608,6 +614,17 @@ int parse_int(std::string_view value, int fallback) {
   }
 }
 
+bool parse_bool(std::string_view value, bool fallback) {
+  const std::string normalized = uppercase(trim(std::string(value)));
+  if (normalized == "TRUE" || normalized == "YES" || normalized == "ON" || normalized == "1") {
+    return true;
+  }
+  if (normalized == "FALSE" || normalized == "NO" || normalized == "OFF" || normalized == "0") {
+    return false;
+  }
+  return fallback;
+}
+
 KeyBinding parse_key_binding(std::string value, KeyBinding fallback) {
   value = unquote(std::move(value));
   std::string compact;
@@ -651,6 +668,12 @@ void apply_config_value(AppConfig& config, const std::string& section, const std
     config.build_dir = value;
   } else if (section == "update" && key == "runtime_binary") {
     config.runtime_binary = value;
+  } else if (section == "logging" && key == "enabled") {
+    config.log_enabled = parse_bool(value, config.log_enabled);
+  } else if (section == "logging" && key == "dir") {
+    config.log_dir = value;
+  } else if (section == "logging" && key == "file") {
+    config.log_file = value;
   }
 }
 
@@ -684,6 +707,10 @@ AppConfig load_config(const std::filesystem::path& path) {
   }
   const std::filesystem::path config_base = std::filesystem::absolute(path).parent_path();
   if (!config.source_root.is_absolute()) config.source_root = config_base / config.source_root;
+  if (!config.log_dir.is_absolute()) config.log_dir = config.source_root / config.log_dir;
+  if (!config.log_file.empty() && !config.log_file.is_absolute()) {
+    config.log_file = config.source_root / config.log_file;
+  }
   return config;
 }
 
@@ -768,6 +795,8 @@ class NativeEditorApp {
   NativeEditorApp(AppConfig config, std::filesystem::path root_path)
       : config_(std::move(config)), root_path_(std::move(root_path)) {
     refresh_project_files();
+    open_runtime_log();
+    debug_log("app.start", "root=" + root_label() + " files=" + std::to_string(files_.size()));
   }
 
   void run() {
@@ -777,6 +806,7 @@ class NativeEditorApp {
       std::ostringstream out;
       out << "failed to open X display";
       if (display_env != nullptr) out << " (" << display_env << ")";
+      debug_log("app.error", out.str());
       throw std::runtime_error(out.str());
     }
 
@@ -811,6 +841,7 @@ class NativeEditorApp {
     }
     log("native X11 window ready");
     std::cout << config_.app_name << ": native X11 window opened\n";
+    if (!active_log_path_.empty()) std::cout << "Log: " << active_log_path_ << "\n";
     std::cout << "Use " << config_.keys.open_files.label << " to open files, "
               << config_.keys.prompt.label << " for the floating prompt.\n" << std::flush;
 
@@ -825,6 +856,7 @@ class NativeEditorApp {
 
       std::this_thread::sleep_for(std::chrono::milliseconds(EVENT_LOOP_SLEEP_MS));
     }
+    debug_log("app.stop", "main window closed");
   }
 
   ~NativeEditorApp() {
@@ -1293,6 +1325,7 @@ class NativeEditorApp {
     x11_.set_wm_protocols(display_, picker_window_, &wm_delete_, 1);
     x11_.map_window(display_, picker_window_);
     status_ = "files window opened";
+    debug_log("files.open", "root=" + root_label() + " count=" + std::to_string(files_.size()));
   }
 
   void close_file_picker() {
@@ -1300,6 +1333,7 @@ class NativeEditorApp {
     x11_.destroy_window(display_, picker_window_);
     picker_window_ = 0;
     picker_hits_.clear();
+    debug_log("files.close", "closed");
   }
 
   void open_selected_picker_file() {
@@ -1322,12 +1356,14 @@ class NativeEditorApp {
       last_notice_kind_ = "file";
     }
     status_ = "opened " + file.label;
+    debug_log("file.open", "path=" + file.path.string() + " bytes=" + std::to_string(file.content.size()));
   }
 
   bool load_file(EditorFile& file) {
     std::ifstream in(file.path, std::ios::binary);
     if (!in) {
       status_ = "open failed " + file.label;
+      debug_log("file.open.error", "path=" + file.path.string());
       return false;
     }
     file.content.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
@@ -1341,11 +1377,13 @@ class NativeEditorApp {
     std::ofstream out(file->path, std::ios::binary | std::ios::trunc);
     if (!out) {
       status_ = "save failed " + file->label;
+      debug_log("file.save.error", "path=" + file->path.string());
       return;
     }
     out << file->content;
     file->dirty = false;
     status_ = "saved " + file->label;
+    debug_log("file.save", "path=" + file->path.string() + " bytes=" + std::to_string(file->content.size()));
   }
 
   void open_prompt_window() {
@@ -1354,6 +1392,7 @@ class NativeEditorApp {
       x11_.set_input_focus(display_, prompt_window_, X_REVERT_TO_PARENT, X_CURRENT_TIME);
       draw_prompt_window();
       status_ = "prompt raised";
+      debug_log("prompt.raise", "root=" + root_label());
       return;
     }
 
@@ -1378,6 +1417,7 @@ class NativeEditorApp {
     x11_.raise_window(display_, prompt_window_);
     focus_pane_ = FocusPane::Prompt;
     status_ = "prompt opened at " + root_label();
+    debug_log("prompt.open", "root=" + root_label() + " shell=" + shell_path());
   }
 
   void close_prompt_window() {
@@ -1386,11 +1426,14 @@ class NativeEditorApp {
     prompt_window_ = 0;
     prompt_hits_.clear();
     focus_pane_ = FocusPane::Editor;
+    debug_log("prompt.close", "closed");
   }
 
   void run_prompt_command() {
     if (prompt_input_.empty()) return;
     const std::string command = prompt_input_;
+    debug_log("prompt.command.start",
+              "cwd=" + root_path_.string() + " shell=" + shell_path() + " command=" + command);
     append_prompt_line(shell_name() + " $ " + command);
     std::string output = run_prompt_shell_command(command);
     prompt_input_.clear();
@@ -1404,6 +1447,7 @@ class NativeEditorApp {
       start = end + 1;
     }
     status_ = "prompt command finished";
+    debug_log("prompt.command.finish", "bytes=" + std::to_string(output.size()));
   }
 
   std::string run_prompt_shell_command(const std::string& command) {
@@ -1447,6 +1491,7 @@ class NativeEditorApp {
   }
 
   void append_prompt_line(std::string line) {
+    debug_log("prompt.output", line);
     prompt_lines_.push_back(std::move(line));
     if (prompt_lines_.size() > MAX_PROMPT_LINES) prompt_lines_.erase(prompt_lines_.begin());
     scroll_prompt_to_bottom();
@@ -1533,6 +1578,7 @@ class NativeEditorApp {
     const auto root_second = registry.add_directory_root(root_path_.string() + "/");
     const auto pan = scroll.middle_button_pan(DEMO_SCROLL_OFFSET, DEMO_POINTER_DELTA);
     status_ = notice_text("root", root_second) + " offset=" + std::to_string(static_cast<int>(pan.new_offset));
+    debug_log("core.demo", status_);
     (void)root_first;
   }
 
@@ -1545,7 +1591,52 @@ class NativeEditorApp {
     status_ = "editing " + file->label;
   }
 
-  void log(std::string message) { status_ = std::move(message); }
+  std::filesystem::path default_log_file_path() const {
+    const auto now = std::chrono::system_clock::now().time_since_epoch();
+    const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+    std::ostringstream name;
+    name << LOG_FILE_PREFIX << getpid() << '-' << millis << LOG_FILE_SUFFIX;
+    return config_.log_dir / name.str();
+  }
+
+  void open_runtime_log() {
+    if (!config_.log_enabled) return;
+    active_log_path_ = config_.log_file.empty() ? default_log_file_path() : config_.log_file;
+    std::error_code ec;
+    std::filesystem::create_directories(active_log_path_.parent_path(), ec);
+    if (ec) {
+      status_ = "log directory failed " + active_log_path_.parent_path().string();
+      active_log_path_.clear();
+      return;
+    }
+    log_stream_.open(active_log_path_, std::ios::app);
+    if (!log_stream_) {
+      status_ = "log open failed " + active_log_path_.string();
+      active_log_path_.clear();
+      return;
+    }
+  }
+
+  std::string sanitize_log_value(std::string value) const {
+    for (char& ch : value) {
+      if (ch == '\n' || ch == '\r' || ch == '\t') ch = ' ';
+    }
+    return value;
+  }
+
+  void debug_log(std::string_view event, std::string message) {
+    if (!log_stream_) return;
+    const auto now = std::chrono::system_clock::now().time_since_epoch();
+    const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+    log_stream_ << "ts_ms=" << millis << " event=" << event
+                << " message=\"" << sanitize_log_value(std::move(message)) << "\"\n";
+    log_stream_.flush();
+  }
+
+  void log(std::string message) {
+    status_ = std::move(message);
+    debug_log("status", status_);
+  }
 
   void draw() {
     hits_.clear();
@@ -1824,6 +1915,8 @@ class NativeEditorApp {
   std::vector<std::string> prompt_lines_;
   std::string prompt_input_;
   std::string status_{"ready"};
+  std::ofstream log_stream_;
+  std::filesystem::path active_log_path_;
   std::string last_notice_kind_{"file"};
   editor_proto::DuplicateNotice last_notice_;
   editor_proto::WorkspaceRegistry registry_;
@@ -1831,7 +1924,7 @@ class NativeEditorApp {
 
 void print_usage() {
   std::cout << "usage: mado [--config path] [--root path|--test-workspace] "
-               "[--update] [--no-restart] [--smoke]\n";
+               "[--update] [--no-restart] [--smoke] [--log-file path] [--no-log]\n";
 }
 
 }  // namespace
@@ -1844,6 +1937,9 @@ int main(int argc, char** argv) {
     bool smoke = false;
     bool test_workspace = false;
     bool root_set = false;
+    bool log_file_set = false;
+    bool log_disabled = false;
+    std::filesystem::path log_file_path;
     std::filesystem::path root_path = std::filesystem::current_path();
 
     for (int i = 1; i < argc; ++i) {
@@ -1865,6 +1961,11 @@ int main(int argc, char** argv) {
         update = true;
       } else if (arg == "--no-restart") {
         restart = false;
+      } else if (arg == "--log-file" && i + 1 < argc) {
+        log_file_path = argv[++i];
+        log_file_set = true;
+      } else if (arg == "--no-log") {
+        log_disabled = true;
       } else {
         print_usage();
         return 1;
@@ -1872,6 +1973,11 @@ int main(int argc, char** argv) {
     }
 
     AppConfig config = load_config(config_path);
+    if (log_file_set) {
+      config.log_enabled = true;
+      config.log_file = std::filesystem::absolute(log_file_path);
+    }
+    if (log_disabled) config.log_enabled = false;
     if (smoke) {
       std::cout << config.app_name << " native smoke ok\n";
       std::cout << demo_text() << "\n";
