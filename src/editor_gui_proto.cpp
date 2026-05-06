@@ -75,6 +75,8 @@ constexpr long X_STRUCTURE_NOTIFY_MASK_SHIFT = 17;
 
 constexpr unsigned int X_CONTROL_MASK_SHIFT = 2;
 constexpr unsigned int X_BUTTON_PRIMARY = 1U;
+constexpr unsigned int X_BUTTON_SCROLL_UP = 4U;
+constexpr unsigned int X_BUTTON_SCROLL_DOWN = 5U;
 
 constexpr KeySym X_KEY_BACK_SPACE = 0xff08;
 constexpr KeySym X_KEY_RETURN = 0xff0d;
@@ -108,15 +110,18 @@ constexpr KeySym X_KEY_UP = 0xff52;
 constexpr KeySym X_KEY_DOWN = 0xff54;
 constexpr int PROMPT_WINDOW_WIDTH = 560;
 constexpr int PROMPT_WINDOW_HEIGHT = 360;
-constexpr int PROMPT_INPUT_Y = 72;
+constexpr int PROMPT_ROOT_Y = 60;
+constexpr int PROMPT_SHELL_Y = 78;
+constexpr int PROMPT_INPUT_Y = 94;
 constexpr int PROMPT_INPUT_HEIGHT = 28;
-constexpr int PROMPT_OUTPUT_Y = 112;
+constexpr int PROMPT_OUTPUT_Y = 134;
 constexpr int PROMPT_RUN_WIDTH = 64;
 constexpr int PROMPT_CLOSE_WIDTH = 72;
 constexpr int PROMPT_BUTTON_GAP = 8;
 constexpr int PROMPT_BUTTON_RIGHT_PAD = 16;
 constexpr int PROMPT_OUTPUT_BOTTOM_PAD = 16;
 constexpr int PROMPT_MIN_CONTENT_WIDTH = 96;
+constexpr int PROMPT_SCROLL_STEP_LINES = 3;
 constexpr int COMMAND_READ_BUFFER_SIZE = 1024;
 constexpr int PIPE_READ_END = 0;
 constexpr int PIPE_WRITE_END = 1;
@@ -1220,6 +1225,16 @@ class NativeEditorApp {
   }
 
   bool handle_prompt_click(const XButtonEvent& event) {
+    if (event.button == X_BUTTON_SCROLL_UP) {
+      scroll_prompt_output(PROMPT_SCROLL_STEP_LINES);
+      draw_prompt_window();
+      return true;
+    }
+    if (event.button == X_BUTTON_SCROLL_DOWN) {
+      scroll_prompt_output(-PROMPT_SCROLL_STEP_LINES);
+      draw_prompt_window();
+      return true;
+    }
     if (event.button != kButton1) return true;
     for (const HitRegion& hit : prompt_hits_) {
       if (!contains(hit.rect, event.x, event.y)) continue;
@@ -1358,6 +1373,7 @@ class NativeEditorApp {
     prompt_lines_.clear();
     prompt_lines_.push_back("root: " + root_label());
     prompt_lines_.push_back("Enter runs command. Esc closes this prompt.");
+    scroll_prompt_to_bottom();
     x11_.map_window(display_, prompt_window_);
     x11_.raise_window(display_, prompt_window_);
     focus_pane_ = FocusPane::Prompt;
@@ -1374,8 +1390,9 @@ class NativeEditorApp {
 
   void run_prompt_command() {
     if (prompt_input_.empty()) return;
-    append_prompt_line("$ " + prompt_input_);
-    std::string output = run_prompt_shell_command(prompt_input_);
+    const std::string command = prompt_input_;
+    append_prompt_line(shell_name() + " $ " + command);
+    std::string output = run_prompt_shell_command(command);
     prompt_input_.clear();
     std::size_t start = 0;
     while (start <= output.size()) {
@@ -1405,9 +1422,8 @@ class NativeEditorApp {
       close(pipe_fds[PIPE_WRITE_END]);
       std::error_code ec;
       std::filesystem::current_path(root_path_, ec);
-      const char* shell = std::getenv("SHELL");
-      if (shell == nullptr) shell = "/bin/bash";
-      execlp(shell, shell, "-lc", command.c_str(), nullptr);
+      const std::string shell = shell_path();
+      execlp(shell.c_str(), shell.c_str(), "-lc", command.c_str(), nullptr);
       _exit(COMMAND_EXEC_FAILURE_EXIT);
     }
 
@@ -1433,6 +1449,46 @@ class NativeEditorApp {
   void append_prompt_line(std::string line) {
     prompt_lines_.push_back(std::move(line));
     if (prompt_lines_.size() > MAX_PROMPT_LINES) prompt_lines_.erase(prompt_lines_.begin());
+    scroll_prompt_to_bottom();
+  }
+
+  std::string shell_path() const {
+    const char* shell = std::getenv("SHELL");
+    if (shell == nullptr || shell[0] == '\0') return "/bin/bash";
+    return shell;
+  }
+
+  std::string shell_name() const {
+    const std::filesystem::path path{shell_path()};
+    const std::string name = path.filename().string();
+    return name.empty() ? shell_path() : name;
+  }
+
+  std::string shell_status_line() const {
+    return "shell: " + shell_name() + " (" + shell_path() + ")";
+  }
+
+  int prompt_visible_rows() const {
+    return std::max(1, (prompt_height_ - PROMPT_OUTPUT_Y - PROMPT_OUTPUT_BOTTOM_PAD) /
+                           line_height());
+  }
+
+  std::size_t max_prompt_scroll_offset() const {
+    const std::size_t visible = static_cast<std::size_t>(prompt_visible_rows());
+    return prompt_lines_.size() > visible ? prompt_lines_.size() - visible : 0U;
+  }
+
+  void scroll_prompt_to_bottom() { prompt_scroll_offset_ = 0U; }
+
+  void scroll_prompt_output(int delta) {
+    const std::size_t max_offset = max_prompt_scroll_offset();
+    if (delta > 0) {
+      prompt_scroll_offset_ =
+          std::min(max_offset, prompt_scroll_offset_ + static_cast<std::size_t>(delta));
+      return;
+    }
+    const std::size_t amount = static_cast<std::size_t>(-delta);
+    prompt_scroll_offset_ = amount > prompt_scroll_offset_ ? 0U : prompt_scroll_offset_ - amount;
   }
 
   EditorFile* current_file() {
@@ -1655,7 +1711,9 @@ class NativeEditorApp {
 
     const int content_width =
         std::max(PROMPT_MIN_CONTENT_WIDTH, prompt_width_ - ui::TITLE_X - ui::TITLE_X);
-    text(prompt_window_, ui::TITLE_X, FILE_PICKER_ROOT_Y, truncate(root_label(), content_width),
+    text(prompt_window_, ui::TITLE_X, PROMPT_ROOT_Y, truncate("root: " + root_label(), content_width),
+         palette_.muted);
+    text(prompt_window_, ui::TITLE_X, PROMPT_SHELL_Y, truncate(shell_status_line(), content_width),
          palette_.muted);
 
     const Rect input{ui::TITLE_X, PROMPT_INPUT_Y, content_width, PROMPT_INPUT_HEIGHT};
@@ -1667,14 +1725,14 @@ class NativeEditorApp {
          input.y + ui::BUTTON_LABEL_BASELINE, truncate("> " + prompt_input_ + "_", content_width),
          palette_.text);
 
-    const int max_rows =
-        std::max(1, (prompt_height_ - PROMPT_OUTPUT_Y - PROMPT_OUTPUT_BOTTOM_PAD) /
-                        line_height());
+    const int max_rows = prompt_visible_rows();
     const std::size_t visible =
         std::min(prompt_lines_.size(), static_cast<std::size_t>(max_rows));
-    const std::size_t start = prompt_lines_.size() - visible;
+    prompt_scroll_offset_ = std::min(prompt_scroll_offset_, max_prompt_scroll_offset());
+    const std::size_t end = prompt_lines_.size() - prompt_scroll_offset_;
+    const std::size_t start = end > visible ? end - visible : 0U;
     int y = PROMPT_OUTPUT_Y;
-    for (std::size_t i = start; i < prompt_lines_.size(); ++i) {
+    for (std::size_t i = start; i < end; ++i) {
       text(prompt_window_, ui::TITLE_X, y, truncate(prompt_lines_[i], content_width),
            palette_.muted);
       y += line_height();
@@ -1757,6 +1815,7 @@ class NativeEditorApp {
   int prompt_height_{PROMPT_WINDOW_HEIGHT};
   std::size_t active_file_{};
   std::size_t picker_selected_{};
+  std::size_t prompt_scroll_offset_{};
   FocusPane focus_pane_{FocusPane::Editor};
   std::vector<EditorFile> files_;
   std::vector<HitRegion> hits_;

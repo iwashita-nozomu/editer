@@ -16,6 +16,8 @@ Use `mado --test-workspace` so the file picker opens this directory.
 - [ ] Selecting `src/sample.cpp` loads it into the editor pane.
 - [ ] Typing changes the file buffer and configured save key writes the file.
 - [ ] Configured prompt key opens the same-design floating prompt in front of the editor.
+- [ ] Prompt header shows the active shell name and path.
 - [ ] Prompt command runs with the test workspace as cwd.
+- [ ] Running a command appends output and auto-scrolls the prompt output to the newest lines.
 - [ ] Editing `mado.yaml` font or keybindings and running `mado --update` rebuilds, replaces runtime binary, and restarts.
 - [ ] `mado --update --no-restart` rebuilds and replaces `.state/cpp-install/mado/bin/mado` without opening the GUI.
