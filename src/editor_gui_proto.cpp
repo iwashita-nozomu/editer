@@ -1464,7 +1464,7 @@ class NativeEditorApp {
       }
       if (hit.action == HitAction::SelectFile && hit.index >= 0) {
         open_file(static_cast<std::size_t>(hit.index), true);
-        close_file_picker();
+        draw_file_picker();
         draw();
         return true;
       }
@@ -1555,7 +1555,7 @@ class NativeEditorApp {
   void open_selected_picker_file() {
     if (picker_selected_ < files_.size()) {
       open_file(picker_selected_, true);
-      close_file_picker();
+      draw_file_picker();
       draw();
     }
   }
