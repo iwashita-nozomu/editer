@@ -7,19 +7,25 @@
 #include "editor_proto/workspace_registry.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <dlfcn.h>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <thread>
 #include <utility>
 #include <vector>
+#include <unistd.h>
 
 namespace {
 
@@ -69,6 +75,21 @@ constexpr int EVENT_LOOP_SLEEP_MS = 12;
 constexpr int KEY_LOOKUP_BUFFER_SIZE = 32;
 constexpr unsigned char FIRST_PRINTABLE_ASCII = 32;
 constexpr std::size_t MAX_TERMINAL_LOG_LINES = 64;
+constexpr std::size_t MAX_PROJECT_FILES = 200;
+constexpr std::uintmax_t MAX_FILE_BYTES = 262144;
+constexpr int FLOATING_WINDOW_GAP = 24;
+constexpr int FILE_PICKER_WIDTH = 440;
+constexpr int FILE_PICKER_HEIGHT = 620;
+constexpr int FILE_PICKER_ROW_START_Y = 112;
+constexpr int FILE_PICKER_STATUS_BASELINE = 34;
+constexpr int FILE_PICKER_CLOSE_X = 352;
+constexpr int FILE_PICKER_CLOSE_WIDTH = 72;
+constexpr int FILE_PICKER_ROOT_Y = 76;
+constexpr int SHELL_SHORTCUT_NUL = 0;
+constexpr int SHELL_LAUNCH_FAILURE_EXIT = 127;
+constexpr KeySym X_KEY_AT = 0x0040;
+constexpr KeySym X_KEY_UP = 0xff52;
+constexpr KeySym X_KEY_DOWN = 0xff54;
 
 namespace ui {
 
@@ -77,9 +98,6 @@ constexpr int STATUS_HEIGHT = 24;
 constexpr int TERMINAL_COMPACT_THRESHOLD = 620;
 constexpr int TERMINAL_COMPACT_HEIGHT = 118;
 constexpr int TERMINAL_DEFAULT_HEIGHT = 150;
-constexpr int SIDEBAR_COMPACT_THRESHOLD = 900;
-constexpr int SIDEBAR_COMPACT_WIDTH = 220;
-constexpr int SIDEBAR_DEFAULT_WIDTH = 250;
 constexpr int INSPECTOR_COMPACT_THRESHOLD = 980;
 constexpr int INSPECTOR_COMPACT_WIDTH = 250;
 constexpr int INSPECTOR_DEFAULT_WIDTH = 310;
@@ -93,9 +111,10 @@ constexpr int TOOLBAR_BASELINE = 27;
 constexpr int TOOLBAR_BUTTON_START_X = 192;
 constexpr int TOOLBAR_BUTTON_TOP = 8;
 constexpr int TOOLBAR_BUTTON_HEIGHT = 28;
-constexpr int OPEN_BUTTON_WIDTH = 70;
+constexpr int FILES_BUTTON_WIDTH = 70;
 constexpr int STANDARD_BUTTON_WIDTH = 64;
 constexpr int DEMO_BUTTON_WIDTH = 72;
+constexpr int SHELL_BUTTON_WIDTH = 72;
 constexpr int CLOSE_BUTTON_WIDTH = 72;
 constexpr int WORKSPACE_LABEL_RIGHT_PAD = 210;
 constexpr int ROOT_LABEL_X = 12;
@@ -372,20 +391,19 @@ bool contains(Rect rect, int x, int y) {
 }
 
 enum class HitAction {
-  OpenFile,
-  AddRoot,
+  OpenFilesWindow,
+  OpenShellWindow,
   SplitView,
   SaveFile,
   RunCore,
   CloseWindow,
+  ClosePicker,
   SelectFile,
 };
 
 enum class FocusPane {
-  Project,
   Editor,
   Notice,
-  Shell,
 };
 
 struct HitRegion {
@@ -395,7 +413,7 @@ struct HitRegion {
 };
 
 struct EditorFile {
-  std::string path;
+  std::filesystem::path path;
   std::string label;
   std::string content;
   std::size_t cursor{};
@@ -455,29 +473,8 @@ std::string demo_text() {
 
 class NativeEditorApp {
  public:
-  NativeEditorApp() {
-    files_.push_back({
-        "/repo/src/main.cpp",
-        "main.cpp",
-        "#include <iostream>\n\nint main() {\n  std::cout << \"Editor Make\" << std::endl;\n  "
-        "return 0;\n}\n",
-        0,
-        false,
-    });
-    files_.push_back({
-        "/repo/src/editor_proto_cli.cpp",
-        "editor_proto_cli.cpp",
-        "// CLI prototype surface\n// Native GUI prototype shares the duplicate core.\n",
-        0,
-        false,
-    });
-    files_.push_back({
-        "/repo/notes/prototype_execution_plan_ja.md",
-        "prototype_execution_plan_ja.md",
-        "# Prototype Plan\n\n- Native window shell\n- Directory panel\n- Editor pane\n- Shell pane\n",
-        0,
-        false,
-    });
+  NativeEditorApp() : root_path_(std::filesystem::current_path()) {
+    refresh_project_files();
   }
 
   void run() {
@@ -513,11 +510,14 @@ class NativeEditorApp {
     gc_ = x11_.create_gc(display_, window_, 0, nullptr);
     x11_.map_window(display_, window_);
 
-    open_file(0, true);
-    add_root();
+    if (!files_.empty()) {
+      open_file(0, true);
+    } else {
+      status_ = "no editable files under " + root_label();
+    }
     log("native X11 window ready");
     std::cout << "Editor GUI prototype: native X11 window opened\n";
-    std::cout << "Use the Close button, Esc, or the window close control to stop.\n" << std::flush;
+    std::cout << "Use Files/Ctrl+O to open files, Ctrl+@ for a floating root shell.\n" << std::flush;
 
     bool running = true;
     while (running) {
@@ -534,6 +534,7 @@ class NativeEditorApp {
 
   ~NativeEditorApp() {
     if (display_ == nullptr) return;
+    close_file_picker();
     if (gc_ != nullptr) {
       x11_.free_gc(display_, gc_);
       gc_ = nullptr;
@@ -561,6 +562,56 @@ class NativeEditorApp {
     unsigned long warn{};
   };
 
+  void refresh_project_files() {
+    files_.clear();
+    std::error_code ec;
+    const auto options = std::filesystem::directory_options::skip_permission_denied;
+    std::filesystem::recursive_directory_iterator it(root_path_, options, ec);
+    const std::filesystem::recursive_directory_iterator end;
+    while (!ec && it != end && files_.size() < MAX_PROJECT_FILES) {
+      const std::filesystem::directory_entry entry = *it;
+      if (entry.is_directory(ec)) {
+        if (should_skip_directory(entry.path())) it.disable_recursion_pending();
+      } else if (entry.is_regular_file(ec)) {
+        const std::uintmax_t size = entry.file_size(ec);
+        if (!ec && size <= MAX_FILE_BYTES) {
+          files_.push_back({entry.path(), display_label(entry.path()), "", {}, false});
+        }
+      }
+      it.increment(ec);
+      if (ec) ec.clear();
+    }
+    std::sort(files_.begin(), files_.end(), [](const EditorFile& left, const EditorFile& right) {
+      return left.label < right.label;
+    });
+    if (active_file_ >= files_.size()) active_file_ = {};
+  }
+
+  bool should_skip_directory(const std::filesystem::path& path) const {
+    const std::string name = path.filename().string();
+    return name == ".git" || name == "build" || name == "vendor" || name == ".venv" ||
+           name == ".state" || name == "dist" || name == "__pycache__";
+  }
+
+  std::string display_label(const std::filesystem::path& path) const {
+    std::error_code ec;
+    const std::filesystem::path rel = std::filesystem::relative(path, root_path_, ec);
+    return ec ? path.filename().string() : rel.generic_string();
+  }
+
+  std::string root_label() const { return root_path_.generic_string(); }
+
+  std::string root_windows_path() const {
+    const char* distro = std::getenv("WSL_DISTRO_NAME");
+    if (distro == nullptr || root_path_.empty()) return root_path_.string();
+    std::string out = "\\\\wsl.localhost\\";
+    out += distro;
+    for (const char ch : root_path_.generic_string()) {
+      out.push_back(ch == '/' ? '\\' : ch);
+    }
+    return out;
+  }
+
   void load_palette() {
     palette_.background = color("#111315", black_);
     palette_.topbar = color("#15191d", black_);
@@ -583,6 +634,10 @@ class NativeEditorApp {
   }
 
   bool handle_event(const XEvent& event) {
+    if (picker_window_ != 0 && event.xany.window == picker_window_) {
+      return handle_picker_event(event);
+    }
+
     switch (event.type) {
       case kExpose:
         draw();
@@ -604,38 +659,54 @@ class NativeEditorApp {
     }
   }
 
+  bool handle_picker_event(const XEvent& event) {
+    switch (event.type) {
+      case kExpose:
+        draw_file_picker();
+        return true;
+      case kConfigureNotify:
+        picker_width_ = event.xconfigure.width;
+        picker_height_ = event.xconfigure.height;
+        draw_file_picker();
+        return true;
+      case kButtonPress:
+        return handle_picker_click(event.xbutton);
+      case kKeyPress:
+        return handle_picker_key(event.xkey);
+      case kClientMessage:
+        if (static_cast<Atom>(event.xclient.data.l[0]) == wm_delete_) {
+          close_file_picker();
+        }
+        return true;
+      default:
+        return true;
+    }
+  }
+
   bool handle_key(XKeyEvent key_event) {
     char buffer[KEY_LOOKUP_BUFFER_SIZE]{};
     KeySym key{};
     const int length = x11_.lookup_string(&key_event, buffer, sizeof(buffer), &key, nullptr);
 
     if (key == kEscape) return false;
+    if (is_shell_shortcut(key_event, key, buffer, length)) {
+      open_shell_window();
+      draw();
+      return true;
+    }
     if ((key_event.state & kControlMask) != 0U && (length == 1)) {
       switch (buffer[0]) {
         case '1':
-          set_focus(FocusPane::Project);
-          draw();
-          return true;
-        case '2':
           set_focus(FocusPane::Editor);
           draw();
           return true;
-        case '3':
+        case '2':
           set_focus(FocusPane::Notice);
-          draw();
-          return true;
-        case '4':
-          set_focus(FocusPane::Shell);
           draw();
           return true;
         case 'o':
         case 'O':
-          open_file(0, true);
-          draw();
-          return true;
-        case 'r':
-        case 'R':
-          add_root();
+          open_file_picker();
           draw();
           return true;
         case 's':
@@ -651,19 +722,24 @@ class NativeEditorApp {
         case 'q':
         case 'Q':
           status_ = "closing";
-          log("close requested");
           draw();
           return false;
       }
     }
 
-    EditorFile& file = files_[active_file_];
+    if (focus_pane_ != FocusPane::Editor) {
+      draw();
+      return true;
+    }
+
+    EditorFile* file = current_file();
+    if (file == nullptr) return true;
     if (key == kBackSpace) {
-      if (file.cursor > 0 && !file.content.empty()) {
-        file.content.erase(file.cursor - 1, 1);
-        --file.cursor;
-        file.dirty = true;
-        status_ = "editing " + file.path;
+      if (file->cursor > 0 && !file->content.empty()) {
+        file->content.erase(file->cursor - 1, 1);
+        --file->cursor;
+        file->dirty = true;
+        status_ = "editing " + file->label;
       }
     } else if (key == kReturn || key == kKeypadEnter) {
       insert_text("\n");
@@ -680,23 +756,49 @@ class NativeEditorApp {
     return true;
   }
 
+  bool handle_picker_key(XKeyEvent key_event) {
+    char buffer[KEY_LOOKUP_BUFFER_SIZE]{};
+    KeySym key{};
+    const int length = x11_.lookup_string(&key_event, buffer, sizeof(buffer), &key, nullptr);
+    if (key == kEscape) {
+      close_file_picker();
+      return true;
+    }
+    if (key == X_KEY_UP && picker_selected_ > 0) {
+      --picker_selected_;
+      draw_file_picker();
+      return true;
+    }
+    if (key == X_KEY_DOWN && picker_selected_ + 1 < files_.size()) {
+      ++picker_selected_;
+      draw_file_picker();
+      return true;
+    }
+    if (key == kReturn || key == kKeypadEnter) {
+      open_selected_picker_file();
+      return true;
+    }
+    if ((key_event.state & kControlMask) != 0U && length == 1 &&
+        (buffer[0] == 'q' || buffer[0] == 'Q')) {
+      close_file_picker();
+      return true;
+    }
+    return true;
+  }
+
   bool handle_click(const XButtonEvent& event) {
     if (event.button != kButton1) return true;
     for (const HitRegion& hit : hits_) {
       if (!contains(hit.rect, event.x, event.y)) continue;
       switch (hit.action) {
-        case HitAction::OpenFile:
-          open_file(0, true);
-          focus_pane_ = FocusPane::Editor;
+        case HitAction::OpenFilesWindow:
+          open_file_picker();
           break;
-        case HitAction::AddRoot:
-          add_root();
-          focus_pane_ = FocusPane::Project;
+        case HitAction::OpenShellWindow:
+          open_shell_window();
           break;
         case HitAction::SplitView:
-          ++split_count_;
-          status_ = "split view " + std::to_string(split_count_);
-          log(status_);
+          status_ = "split view is deferred";
           break;
         case HitAction::SaveFile:
           save_active();
@@ -708,14 +810,10 @@ class NativeEditorApp {
           break;
         case HitAction::CloseWindow:
           status_ = "closing";
-          log("close requested");
           draw();
           return false;
+        case HitAction::ClosePicker:
         case HitAction::SelectFile:
-          if (hit.index >= 0 && static_cast<std::size_t>(hit.index) < files_.size()) {
-            open_file(static_cast<std::size_t>(hit.index), true);
-            focus_pane_ = FocusPane::Editor;
-          }
           break;
       }
       draw();
@@ -724,34 +822,150 @@ class NativeEditorApp {
     return true;
   }
 
+  bool handle_picker_click(const XButtonEvent& event) {
+    if (event.button != kButton1) return true;
+    for (const HitRegion& hit : picker_hits_) {
+      if (!contains(hit.rect, event.x, event.y)) continue;
+      if (hit.action == HitAction::ClosePicker) {
+        close_file_picker();
+        return true;
+      }
+      if (hit.action == HitAction::SelectFile && hit.index >= 0) {
+        open_file(static_cast<std::size_t>(hit.index), true);
+        close_file_picker();
+        draw();
+        return true;
+      }
+    }
+    return true;
+  }
+
+  bool is_shell_shortcut(const XKeyEvent& key_event, KeySym key, const char* buffer,
+                         int length) const {
+    if ((key_event.state & kControlMask) == 0U) return false;
+    if (key == X_KEY_AT) return true;
+    return length == 1 && (buffer[0] == '@' || buffer[0] == SHELL_SHORTCUT_NUL);
+  }
+
+  void open_file_picker() {
+    refresh_project_files();
+    if (picker_selected_ >= files_.size()) picker_selected_ = {};
+    if (picker_window_ != 0) {
+      draw_file_picker();
+      return;
+    }
+
+    const Window root = x11_.root_window(display_, screen_);
+    picker_width_ = FILE_PICKER_WIDTH;
+    picker_height_ = FILE_PICKER_HEIGHT;
+    picker_window_ = x11_.create_simple_window(
+        display_, root, DEFAULT_WINDOW_X + DEFAULT_WINDOW_WIDTH + FLOATING_WINDOW_GAP,
+        DEFAULT_WINDOW_Y + ui::TOPBAR_HEIGHT, static_cast<unsigned int>(picker_width_),
+        static_cast<unsigned int>(picker_height_), 1, palette_.border, palette_.background);
+    x11_.store_name(display_, picker_window_, "Editor Make Files");
+    x11_.select_input(display_, picker_window_,
+                      kExposureMask | kStructureNotifyMask | kKeyPressMask | kButtonPressMask);
+    x11_.set_wm_protocols(display_, picker_window_, &wm_delete_, 1);
+    x11_.map_window(display_, picker_window_);
+    status_ = "files window opened";
+  }
+
+  void close_file_picker() {
+    if (display_ == nullptr || picker_window_ == 0) return;
+    x11_.destroy_window(display_, picker_window_);
+    picker_window_ = 0;
+    picker_hits_.clear();
+  }
+
+  void open_selected_picker_file() {
+    if (picker_selected_ < files_.size()) {
+      open_file(picker_selected_, true);
+      close_file_picker();
+      draw();
+    }
+  }
+
   void open_file(std::size_t index, bool through_registry) {
+    if (index >= files_.size()) return;
     active_file_ = index;
     EditorFile& file = files_[active_file_];
+    if (!load_file(file)) return;
     file.cursor = file.content.size();
+    focus_pane_ = FocusPane::Editor;
     if (through_registry) {
-      last_notice_ = registry_.open_file(file.path);
+      last_notice_ = registry_.open_file(file.path.string());
       last_notice_kind_ = "file";
-      log(notice_text("file", last_notice_));
     }
-    status_ = "focused " + file.path;
+    status_ = "opened " + file.label;
+  }
+
+  bool load_file(EditorFile& file) {
+    std::ifstream in(file.path, std::ios::binary);
+    if (!in) {
+      status_ = "open failed " + file.label;
+      return false;
+    }
+    file.content.assign(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>());
+    file.dirty = false;
+    return true;
+  }
+
+  void save_active() {
+    EditorFile* file = current_file();
+    if (file == nullptr) return;
+    std::ofstream out(file->path, std::ios::binary | std::ios::trunc);
+    if (!out) {
+      status_ = "save failed " + file->label;
+      return;
+    }
+    out << file->content;
+    file->dirty = false;
+    status_ = "saved " + file->label;
+  }
+
+  void open_shell_window() {
+    const pid_t pid = fork();
+    if (pid < 0) {
+      status_ = "shell launch failed";
+      return;
+    }
+    if (pid == 0) {
+      setsid();
+      std::error_code ec;
+      std::filesystem::current_path(root_path_, ec);
+      const std::string root = root_path_.string();
+      const std::string win_root = root_windows_path();
+      execlp("wt.exe", "wt.exe", "-d", win_root.c_str(), nullptr);
+      execlp("gnome-terminal", "gnome-terminal", "--working-directory", root.c_str(), nullptr);
+      execlp("konsole", "konsole", "--workdir", root.c_str(), nullptr);
+      execlp("xfce4-terminal", "xfce4-terminal", "--working-directory", root.c_str(), nullptr);
+      execlp("xterm", "xterm", "-e", "bash", "-lc", "exec \"$SHELL\"", nullptr);
+      _exit(SHELL_LAUNCH_FAILURE_EXIT);
+    }
+    status_ = "floating shell opened at " + root_label();
+  }
+
+  EditorFile* current_file() {
+    if (files_.empty() || active_file_ >= files_.size()) return nullptr;
+    return &files_[active_file_];
+  }
+
+  const EditorFile* current_file() const {
+    if (files_.empty() || active_file_ >= files_.size()) return nullptr;
+    return &files_[active_file_];
   }
 
   void set_focus(FocusPane pane) {
     focus_pane_ = pane;
     status_ = "focus " + pane_name(pane);
-    log(status_);
   }
 
   std::string pane_name(FocusPane pane) const {
     switch (pane) {
-      case FocusPane::Project:
-        return "Project";
       case FocusPane::Editor:
         return "Editor";
       case FocusPane::Notice:
         return "Notice";
-      case FocusPane::Shell:
-        return "Shell";
     }
     return "Editor";
   }
@@ -761,173 +975,114 @@ class NativeEditorApp {
     return "> " + std::string(title);
   }
 
-  void add_root() {
-    last_notice_ = registry_.add_directory_root("/Work/ProjectA/");
-    last_notice_kind_ = "root";
-    status_ = "workspace /work/projecta";
-    log(notice_text("root", last_notice_));
-  }
-
-  void save_active() {
-    EditorFile& file = files_[active_file_];
-    file.dirty = false;
-    status_ = "saved " + file.path;
-    log(status_);
-  }
-
   void run_core_demo() {
     editor_proto::WorkspaceRegistry registry;
     editor_proto::ScrollController scroll;
     registry.open_file("/Repo/src/main.cpp");
     last_notice_ = registry.open_file("\\repo\\src\\main.cpp");
     last_notice_kind_ = "file";
-    const auto root_first = registry.add_directory_root("/Work/ProjectA/");
-    const auto root_second = registry.add_directory_root("/work/projecta");
+    const auto root_first = registry.add_directory_root(root_path_.string());
+    const auto root_second = registry.add_directory_root(root_path_.string() + "/");
     const auto pan = scroll.middle_button_pan(DEMO_SCROLL_OFFSET, DEMO_POINTER_DELTA);
-    status_ = "core demo refreshed";
-    log(notice_text("file", last_notice_));
-    log(notice_text("root:first", root_first));
-    log(notice_text("root:second", root_second));
-    log("scroll:pan offset=" + std::to_string(static_cast<int>(pan.new_offset)) +
-        " velocity=" + std::to_string(static_cast<int>(pan.velocity)));
+    status_ = notice_text("root", root_second) + " offset=" + std::to_string(static_cast<int>(pan.new_offset));
+    (void)root_first;
   }
 
   void insert_text(std::string_view text) {
-    EditorFile& file = files_[active_file_];
-    file.content.insert(file.cursor, text);
-    file.cursor += text.size();
-    file.dirty = true;
-    status_ = "editing " + file.path;
+    EditorFile* file = current_file();
+    if (file == nullptr) return;
+    file->content.insert(file->cursor, text);
+    file->cursor += text.size();
+    file->dirty = true;
+    status_ = "editing " + file->label;
   }
 
-  void log(std::string message) {
-    terminal_.push_back(std::move(message));
-    if (terminal_.size() > MAX_TERMINAL_LOG_LINES) terminal_.erase(terminal_.begin());
-  }
+  void log(std::string message) { status_ = std::move(message); }
 
   void draw() {
     hits_.clear();
-    fill({0, 0, width_, height_}, palette_.background);
+    fill(window_, {0, 0, width_, height_}, palette_.background);
 
     constexpr int topbar_height = ui::TOPBAR_HEIGHT;
     constexpr int status_height = ui::STATUS_HEIGHT;
-    const int terminal_height =
-        height_ < ui::TERMINAL_COMPACT_THRESHOLD ? ui::TERMINAL_COMPACT_HEIGHT
-                                                 : ui::TERMINAL_DEFAULT_HEIGHT;
-    const int main_height = height_ - topbar_height - terminal_height - status_height;
-    const int sidebar_width =
-        width_ < ui::SIDEBAR_COMPACT_THRESHOLD ? ui::SIDEBAR_COMPACT_WIDTH
-                                               : ui::SIDEBAR_DEFAULT_WIDTH;
+    const int main_height = height_ - topbar_height - status_height;
     const int inspector_width =
         width_ < ui::INSPECTOR_COMPACT_THRESHOLD ? ui::INSPECTOR_COMPACT_WIDTH
                                                  : ui::INSPECTOR_DEFAULT_WIDTH;
-    const int editor_width = width_ - sidebar_width - inspector_width;
+    const int editor_width = width_ - inspector_width;
 
     draw_topbar({0, 0, width_, topbar_height});
-    draw_sidebar({0, topbar_height, sidebar_width, main_height});
-    draw_editor({sidebar_width, topbar_height, editor_width, main_height});
-    draw_inspector({sidebar_width + editor_width, topbar_height, inspector_width, main_height});
-    draw_terminal({0, topbar_height + main_height, width_, terminal_height});
+    draw_editor({0, topbar_height, editor_width, main_height});
+    draw_inspector({editor_width, topbar_height, inspector_width, main_height});
     draw_status({0, height_ - status_height, width_, status_height});
     x11_.flush(display_);
   }
 
   void draw_topbar(Rect rect) {
-    fill(rect, palette_.topbar);
-    line(rect.x, rect.y + rect.height - ui::BORDER_OFFSET, rect.x + rect.width,
+    fill(window_, rect, palette_.topbar);
+    line(window_, rect.x, rect.y + rect.height - ui::BORDER_OFFSET, rect.x + rect.width,
          rect.y + rect.height - ui::BORDER_OFFSET, palette_.border);
-    text(rect.x + ui::TOOLBAR_TITLE_X, rect.y + ui::TOOLBAR_BASELINE, "Editor Make Native",
-         palette_.text);
+    text(window_, rect.x + ui::TOOLBAR_TITLE_X, rect.y + ui::TOOLBAR_BASELINE,
+         "Editor Make Native", palette_.text);
 
     int x = rect.x + ui::TOOLBAR_BUTTON_START_X;
-    x = button({x, rect.y + ui::TOOLBAR_BUTTON_TOP, ui::OPEN_BUTTON_WIDTH,
-                ui::TOOLBAR_BUTTON_HEIGHT},
-               "Open", HitAction::OpenFile) +
+    x = button(window_, hits_, {x, rect.y + ui::TOOLBAR_BUTTON_TOP, ui::FILES_BUTTON_WIDTH,
+                               ui::TOOLBAR_BUTTON_HEIGHT},
+               "Files", HitAction::OpenFilesWindow) +
         ui::SMALL_GAP;
-    x = button({x, rect.y + ui::TOOLBAR_BUTTON_TOP, ui::STANDARD_BUTTON_WIDTH,
-                ui::TOOLBAR_BUTTON_HEIGHT},
-               "Root", HitAction::AddRoot) +
-        ui::SMALL_GAP;
-    x = button({x, rect.y + ui::TOOLBAR_BUTTON_TOP, ui::STANDARD_BUTTON_WIDTH,
-                ui::TOOLBAR_BUTTON_HEIGHT},
-               "Split", HitAction::SplitView) +
-        ui::SMALL_GAP;
-    x = button({x, rect.y + ui::TOOLBAR_BUTTON_TOP, ui::STANDARD_BUTTON_WIDTH,
-                ui::TOOLBAR_BUTTON_HEIGHT},
+    x = button(window_, hits_, {x, rect.y + ui::TOOLBAR_BUTTON_TOP, ui::STANDARD_BUTTON_WIDTH,
+                               ui::TOOLBAR_BUTTON_HEIGHT},
                "Save", HitAction::SaveFile) +
         ui::SMALL_GAP;
-    x = button({x, rect.y + ui::TOOLBAR_BUTTON_TOP, ui::DEMO_BUTTON_WIDTH,
-                ui::TOOLBAR_BUTTON_HEIGHT},
+    x = button(window_, hits_, {x, rect.y + ui::TOOLBAR_BUTTON_TOP, ui::SHELL_BUTTON_WIDTH,
+                               ui::TOOLBAR_BUTTON_HEIGHT},
+               "Shell", HitAction::OpenShellWindow) +
+        ui::SMALL_GAP;
+    x = button(window_, hits_, {x, rect.y + ui::TOOLBAR_BUTTON_TOP, ui::DEMO_BUTTON_WIDTH,
+                               ui::TOOLBAR_BUTTON_HEIGHT},
                "Demo", HitAction::RunCore) +
         ui::SMALL_GAP;
-    button({x, rect.y + ui::TOOLBAR_BUTTON_TOP, ui::CLOSE_BUTTON_WIDTH,
-            ui::TOOLBAR_BUTTON_HEIGHT},
+    button(window_, hits_, {x, rect.y + ui::TOOLBAR_BUTTON_TOP, ui::CLOSE_BUTTON_WIDTH,
+                            ui::TOOLBAR_BUTTON_HEIGHT},
            "Close", HitAction::CloseWindow);
-    text(rect.x + rect.width - ui::WORKSPACE_LABEL_RIGHT_PAD, rect.y + ui::TOOLBAR_BASELINE,
-         "workspace /Work/ProjectA", palette_.muted);
-  }
-
-  void draw_sidebar(Rect rect) {
-    fill(rect, palette_.panel);
-    line(rect.x + rect.width - ui::BORDER_OFFSET, rect.y,
-         rect.x + rect.width - ui::BORDER_OFFSET, rect.y + rect.height, palette_.border);
-    text(rect.x + ui::TITLE_X, rect.y + ui::TITLE_BASELINE,
-         pane_title(FocusPane::Project, "Project"), palette_.text);
-    line(rect.x, rect.y + ui::HEADER_BOTTOM, rect.x + rect.width, rect.y + ui::HEADER_BOTTOM,
-         palette_.border);
-    text(rect.x + ui::ROOT_LABEL_X, rect.y + ui::ROOT_LABEL_BASELINE, "/work/projecta",
-         palette_.muted);
-
-    int y = rect.y + ui::FILE_ROW_START_Y;
-    for (std::size_t i = 0; i < files_.size(); ++i) {
-      const bool active = i == active_file_;
-      Rect row{rect.x + ui::ROW_X_INSET, y, rect.width - ui::ROW_WIDTH_INSET, ui::ROW_HEIGHT};
-      if (active) fill(row, palette_.accent);
-      text(rect.x + ui::FILE_ICON_X, y + ui::FILE_ROW_BASELINE, "F",
-           active ? palette_.text : palette_.muted);
-      text(rect.x + ui::FILE_LABEL_X, y + ui::FILE_ROW_BASELINE,
-           truncate(files_[i].label, rect.width - ui::FILE_LABEL_WIDTH_PAD), palette_.text);
-      hits_.push_back({row, HitAction::SelectFile, static_cast<int>(i)});
-      y += ui::ROW_STEP;
-    }
+    text(window_, rect.x + rect.width - ui::WORKSPACE_LABEL_RIGHT_PAD, rect.y + ui::TOOLBAR_BASELINE,
+         truncate(root_label(), ui::WORKSPACE_LABEL_RIGHT_PAD), palette_.muted);
   }
 
   void draw_editor(Rect rect) {
-    fill(rect, palette_.editor);
+    fill(window_, rect, palette_.editor);
     if (focus_pane_ == FocusPane::Editor) {
-      line(rect.x, rect.y, rect.x + rect.width, rect.y, palette_.accent);
+      line(window_, rect.x, rect.y, rect.x + rect.width, rect.y, palette_.accent);
     }
-    line(rect.x + rect.width - ui::BORDER_OFFSET, rect.y,
+    line(window_, rect.x + rect.width - ui::BORDER_OFFSET, rect.y,
          rect.x + rect.width - ui::BORDER_OFFSET, rect.y + rect.height, palette_.border);
-    fill({rect.x, rect.y, rect.width, ui::TAB_HEADER_HEIGHT}, palette_.background);
-    line(rect.x, rect.y + ui::TAB_HEADER_BOTTOM, rect.x + rect.width,
+    fill(window_, {rect.x, rect.y, rect.width, ui::TAB_HEADER_HEIGHT}, palette_.background);
+    line(window_, rect.x, rect.y + ui::TAB_HEADER_BOTTOM, rect.x + rect.width,
          rect.y + ui::TAB_HEADER_BOTTOM, palette_.border);
 
-    int tab_x = rect.x + ui::TAB_START_X;
-    for (std::size_t i = 0; i < files_.size(); ++i) {
-      const bool active = i == active_file_;
-      Rect tab{tab_x, rect.y + ui::TAB_TOP, ui::TAB_WIDTH, ui::TAB_HEIGHT};
-      fill(tab, active ? palette_.accent : palette_.panel);
-      text(tab.x + ui::TAB_LABEL_X, tab.y + ui::TAB_BASELINE,
-           truncate(files_[i].label + (files_[i].dirty ? " *" : ""), ui::TAB_TEXT_WIDTH),
-           palette_.text);
-      hits_.push_back({tab, HitAction::SelectFile, static_cast<int>(i)});
-      tab_x += ui::TAB_STEP;
+    const EditorFile* file = current_file();
+    const std::string title = file == nullptr ? "No file" : file->label + (file->dirty ? " *" : "");
+    text(window_, rect.x + ui::TAB_LABEL_X, rect.y + ui::TAB_BASELINE,
+         truncate(title, rect.width - ui::EDITOR_TEXT_WIDTH_PAD), palette_.text);
+
+    if (file == nullptr) {
+      text(window_, rect.x + ui::EDITOR_TEXT_X, rect.y + ui::EDITOR_FIRST_LINE_Y,
+           "Ctrl+O opens a floating file picker.", palette_.muted);
+      return;
     }
 
-    const EditorFile& file = files_[active_file_];
     int y = rect.y + ui::EDITOR_FIRST_LINE_Y;
     int line_no = 1;
     std::size_t start = 0;
     const int max_lines = std::max(1, (rect.height - ui::EDITOR_BOTTOM_PAD) / ui::TEXT_LINE_HEIGHT);
-    while (start <= file.content.size() && line_no <= max_lines) {
-      const std::size_t end = file.content.find('\n', start);
+    while (start <= file->content.size() && line_no <= max_lines) {
+      const std::size_t end = file->content.find('\n', start);
       const std::string_view line_text =
           end == std::string::npos
-              ? std::string_view(file.content).substr(start)
-              : std::string_view(file.content).substr(start, end - start);
-      text(rect.x + ui::EDITOR_LINE_NUMBER_X, y, std::to_string(line_no), palette_.muted);
-      text(rect.x + ui::EDITOR_TEXT_X, y,
+              ? std::string_view(file->content).substr(start)
+              : std::string_view(file->content).substr(start, end - start);
+      text(window_, rect.x + ui::EDITOR_LINE_NUMBER_X, y, std::to_string(line_no), palette_.muted);
+      text(window_, rect.x + ui::EDITOR_TEXT_X, y,
            truncate(std::string(line_text), rect.width - ui::EDITOR_TEXT_WIDTH_PAD), palette_.text);
       if (end == std::string::npos) break;
       start = end + 1;
@@ -937,86 +1092,94 @@ class NativeEditorApp {
   }
 
   void draw_inspector(Rect rect) {
-    fill(rect, palette_.panel);
-    text(rect.x + ui::TITLE_X, rect.y + ui::TITLE_BASELINE,
-         pane_title(FocusPane::Notice, "Duplicate Notice"), palette_.text);
-    line(rect.x, rect.y + ui::HEADER_BOTTOM, rect.x + rect.width, rect.y + ui::HEADER_BOTTOM,
-         palette_.border);
+    fill(window_, rect, palette_.panel);
+    text(window_, rect.x + ui::TITLE_X, rect.y + ui::TITLE_BASELINE,
+         pane_title(FocusPane::Notice, "File"), palette_.text);
+    line(window_, rect.x, rect.y + ui::HEADER_BOTTOM, rect.x + rect.width,
+         rect.y + ui::HEADER_BOTTOM, palette_.border);
 
-    const bool duplicate = last_notice_.is_duplicate;
+    const EditorFile* file = current_file();
     Rect card{rect.x + ui::NOTICE_CARD_X, rect.y + ui::NOTICE_CARD_Y,
               rect.width - ui::NOTICE_CARD_WIDTH_PAD, ui::NOTICE_CARD_HEIGHT};
-    fill(card, palette_.background);
-    line(card.x, card.y, card.x + card.width, card.y, duplicate ? palette_.warn : palette_.ok);
-    text(card.x + ui::NOTICE_CARD_X, card.y + ui::NOTICE_TITLE_BASELINE,
-         last_notice_kind_ + (duplicate ? " duplicate" : " opened"),
-         duplicate ? palette_.warn : palette_.ok);
-    text(card.x + ui::NOTICE_CARD_X, card.y + ui::NOTICE_PATH_BASELINE,
-         truncate(last_notice_.canonical_path, card.width - ui::NOTICE_CARD_WIDTH_PAD),
-         palette_.text);
-    text(card.x + ui::NOTICE_CARD_X, card.y + ui::NOTICE_ACTIONS_BASELINE,
-         truncate(actions_text(last_notice_.actions), card.width - ui::NOTICE_CARD_WIDTH_PAD),
+    fill(window_, card, palette_.background);
+    line(window_, card.x, card.y, card.x + card.width, card.y,
+         file != nullptr && file->dirty ? palette_.warn : palette_.ok);
+    text(window_, card.x + ui::NOTICE_CARD_X, card.y + ui::NOTICE_TITLE_BASELINE,
+         file == nullptr ? "No file selected" : (file->dirty ? "dirty" : "clean"), palette_.text);
+    text(window_, card.x + ui::NOTICE_CARD_X, card.y + ui::NOTICE_PATH_BASELINE,
+         file == nullptr ? root_label() : truncate(file->path.string(), card.width - ui::NOTICE_CARD_WIDTH_PAD),
          palette_.muted);
-    text(rect.x + ui::TITLE_X, rect.y + ui::CORE_LABEL_BASELINE, "Core", palette_.text);
-    text(rect.x + ui::TITLE_X, rect.y + ui::CORE_DETAIL_BASELINE,
-         "WorkspaceRegistry + ScrollController", palette_.muted);
+    text(window_, card.x + ui::NOTICE_CARD_X, card.y + ui::NOTICE_ACTIONS_BASELINE,
+         truncate(status_, card.width - ui::NOTICE_CARD_WIDTH_PAD), palette_.muted);
+    text(window_, rect.x + ui::TITLE_X, rect.y + ui::CORE_LABEL_BASELINE, "Root", palette_.text);
+    text(window_, rect.x + ui::TITLE_X, rect.y + ui::CORE_DETAIL_BASELINE,
+         truncate(root_label(), rect.width - ui::NOTICE_CARD_WIDTH_PAD), palette_.muted);
   }
 
-  void draw_terminal(Rect rect) {
-    fill(rect, palette_.terminal);
-    line(rect.x, rect.y, rect.x + rect.width, rect.y, palette_.border);
-    text(rect.x + ui::TERMINAL_TITLE_X, rect.y + ui::TERMINAL_TITLE_BASELINE,
-         pane_title(FocusPane::Shell, "Shell"), palette_.text);
-    const int max_lines =
-        std::max(1, (rect.height - ui::TERMINAL_CONTENT_TOP_PAD) / ui::TEXT_LINE_HEIGHT);
-    const std::size_t start =
-        terminal_.size() > static_cast<std::size_t>(max_lines)
-            ? terminal_.size() - static_cast<std::size_t>(max_lines)
-            : 0;
-    int y = rect.y + ui::TERMINAL_CONTENT_TOP;
-    for (std::size_t i = start; i < terminal_.size(); ++i) {
-      text(rect.x + ui::TERMINAL_TITLE_X, y,
-           truncate(terminal_[i], rect.width - ui::TERMINAL_TEXT_WIDTH_PAD), palette_.muted);
-      y += ui::TEXT_LINE_HEIGHT;
+  void draw_file_picker() {
+    if (picker_window_ == 0) return;
+    picker_hits_.clear();
+    fill(picker_window_, {0, 0, picker_width_, picker_height_}, palette_.panel);
+    text(picker_window_, ui::TITLE_X, FILE_PICKER_STATUS_BASELINE, "Files", palette_.text);
+    button(picker_window_, picker_hits_,
+           {FILE_PICKER_CLOSE_X, ui::TOOLBAR_BUTTON_TOP, FILE_PICKER_CLOSE_WIDTH,
+            ui::TOOLBAR_BUTTON_HEIGHT},
+           "Close", HitAction::ClosePicker);
+    text(picker_window_, ui::TITLE_X, FILE_PICKER_ROOT_Y, truncate(root_label(), picker_width_),
+         palette_.muted);
+    line(picker_window_, 0, ui::HEADER_BOTTOM, picker_width_, ui::HEADER_BOTTOM, palette_.border);
+
+    int y = FILE_PICKER_ROW_START_Y;
+    const int max_rows = std::max(1, (picker_height_ - FILE_PICKER_ROW_START_Y) / ui::ROW_STEP);
+    for (std::size_t i = 0; i < files_.size() && static_cast<int>(i) < max_rows; ++i) {
+      Rect row{ui::ROW_X_INSET, y, picker_width_ - ui::ROW_WIDTH_INSET, ui::ROW_HEIGHT};
+      if (i == picker_selected_) fill(picker_window_, row, palette_.accent);
+      text(picker_window_, ui::FILE_ICON_X, y + ui::FILE_ROW_BASELINE, "F", palette_.muted);
+      text(picker_window_, ui::FILE_LABEL_X, y + ui::FILE_ROW_BASELINE,
+           truncate(files_[i].label, picker_width_ - ui::FILE_LABEL_WIDTH_PAD), palette_.text);
+      picker_hits_.push_back({row, HitAction::SelectFile, static_cast<int>(i)});
+      y += ui::ROW_STEP;
     }
+    x11_.flush(display_);
   }
 
   void draw_status(Rect rect) {
-    fill(rect, palette_.topbar);
-    line(rect.x, rect.y, rect.x + rect.width, rect.y, palette_.border);
-    text(rect.x + ui::STATUS_TEXT_X, rect.y + ui::STATUS_BASELINE,
+    fill(window_, rect, palette_.topbar);
+    line(window_, rect.x, rect.y, rect.x + rect.width, rect.y, palette_.border);
+    text(window_, rect.x + ui::STATUS_TEXT_X, rect.y + ui::STATUS_BASELINE,
          truncate(status_, rect.width - ui::STATUS_TEXT_WIDTH_PAD), palette_.muted);
-    text(rect.x + rect.width - ui::STATUS_HINT_RIGHT_PAD, rect.y + ui::STATUS_BASELINE,
-         "Ctrl+1-4 focus  Ctrl+Q close", palette_.muted);
+    text(window_, rect.x + rect.width - ui::STATUS_HINT_RIGHT_PAD, rect.y + ui::STATUS_BASELINE,
+         "Ctrl+O files  Ctrl+S save  Ctrl+@ shell", palette_.muted);
   }
 
-  int button(Rect rect, std::string_view label, HitAction action) {
-    fill(rect, palette_.panel);
-    line(rect.x, rect.y, rect.x + rect.width, rect.y, palette_.border);
-    line(rect.x, rect.y + rect.height - ui::BORDER_OFFSET, rect.x + rect.width,
+  int button(Window target, std::vector<HitRegion>& hits, Rect rect, std::string_view label,
+             HitAction action) {
+    fill(target, rect, palette_.panel);
+    line(target, rect.x, rect.y, rect.x + rect.width, rect.y, palette_.border);
+    line(target, rect.x, rect.y + rect.height - ui::BORDER_OFFSET, rect.x + rect.width,
          rect.y + rect.height - ui::BORDER_OFFSET, palette_.border);
-    text(rect.x + ui::BUTTON_LABEL_X, rect.y + ui::BUTTON_LABEL_BASELINE, std::string(label),
-         palette_.text);
-    hits_.push_back({rect, action, -1});
+    text(target, rect.x + ui::BUTTON_LABEL_X, rect.y + ui::BUTTON_LABEL_BASELINE,
+         std::string(label), palette_.text);
+    hits.push_back({rect, action, -1});
     return rect.x + rect.width;
   }
 
-  void fill(Rect rect, unsigned long color_value) {
+  void fill(Window target, Rect rect, unsigned long color_value) {
     if (rect.width <= 0 || rect.height <= 0) return;
     x11_.set_foreground(display_, gc_, color_value);
-    x11_.fill_rectangle(display_, window_, gc_, rect.x, rect.y, static_cast<unsigned int>(rect.width),
+    x11_.fill_rectangle(display_, target, gc_, rect.x, rect.y, static_cast<unsigned int>(rect.width),
                         static_cast<unsigned int>(rect.height));
   }
 
-  void line(int x1, int y1, int x2, int y2, unsigned long color_value) {
+  void line(Window target, int x1, int y1, int x2, int y2, unsigned long color_value) {
     x11_.set_foreground(display_, gc_, color_value);
-    x11_.draw_line(display_, window_, gc_, x1, y1, x2, y2);
+    x11_.draw_line(display_, target, gc_, x1, y1, x2, y2);
   }
 
-  void text(int x, int y, const std::string& value, unsigned long color_value) {
+  void text(Window target, int x, int y, const std::string& value, unsigned long color_value) {
     if (value.empty()) return;
     x11_.set_foreground(display_, gc_, color_value);
-    x11_.draw_string(display_, window_, gc_, x, y, value.c_str(), static_cast<int>(value.size()));
+    x11_.draw_string(display_, target, gc_, x, y, value.c_str(), static_cast<int>(value.size()));
   }
 
   std::string truncate(const std::string& value, int max_width) const {
@@ -1030,6 +1193,7 @@ class NativeEditorApp {
   Display* display_{};
   int screen_{};
   Window window_{};
+  Window picker_window_{};
   GC gc_{};
   Colormap colormap_{};
   Atom wm_delete_{};
@@ -1037,14 +1201,17 @@ class NativeEditorApp {
   unsigned long white_{};
   Palette palette_{};
 
+  std::filesystem::path root_path_;
   int width_{DEFAULT_WINDOW_WIDTH};
   int height_{DEFAULT_WINDOW_HEIGHT};
-  int split_count_{1};
+  int picker_width_{FILE_PICKER_WIDTH};
+  int picker_height_{FILE_PICKER_HEIGHT};
   std::size_t active_file_{};
+  std::size_t picker_selected_{};
   FocusPane focus_pane_{FocusPane::Editor};
   std::vector<EditorFile> files_;
   std::vector<HitRegion> hits_;
-  std::vector<std::string> terminal_;
+  std::vector<HitRegion> picker_hits_;
   std::string status_{"ready"};
   std::string last_notice_kind_{"file"};
   editor_proto::DuplicateNotice last_notice_;
