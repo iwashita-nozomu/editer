@@ -5,6 +5,9 @@ upstream design ../../agents/workflows/agent-canon-pr-workflow.md agent-canon PR
 @dependency-end
 -->
 
+<!-- Synced to /.github/PULL_REQUEST_TEMPLATE/agent_canon.md by tools/sync_agent_canon.sh link-root. -->
+<!-- Edit vendor/agent-canon/.github/PULL_REQUEST_TEMPLATE/agent_canon.md, not the root copy. -->
+
 ## Summary
 
 - changed shared canon surfaces:
@@ -24,7 +27,10 @@ upstream design ../../agents/workflows/agent-canon-pr-workflow.md agent-canon PR
 - [ ] `bash tools/sync_agent_canon.sh check`
 - [ ] `make agent-canon-pr-check`
 - [ ] `bash tools/agent_tools/run_repo_dependency_review.sh --fail-missing`
-- [ ] GitHub workflow or PR checklist changes were checked for submodule-aware checkout, least-privilege permissions, and review evidence fields.
+- [ ] GitHub workflow changes: every `actions/checkout` job that reads AgentCanon uses `submodules: true`.
+- [ ] GitHub workflow changes: `persist-credentials: false` is set unless the job has documented write intent.
+- [ ] GitHub workflow changes: `permissions:` is set at workflow or job level.
+- [ ] GitHub workflow changes: `concurrency:` is present or explicitly not needed.
 
 Validation output:
 
@@ -38,6 +44,7 @@ paste the key pass lines here
 - removed surfaces:
 - root copy surfaces touched:
 - link spec changes:
+- `.gitmodules` changed / reviewed:
 
 ## Integration
 
@@ -53,6 +60,13 @@ Integration notes:
 
 Upstream sync note:
 
+## Submodule Pin Change
+
+- [ ] Template `vendor/agent-canon` pin changed.
+- [ ] Template `vendor/agent-canon` pin unchanged.
+
+Pin unchanged justification:
+
 ## GitHub Mirror / Submodule Evidence
 
 - AgentCanon GitHub repo: `iwashita-nozomu/agent-canon`
@@ -61,6 +75,8 @@ Upstream sync note:
 - AgentCanon PR URL or commit:
 - template `vendor/agent-canon` pin:
 - AgentCanon GitHub `main` SHA:
+- AgentCanon GitHub SHA:
+- template submodule SHA:
 - template GitHub `main` SHA:
 - local bare mirror SHA:
 - `git submodule status vendor/agent-canon`:
