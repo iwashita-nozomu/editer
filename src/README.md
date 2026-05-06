@@ -27,3 +27,7 @@ cmake --build build/cpp/dev --target editor_proto_cli editor_gui_proto
 build/cpp/dev/bin/editor_proto_cli demo
 build/cpp/dev/bin/editor_gui_proto
 ```
+
+`editor_gui_proto` は Close button、window close control、Esc、または `Ctrl+Q` まで表示を続けます。
+画面フォーカスは `Ctrl+1` Project、`Ctrl+2` Editor、`Ctrl+3` Notice、`Ctrl+4` Shell で切り替えます。
+操作 shortcut は `Ctrl+O` Open、`Ctrl+R` Root、`Ctrl+S` Save、`Ctrl+D` Demo です。

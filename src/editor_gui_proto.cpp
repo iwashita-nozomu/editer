@@ -69,7 +69,6 @@ constexpr int EVENT_LOOP_SLEEP_MS = 12;
 constexpr int KEY_LOOKUP_BUFFER_SIZE = 32;
 constexpr unsigned char FIRST_PRINTABLE_ASCII = 32;
 constexpr std::size_t MAX_TERMINAL_LOG_LINES = 64;
-constexpr int CHECK_NATIVE_DURATION_MS = 500;
 
 namespace ui {
 
@@ -97,6 +96,7 @@ constexpr int TOOLBAR_BUTTON_HEIGHT = 28;
 constexpr int OPEN_BUTTON_WIDTH = 70;
 constexpr int STANDARD_BUTTON_WIDTH = 64;
 constexpr int DEMO_BUTTON_WIDTH = 72;
+constexpr int CLOSE_BUTTON_WIDTH = 72;
 constexpr int WORKSPACE_LABEL_RIGHT_PAD = 210;
 constexpr int ROOT_LABEL_X = 12;
 constexpr int ROOT_LABEL_BASELINE = 66;
@@ -141,8 +141,8 @@ constexpr int TERMINAL_CONTENT_TOP_PAD = 38;
 constexpr int TERMINAL_TEXT_WIDTH_PAD = 24;
 constexpr int STATUS_TEXT_X = 10;
 constexpr int STATUS_BASELINE = 17;
-constexpr int STATUS_TEXT_WIDTH_PAD = 190;
-constexpr int STATUS_HINT_RIGHT_PAD = 150;
+constexpr int STATUS_TEXT_WIDTH_PAD = 310;
+constexpr int STATUS_HINT_RIGHT_PAD = 300;
 constexpr int BUTTON_LABEL_X = 10;
 constexpr int BUTTON_LABEL_BASELINE = 19;
 constexpr int APPROX_CHAR_WIDTH = 8;
@@ -377,7 +377,15 @@ enum class HitAction {
   SplitView,
   SaveFile,
   RunCore,
+  CloseWindow,
   SelectFile,
+};
+
+enum class FocusPane {
+  Project,
+  Editor,
+  Notice,
+  Shell,
 };
 
 struct HitRegion {
@@ -472,7 +480,7 @@ class NativeEditorApp {
     });
   }
 
-  void run(int duration_ms) {
+  void run() {
     display_ = x11_.open_display(nullptr);
     if (display_ == nullptr) {
       const char* display_env = std::getenv("DISPLAY");
@@ -509,9 +517,8 @@ class NativeEditorApp {
     add_root();
     log("native X11 window ready");
     std::cout << "Editor GUI prototype: native X11 window opened\n";
-    std::cout << "Press Ctrl+C in this terminal or close the window to stop.\n" << std::flush;
+    std::cout << "Use the Close button, Esc, or the window close control to stop.\n" << std::flush;
 
-    const auto start = std::chrono::steady_clock::now();
     bool running = true;
     while (running) {
       while (x11_.pending(display_) > 0) {
@@ -519,12 +526,6 @@ class NativeEditorApp {
         x11_.next_event(display_, &event);
         running = handle_event(event);
         if (!running) break;
-      }
-
-      if (duration_ms >= 0) {
-        const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now() - start);
-        if (elapsed.count() >= duration_ms) running = false;
       }
 
       std::this_thread::sleep_for(std::chrono::milliseconds(EVENT_LOOP_SLEEP_MS));
@@ -594,8 +595,7 @@ class NativeEditorApp {
       case kKeyPress:
         return handle_key(event.xkey);
       case kButtonPress:
-        handle_click(event.xbutton);
-        return true;
+        return handle_click(event.xbutton);
       case kClientMessage:
         if (static_cast<Atom>(event.xclient.data.l[0]) == wm_delete_) return false;
         return true;
@@ -610,11 +610,51 @@ class NativeEditorApp {
     const int length = x11_.lookup_string(&key_event, buffer, sizeof(buffer), &key, nullptr);
 
     if (key == kEscape) return false;
-    if ((key_event.state & kControlMask) != 0U && (length == 1) &&
-        (buffer[0] == 's' || buffer[0] == 'S')) {
-      save_active();
-      draw();
-      return true;
+    if ((key_event.state & kControlMask) != 0U && (length == 1)) {
+      switch (buffer[0]) {
+        case '1':
+          set_focus(FocusPane::Project);
+          draw();
+          return true;
+        case '2':
+          set_focus(FocusPane::Editor);
+          draw();
+          return true;
+        case '3':
+          set_focus(FocusPane::Notice);
+          draw();
+          return true;
+        case '4':
+          set_focus(FocusPane::Shell);
+          draw();
+          return true;
+        case 'o':
+        case 'O':
+          open_file(0, true);
+          draw();
+          return true;
+        case 'r':
+        case 'R':
+          add_root();
+          draw();
+          return true;
+        case 's':
+        case 'S':
+          save_active();
+          draw();
+          return true;
+        case 'd':
+        case 'D':
+          run_core_demo();
+          draw();
+          return true;
+        case 'q':
+        case 'Q':
+          status_ = "closing";
+          log("close requested");
+          draw();
+          return false;
+      }
     }
 
     EditorFile& file = files_[active_file_];
@@ -640,16 +680,18 @@ class NativeEditorApp {
     return true;
   }
 
-  void handle_click(const XButtonEvent& event) {
-    if (event.button != kButton1) return;
+  bool handle_click(const XButtonEvent& event) {
+    if (event.button != kButton1) return true;
     for (const HitRegion& hit : hits_) {
       if (!contains(hit.rect, event.x, event.y)) continue;
       switch (hit.action) {
         case HitAction::OpenFile:
           open_file(0, true);
+          focus_pane_ = FocusPane::Editor;
           break;
         case HitAction::AddRoot:
           add_root();
+          focus_pane_ = FocusPane::Project;
           break;
         case HitAction::SplitView:
           ++split_count_;
@@ -658,19 +700,28 @@ class NativeEditorApp {
           break;
         case HitAction::SaveFile:
           save_active();
+          focus_pane_ = FocusPane::Editor;
           break;
         case HitAction::RunCore:
           run_core_demo();
+          focus_pane_ = FocusPane::Notice;
           break;
+        case HitAction::CloseWindow:
+          status_ = "closing";
+          log("close requested");
+          draw();
+          return false;
         case HitAction::SelectFile:
           if (hit.index >= 0 && static_cast<std::size_t>(hit.index) < files_.size()) {
             open_file(static_cast<std::size_t>(hit.index), true);
+            focus_pane_ = FocusPane::Editor;
           }
           break;
       }
       draw();
-      return;
+      return true;
     }
+    return true;
   }
 
   void open_file(std::size_t index, bool through_registry) {
@@ -683,6 +734,31 @@ class NativeEditorApp {
       log(notice_text("file", last_notice_));
     }
     status_ = "focused " + file.path;
+  }
+
+  void set_focus(FocusPane pane) {
+    focus_pane_ = pane;
+    status_ = "focus " + pane_name(pane);
+    log(status_);
+  }
+
+  std::string pane_name(FocusPane pane) const {
+    switch (pane) {
+      case FocusPane::Project:
+        return "Project";
+      case FocusPane::Editor:
+        return "Editor";
+      case FocusPane::Notice:
+        return "Notice";
+      case FocusPane::Shell:
+        return "Shell";
+    }
+    return "Editor";
+  }
+
+  std::string pane_title(FocusPane pane, std::string_view title) const {
+    if (focus_pane_ != pane) return std::string(title);
+    return "> " + std::string(title);
   }
 
   void add_root() {
@@ -780,9 +856,13 @@ class NativeEditorApp {
                 ui::TOOLBAR_BUTTON_HEIGHT},
                "Save", HitAction::SaveFile) +
         ui::SMALL_GAP;
-    button({x, rect.y + ui::TOOLBAR_BUTTON_TOP, ui::DEMO_BUTTON_WIDTH,
+    x = button({x, rect.y + ui::TOOLBAR_BUTTON_TOP, ui::DEMO_BUTTON_WIDTH,
+                ui::TOOLBAR_BUTTON_HEIGHT},
+               "Demo", HitAction::RunCore) +
+        ui::SMALL_GAP;
+    button({x, rect.y + ui::TOOLBAR_BUTTON_TOP, ui::CLOSE_BUTTON_WIDTH,
             ui::TOOLBAR_BUTTON_HEIGHT},
-           "Demo", HitAction::RunCore);
+           "Close", HitAction::CloseWindow);
     text(rect.x + rect.width - ui::WORKSPACE_LABEL_RIGHT_PAD, rect.y + ui::TOOLBAR_BASELINE,
          "workspace /Work/ProjectA", palette_.muted);
   }
@@ -791,7 +871,8 @@ class NativeEditorApp {
     fill(rect, palette_.panel);
     line(rect.x + rect.width - ui::BORDER_OFFSET, rect.y,
          rect.x + rect.width - ui::BORDER_OFFSET, rect.y + rect.height, palette_.border);
-    text(rect.x + ui::TITLE_X, rect.y + ui::TITLE_BASELINE, "Project", palette_.text);
+    text(rect.x + ui::TITLE_X, rect.y + ui::TITLE_BASELINE,
+         pane_title(FocusPane::Project, "Project"), palette_.text);
     line(rect.x, rect.y + ui::HEADER_BOTTOM, rect.x + rect.width, rect.y + ui::HEADER_BOTTOM,
          palette_.border);
     text(rect.x + ui::ROOT_LABEL_X, rect.y + ui::ROOT_LABEL_BASELINE, "/work/projecta",
@@ -813,6 +894,9 @@ class NativeEditorApp {
 
   void draw_editor(Rect rect) {
     fill(rect, palette_.editor);
+    if (focus_pane_ == FocusPane::Editor) {
+      line(rect.x, rect.y, rect.x + rect.width, rect.y, palette_.accent);
+    }
     line(rect.x + rect.width - ui::BORDER_OFFSET, rect.y,
          rect.x + rect.width - ui::BORDER_OFFSET, rect.y + rect.height, palette_.border);
     fill({rect.x, rect.y, rect.width, ui::TAB_HEADER_HEIGHT}, palette_.background);
@@ -854,7 +938,8 @@ class NativeEditorApp {
 
   void draw_inspector(Rect rect) {
     fill(rect, palette_.panel);
-    text(rect.x + ui::TITLE_X, rect.y + ui::TITLE_BASELINE, "Duplicate Notice", palette_.text);
+    text(rect.x + ui::TITLE_X, rect.y + ui::TITLE_BASELINE,
+         pane_title(FocusPane::Notice, "Duplicate Notice"), palette_.text);
     line(rect.x, rect.y + ui::HEADER_BOTTOM, rect.x + rect.width, rect.y + ui::HEADER_BOTTOM,
          palette_.border);
 
@@ -880,8 +965,8 @@ class NativeEditorApp {
   void draw_terminal(Rect rect) {
     fill(rect, palette_.terminal);
     line(rect.x, rect.y, rect.x + rect.width, rect.y, palette_.border);
-    text(rect.x + ui::TERMINAL_TITLE_X, rect.y + ui::TERMINAL_TITLE_BASELINE, "Shell",
-         palette_.text);
+    text(rect.x + ui::TERMINAL_TITLE_X, rect.y + ui::TERMINAL_TITLE_BASELINE,
+         pane_title(FocusPane::Shell, "Shell"), palette_.text);
     const int max_lines =
         std::max(1, (rect.height - ui::TERMINAL_CONTENT_TOP_PAD) / ui::TEXT_LINE_HEIGHT);
     const std::size_t start =
@@ -902,7 +987,7 @@ class NativeEditorApp {
     text(rect.x + ui::STATUS_TEXT_X, rect.y + ui::STATUS_BASELINE,
          truncate(status_, rect.width - ui::STATUS_TEXT_WIDTH_PAD), palette_.muted);
     text(rect.x + rect.width - ui::STATUS_HINT_RIGHT_PAD, rect.y + ui::STATUS_BASELINE,
-         "Ctrl+S save  Esc quit", palette_.muted);
+         "Ctrl+1-4 focus  Ctrl+Q close", palette_.muted);
   }
 
   int button(Rect rect, std::string_view label, HitAction action) {
@@ -956,6 +1041,7 @@ class NativeEditorApp {
   int height_{DEFAULT_WINDOW_HEIGHT};
   int split_count_{1};
   std::size_t active_file_{};
+  FocusPane focus_pane_{FocusPane::Editor};
   std::vector<EditorFile> files_;
   std::vector<HitRegion> hits_;
   std::vector<std::string> terminal_;
@@ -965,25 +1051,13 @@ class NativeEditorApp {
   editor_proto::WorkspaceRegistry registry_;
 };
 
-int parse_duration_ms(const std::string& value) {
-  try {
-    const int duration = std::stoi(value);
-    if (duration < 0) throw std::out_of_range("negative duration");
-    return duration;
-  } catch (const std::exception& exc) {
-    throw std::runtime_error(std::string("invalid duration: ") + exc.what());
-  }
-}
-
 void print_usage() {
-  std::cout << "usage: editor_gui_proto [--smoke|--check-native|--duration-ms MS]\n";
+  std::cout << "usage: editor_gui_proto [--smoke]\n";
 }
 
 }  // namespace
 
 int main(int argc, char** argv) {
-  int duration_ms = -1;
-
   try {
     for (int i = 1; i < argc; ++i) {
       const std::string arg = argv[i];
@@ -996,20 +1070,12 @@ int main(int argc, char** argv) {
         std::cout << demo_text() << "\n";
         return 0;
       }
-      if (arg == "--check-native") {
-        duration_ms = CHECK_NATIVE_DURATION_MS;
-        continue;
-      }
-      if (arg == "--duration-ms" && i + 1 < argc) {
-        duration_ms = parse_duration_ms(argv[++i]);
-        continue;
-      }
       print_usage();
       return 1;
     }
 
     NativeEditorApp app;
-    app.run(duration_ms);
+    app.run();
   } catch (const std::exception& exc) {
     std::cerr << exc.what() << "\n";
     return 1;
