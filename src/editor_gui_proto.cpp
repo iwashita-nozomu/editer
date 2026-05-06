@@ -8,23 +8,28 @@
 
 #include <algorithm>
 #include <array>
+#include <cerrno>
 #include <cctype>
 #include <chrono>
+#include <cstdio>
 #include <csignal>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <dlfcn.h>
+#include <fcntl.h>
 #include <filesystem>
 #include <functional>
 #include <fstream>
 #include <iterator>
 #include <iostream>
+#include <pty.h>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <system_error>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <thread>
 #include <utility>
@@ -128,8 +133,16 @@ constexpr int PROMPT_MIN_CONTENT_WIDTH = 96;
 constexpr int PROMPT_SCROLL_STEP_LINES = 3;
 constexpr char PROMPT_COPY_CONTROL_CHAR = 3;
 constexpr char PROMPT_CLEAR_CONTROL_CHAR = 12;
+constexpr char ANSI_ESCAPE_CHAR = 27;
+constexpr char ANSI_OSC_END_CHAR = 7;
+constexpr char ANSI_STRING_TERMINATOR = '\\';
+constexpr unsigned char ANSI_CSI_FINAL_MIN = 0x40;
+constexpr unsigned char ANSI_CSI_FINAL_MAX = 0x7e;
 constexpr int COMMAND_READ_BUFFER_SIZE = 1024;
 constexpr int CURRENT_EXE_PATH_BUFFER_SIZE = 4096;
+constexpr int CRASH_LOG_PATH_BUFFER_SIZE = 4096;
+constexpr int CRASH_NUMBER_BUFFER_SIZE = 16;
+constexpr unsigned int DECIMAL_BASE = 10U;
 constexpr int HOST_NAME_BUFFER_SIZE = 256;
 constexpr int PIPE_READ_END = 0;
 constexpr int PIPE_WRITE_END = 1;
@@ -149,6 +162,8 @@ constexpr int FONT_CHAR_WIDTH_DENOMINATOR = 7;
 constexpr int MIN_CHAR_WIDTH = 6;
 constexpr int X_FONT_QUERY_LIMIT = 1;
 constexpr int NO_PROCESS_STATUS = -1;
+constexpr int LOG_TEST_PROMPT_EXIT_POLL_ATTEMPTS = 200;
+constexpr int LOG_TEST_PROMPT_EXIT_POLL_MS = 10;
 constexpr int CTRL_PREFIX_LENGTH = 5;
 constexpr char YAML_SECTION_SUFFIX = ':';
 constexpr std::string_view DEFAULT_APP_NAME = "Mado";
@@ -159,6 +174,7 @@ constexpr std::string_view BUILD_BINARY_DIR = "bin";
 constexpr std::string_view UPDATE_TEMP_SUFFIX = ".tmp";
 constexpr std::string_view TEST_WORKSPACE_DIR = "fixtures/mado_workspace";
 constexpr std::string_view DEFAULT_LOG_DIR = ".state/cpp-install/mado/logs";
+constexpr std::string_view CRASH_LOG_FILE = "mado-crash.log";
 constexpr std::string_view LOG_FILE_PREFIX = "mado-";
 constexpr std::string_view LOG_FILE_SUFFIX = ".log";
 constexpr std::string_view MADO_CHECKLIST_FILE = "documents/mado_manual_checklist.md";
@@ -171,6 +187,7 @@ constexpr std::string_view MADO_HOST_LAUNCH_ENV = "MADO_HOST_LAUNCH";
 constexpr std::size_t ROOT_ACCENT_COLOR_COUNT = 6;
 constexpr std::array<const char*, ROOT_ACCENT_COLOR_COUNT> ROOT_ACCENT_COLORS{
     "#4f8cff", "#37a66b", "#d8892c", "#c084fc", "#2dd4bf", "#f472b6"};
+constexpr mode_t CRASH_LOG_FILE_MODE = S_IRUSR | S_IWUSR;
 
 namespace ui {
 
@@ -222,6 +239,9 @@ constexpr int EDITOR_TEXT_X = 56;
 constexpr int EDITOR_TEXT_WIDTH_PAD = 76;
 constexpr int TEXT_LINE_HEIGHT = 17;
 constexpr int EDITOR_BOTTOM_PAD = 74;
+constexpr int EDITOR_CURSOR_WIDTH = 2;
+constexpr int EDITOR_CURSOR_TOP_PAD = 2;
+constexpr int EDITOR_CURSOR_BOTTOM_PAD = 3;
 constexpr int NOTICE_CARD_X = 10;
 constexpr int NOTICE_CARD_Y = 54;
 constexpr int NOTICE_CARD_WIDTH_PAD = 20;
@@ -497,6 +517,14 @@ enum class FocusPane {
   Prompt,
 };
 
+enum class EscapeState {
+  None,
+  Escape,
+  Csi,
+  Osc,
+  OscEscape,
+};
+
 struct HitRegion {
   Rect rect;
   HitAction action;
@@ -509,6 +537,25 @@ struct EditorFile {
   std::string content;
   std::size_t cursor{};
   bool dirty{};
+};
+
+struct PromptTerminal {
+  Window window{};
+  int width{PROMPT_WINDOW_WIDTH};
+  int height{PROMPT_WINDOW_HEIGHT};
+  std::vector<HitRegion> hits;
+  std::vector<std::string> lines;
+  std::string input;
+  std::string partial_output;
+  std::size_t scroll_offset{};
+  bool selection_active{};
+  std::size_t selection_anchor{};
+  std::size_t selection_cursor{};
+  bool partial_line_visible{};
+  EscapeState escape_state{EscapeState::None};
+  pid_t child_pid{NO_PROCESS_STATUS};
+  int child_fd{NO_PROCESS_STATUS};
+  std::size_t id{};
 };
 
 const char* action_name(editor_proto::DuplicateAction action) {
@@ -748,6 +795,84 @@ std::filesystem::path resolve_from_source(const std::filesystem::path& source_ro
   return source_root / path;
 }
 
+char g_crash_log_path[CRASH_LOG_PATH_BUFFER_SIZE]{};
+
+void write_crash_literal(int fd, const char* value) {
+  std::size_t length = 0;
+  while (value[length] != '\0') ++length;
+  (void)write(fd, value, length);
+}
+
+void write_crash_number(int fd, int value) {
+  char digits[CRASH_NUMBER_BUFFER_SIZE]{};
+  std::size_t cursor = 0;
+  unsigned int number = static_cast<unsigned int>(value);
+  if (value < 0) {
+    write_crash_literal(fd, "-");
+    number = static_cast<unsigned int>(-value);
+  }
+  do {
+    digits[cursor++] = static_cast<char>('0' + (number % DECIMAL_BASE));
+    number /= DECIMAL_BASE;
+  } while (number > 0U && cursor < sizeof(digits));
+  while (cursor > 0U) {
+    --cursor;
+    (void)write(fd, &digits[cursor], 1U);
+  }
+}
+
+void crash_signal_handler(int signal_number) {
+  if (g_crash_log_path[0] != '\0') {
+    const int fd =
+        open(g_crash_log_path, O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC, CRASH_LOG_FILE_MODE);
+    if (fd >= 0) {
+      write_crash_literal(fd, "event=crash.signal signal=");
+      write_crash_number(fd, signal_number);
+      write_crash_literal(fd, " pid=");
+      write_crash_number(fd, static_cast<int>(getpid()));
+      write_crash_literal(fd, "\n");
+      close(fd);
+    }
+  }
+  _exit(COMMAND_SIGNAL_STATUS_BASE + signal_number);
+}
+
+std::string crash_log_path_text() { return g_crash_log_path; }
+
+void append_crash_log_event(std::string_view event, std::string_view message) {
+  if (g_crash_log_path[0] == '\0') return;
+  std::ofstream out(g_crash_log_path, std::ios::app);
+  if (!out) return;
+  const auto now = std::chrono::system_clock::now().time_since_epoch();
+  const auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now).count();
+  out << "ts_ms=" << millis << " event=" << event << " message=\"";
+  for (char ch : message) {
+    out << (ch == '\n' || ch == '\r' || ch == '\t' ? ' ' : ch);
+  }
+  out << "\"\n";
+}
+
+void configure_crash_logging(const AppConfig& config) {
+  const std::filesystem::path log_dir = resolve_from_source(config.source_root, config.log_dir);
+  std::error_code ec;
+  std::filesystem::create_directories(log_dir, ec);
+  const std::filesystem::path crash_log_path = log_dir / std::string(CRASH_LOG_FILE);
+  std::snprintf(g_crash_log_path, sizeof(g_crash_log_path), "%s",
+                crash_log_path.string().c_str());
+  append_crash_log_event("crashlog.start", "path=" + crash_log_path.string());
+
+  struct sigaction action {};
+  action.sa_handler = crash_signal_handler;
+  sigemptyset(&action.sa_mask);
+  action.sa_flags = SA_RESETHAND;
+  sigaction(SIGSEGV, &action, nullptr);
+  sigaction(SIGABRT, &action, nullptr);
+  sigaction(SIGFPE, &action, nullptr);
+  sigaction(SIGILL, &action, nullptr);
+  sigaction(SIGBUS, &action, nullptr);
+  sigaction(SIGTERM, &action, nullptr);
+}
+
 std::string current_executable_path() {
   std::array<char, CURRENT_EXE_PATH_BUFFER_SIZE> buffer{};
   const ssize_t count = readlink("/proc/self/exe", buffer.data(), buffer.size() - 1U);
@@ -864,11 +989,14 @@ int run_update(const AppConfig& config, bool restart) {
 
 class NativeEditorApp {
  public:
-  NativeEditorApp(AppConfig config, std::filesystem::path root_path)
-      : config_(std::move(config)), root_path_(std::move(root_path)) {
+  NativeEditorApp(AppConfig config, std::filesystem::path root_path, bool open_files_on_start)
+      : config_(std::move(config)),
+        root_path_(std::move(root_path)),
+        open_files_on_start_(open_files_on_start) {
     refresh_project_files();
     open_runtime_log();
     debug_log("app.start", "root=" + root_label() + " files=" + std::to_string(files_.size()));
+    debug_log("crashlog.path", crash_log_path_text());
   }
 
   void run() {
@@ -912,6 +1040,7 @@ class NativeEditorApp {
     if (files_.empty()) {
       status_ = "no editable files under " + root_label();
     }
+    if (open_files_on_start_) open_file_picker();
     log("native X11 window ready");
     std::cout << config_.app_name << ": native X11 window opened\n";
     if (!active_log_path_.empty()) std::cout << "Log: " << active_log_path_ << "\n";
@@ -927,6 +1056,7 @@ class NativeEditorApp {
         if (!running) break;
       }
 
+      poll_prompt_terminals();
       std::this_thread::sleep_for(std::chrono::milliseconds(EVENT_LOOP_SLEEP_MS));
     }
     debug_log("app.stop", "main window closed");
@@ -936,25 +1066,34 @@ class NativeEditorApp {
     debug_log("logtest.start", "root=" + root_label());
     open_startup_documents();
     debug_log("files.open", "log-test root=" + root_label());
-    debug_log("prompt.open", "log-test root=" + root_label() + " shell=" + shell_path());
-    debug_log("prompt.context", prompt_context_line() + " " + docker_hint_line());
-    append_prompt_line("log-test output line 1");
-    append_prompt_line("log-test output line 2");
-    move_prompt_selection(-1, false);
-    move_prompt_selection(1, true);
-    copy_prompt_selection();
-    debug_log("prompt.close", "log-test");
+    PromptTerminal& terminal = create_prompt_terminal();
+    append_prompt_line(terminal, "log-test output line 1");
+    append_prompt_line(terminal, "log-test output line 2");
+    move_prompt_selection(terminal, -1, false);
+    move_prompt_selection(terminal, 1, true);
+    copy_prompt_selection(terminal);
+    terminal.input = "printf 'pty-log-test\\n'";
+    run_prompt_command(terminal);
+    terminal.input = "exit";
+    run_prompt_command(terminal);
+    const bool prompt_finished = wait_for_prompt_terminal_exit(terminal);
+    const bool pty_output_seen = prompt_contains_text(terminal, "pty-log-test");
+    close_prompt_terminal(0U);
     debug_log("files.close", "log-test");
     debug_log("logtest.finish", "clipboard_bytes=" + std::to_string(prompt_clipboard_.size()));
-    return verify_log_events({"app.start", "logtest.start", "file.open", "files.open",
-                              "prompt.open", "prompt.context", "prompt.output", "prompt.copy",
-                              "prompt.close", "files.close", "logtest.finish"});
+    return verify_log_events({"app.start", "crashlog.path", "logtest.start", "file.open",
+                              "files.open", "prompt.open", "prompt.context", "prompt.output",
+                              "prompt.copy", "prompt.input", "prompt.shell.start",
+                              "prompt.shell.finish", "prompt.close", "files.close",
+                              "logtest.finish"}) &&
+           prompt_finished && pty_output_seen &&
+           verify_crash_log_ready();
   }
 
   ~NativeEditorApp() {
+    while (!terminals_.empty()) close_prompt_terminal(0U);
     if (display_ == nullptr) return;
     close_file_picker();
-    close_prompt_window();
     if (gc_ != nullptr) {
       if (font_ != 0) {
         x11_.unload_font(display_, font_);
@@ -1138,9 +1277,18 @@ class NativeEditorApp {
     return "ssh: eval \"$(mado --ssh-helper <host>)\" then run mado <remote-path>";
   }
 
+  std::size_t find_prompt_terminal_index(Window window) const {
+    if (window == 0) return terminals_.size();
+    for (std::size_t index = 0; index < terminals_.size(); ++index) {
+      if (terminals_[index].window == window) return index;
+    }
+    return terminals_.size();
+  }
+
   bool handle_event(const XEvent& event) {
-    if (prompt_window_ != 0 && event.xany.window == prompt_window_) {
-      return handle_prompt_event(event);
+    const std::size_t terminal_index = find_prompt_terminal_index(event.xany.window);
+    if (terminal_index < terminals_.size()) {
+      return handle_prompt_event(event, terminal_index);
     }
     if (picker_window_ != 0 && event.xany.window == picker_window_) {
       return handle_picker_event(event);
@@ -1191,24 +1339,26 @@ class NativeEditorApp {
     }
   }
 
-  bool handle_prompt_event(const XEvent& event) {
+  bool handle_prompt_event(const XEvent& event, std::size_t terminal_index) {
+    active_terminal_ = terminal_index;
+    PromptTerminal& terminal = terminals_[terminal_index];
     switch (event.type) {
       case kExpose:
-        x11_.set_input_focus(display_, prompt_window_, X_REVERT_TO_PARENT, X_CURRENT_TIME);
-        draw_prompt_window();
+        x11_.set_input_focus(display_, terminal.window, X_REVERT_TO_PARENT, X_CURRENT_TIME);
+        draw_prompt_window(terminal);
         return true;
       case kConfigureNotify:
-        prompt_width_ = event.xconfigure.width;
-        prompt_height_ = event.xconfigure.height;
-        draw_prompt_window();
+        terminal.width = event.xconfigure.width;
+        terminal.height = event.xconfigure.height;
+        draw_prompt_window(terminal);
         return true;
       case kButtonPress:
-        return handle_prompt_click(event.xbutton);
+        return handle_prompt_click(event.xbutton, terminal);
       case kKeyPress:
-        return handle_prompt_key(event.xkey);
+        return handle_prompt_key(event.xkey, terminal);
       case kClientMessage:
         if (static_cast<Atom>(event.xclient.data.l[0]) == wm_delete_) {
-          close_prompt_window();
+          close_prompt_terminal(terminal_index);
         }
         return true;
       default:
@@ -1344,12 +1494,16 @@ class NativeEditorApp {
     return true;
   }
 
-  bool handle_prompt_key(XKeyEvent key_event) {
+  bool handle_prompt_key(XKeyEvent key_event, PromptTerminal& terminal) {
     char buffer[KEY_LOOKUP_BUFFER_SIZE]{};
     KeySym key{};
     const int length = x11_.lookup_string(&key_event, buffer, sizeof(buffer), &key, nullptr);
     if (key == X_KEY_TAB && (key_event.state & kControlMask) != 0U) {
       focus_main_window();
+      return true;
+    }
+    if (matches_binding(key_event, key, buffer, length, config_.keys.prompt)) {
+      open_prompt_window();
       return true;
     }
     if (matches_binding(key_event, key, buffer, length, config_.keys.focus_editor)) {
@@ -1361,39 +1515,40 @@ class NativeEditorApp {
       return true;
     }
     if (key == X_KEY_UP || key == X_KEY_DOWN) {
-      move_prompt_selection(key == X_KEY_UP ? -1 : 1, (key_event.state & kShiftMask) != 0U);
-      draw_prompt_window();
+      move_prompt_selection(terminal, key == X_KEY_UP ? -1 : 1,
+                            (key_event.state & kShiftMask) != 0U);
+      draw_prompt_window(terminal);
       return true;
     }
     if (key == kEscape) {
-      close_prompt_window();
+      close_prompt_terminal(find_prompt_terminal_index(terminal.window));
       return true;
     }
     if (key == kBackSpace) {
-      if (!prompt_input_.empty()) prompt_input_.pop_back();
-      draw_prompt_window();
+      if (!terminal.input.empty()) terminal.input.pop_back();
+      draw_prompt_window(terminal);
       return true;
     }
     if (key == kReturn || key == kKeypadEnter) {
-      run_prompt_command();
-      draw_prompt_window();
+      run_prompt_command(terminal);
+      draw_prompt_window(terminal);
       return true;
     }
     if ((key_event.state & kControlMask) != 0U && length == 1) {
       const char key_char = static_cast<char>(std::tolower(static_cast<unsigned char>(buffer[0])));
       if (key_char == 'c' || buffer[0] == PROMPT_COPY_CONTROL_CHAR) {
-        copy_prompt_selection();
-        draw_prompt_window();
+        copy_prompt_selection(terminal);
+        draw_prompt_window(terminal);
         return true;
       }
       if (key_char == 'q') {
-        close_prompt_window();
+        close_prompt_terminal(find_prompt_terminal_index(terminal.window));
         return true;
       }
       if (key_char == 'l' || buffer[0] == PROMPT_CLEAR_CONTROL_CHAR) {
-        prompt_lines_.clear();
-        prompt_selection_active_ = false;
-        draw_prompt_window();
+        terminal.lines.clear();
+        terminal.selection_active = false;
+        draw_prompt_window(terminal);
         return true;
       }
     }
@@ -1404,8 +1559,8 @@ class NativeEditorApp {
         if (ch < FIRST_PRINTABLE_ASCII && ch != '\t') printable = false;
       }
       if (printable) {
-        prompt_input_ += text;
-        draw_prompt_window();
+        terminal.input += text;
+        draw_prompt_window(terminal);
       }
     }
     return true;
@@ -1472,27 +1627,27 @@ class NativeEditorApp {
     return true;
   }
 
-  bool handle_prompt_click(const XButtonEvent& event) {
+  bool handle_prompt_click(const XButtonEvent& event, PromptTerminal& terminal) {
     if (event.button == X_BUTTON_SCROLL_UP) {
-      scroll_prompt_output(PROMPT_SCROLL_STEP_LINES);
-      draw_prompt_window();
+      scroll_prompt_output(terminal, PROMPT_SCROLL_STEP_LINES);
+      draw_prompt_window(terminal);
       return true;
     }
     if (event.button == X_BUTTON_SCROLL_DOWN) {
-      scroll_prompt_output(-PROMPT_SCROLL_STEP_LINES);
-      draw_prompt_window();
+      scroll_prompt_output(terminal, -PROMPT_SCROLL_STEP_LINES);
+      draw_prompt_window(terminal);
       return true;
     }
     if (event.button != kButton1) return true;
-    for (const HitRegion& hit : prompt_hits_) {
+    for (const HitRegion& hit : terminal.hits) {
       if (!contains(hit.rect, event.x, event.y)) continue;
       if (hit.action == HitAction::ClosePrompt) {
-        close_prompt_window();
+        close_prompt_terminal(find_prompt_terminal_index(terminal.window));
         return true;
       }
       if (hit.action == HitAction::RunPrompt) {
-        run_prompt_command();
-        draw_prompt_window();
+        run_prompt_command(terminal);
+        draw_prompt_window(terminal);
         return true;
       }
     }
@@ -1627,129 +1782,284 @@ class NativeEditorApp {
     debug_log("file.save", "path=" + file->path.string() + " bytes=" + std::to_string(file->content.size()));
   }
 
+  PromptTerminal& create_prompt_terminal() {
+    terminals_.push_back({});
+    PromptTerminal& terminal = terminals_.back();
+    terminal.id = next_terminal_id_++;
+    active_terminal_ = terminals_.size() - 1U;
+    terminal.lines.push_back("root: " + root_label());
+    terminal.lines.push_back(prompt_context_line());
+    terminal.lines.push_back(docker_hint_line());
+    terminal.lines.push_back(ssh_hint_line());
+    terminal.lines.push_back("host-launch: " + host_launch_command(root_path_));
+    terminal.lines.push_back("Enter sends input to this shell. Esc closes this terminal.");
+    scroll_prompt_to_bottom(terminal);
+    status_ = "terminal opened at " + root_label();
+    debug_log("prompt.open", "terminal=" + std::to_string(terminal.id) +
+                                 " root=" + root_label() + " shell=" + shell_path());
+    debug_log("prompt.context", prompt_context_line() + " " + docker_hint_line() + " " +
+                                    ssh_hint_line());
+    start_prompt_shell(terminal);
+    return terminal;
+  }
+
   void open_prompt_window() {
-    if (prompt_window_ != 0) {
-      x11_.raise_window(display_, prompt_window_);
-      x11_.set_input_focus(display_, prompt_window_, X_REVERT_TO_PARENT, X_CURRENT_TIME);
-      draw_prompt_window();
-      status_ = "prompt raised";
-      debug_log("prompt.raise", "root=" + root_label());
+    PromptTerminal& terminal = create_prompt_terminal();
+    const Window root = x11_.root_window(display_, screen_);
+    const int offset =
+        static_cast<int>((terminal.id - 1U) % ROOT_ACCENT_COLOR_COUNT) * FLOATING_WINDOW_GAP;
+    terminal.width = PROMPT_WINDOW_WIDTH;
+    terminal.height = PROMPT_WINDOW_HEIGHT;
+    terminal.window = x11_.create_simple_window(
+        display_, root, DEFAULT_WINDOW_X + FLOATING_WINDOW_GAP + offset,
+        DEFAULT_WINDOW_Y + FLOATING_WINDOW_GAP + offset,
+        static_cast<unsigned int>(terminal.width), static_cast<unsigned int>(terminal.height), 1,
+        palette_.border, palette_.background);
+    const std::string title = config_.app_name + " Terminal #" + std::to_string(terminal.id);
+    x11_.store_name(display_, terminal.window, title.c_str());
+    x11_.select_input(display_, terminal.window,
+                      kExposureMask | kStructureNotifyMask | kKeyPressMask | kButtonPressMask);
+    x11_.set_wm_protocols(display_, terminal.window, &wm_delete_, 1);
+    x11_.map_window(display_, terminal.window);
+    x11_.set_input_focus(display_, terminal.window, X_REVERT_TO_PARENT, X_CURRENT_TIME);
+    focus_pane_ = FocusPane::Prompt;
+    draw_prompt_window(terminal);
+  }
+
+  void close_prompt_terminal(std::size_t index) {
+    if (index >= terminals_.size()) return;
+    PromptTerminal& terminal = terminals_[index];
+    stop_prompt_shell(terminal);
+    if (display_ != nullptr && terminal.window != 0) {
+      x11_.destroy_window(display_, terminal.window);
+    }
+    debug_log("prompt.close", "terminal=" + std::to_string(terminal.id));
+    terminals_.erase(terminals_.begin() + static_cast<std::ptrdiff_t>(index));
+    if (terminals_.empty()) {
+      active_terminal_ = 0U;
+      focus_pane_ = FocusPane::Editor;
+    } else {
+      active_terminal_ = std::min(index, terminals_.size() - 1U);
+    }
+  }
+
+  void run_prompt_command(PromptTerminal& terminal) {
+    if (terminal.input.empty()) return;
+    if (terminal.child_pid <= 0 && !start_prompt_shell(terminal)) return;
+    std::string payload = terminal.input + '\n';
+    terminal.input.clear();
+    std::size_t written = 0;
+    while (written < payload.size()) {
+      const ssize_t count =
+          write(terminal.child_fd, payload.data() + written, payload.size() - written);
+      if (count <= 0) break;
+      written += static_cast<std::size_t>(count);
+    }
+    if (written != payload.size()) {
+      append_prompt_line(terminal, "input write failed");
+      debug_log("prompt.input.error", "terminal=" + std::to_string(terminal.id));
       return;
     }
-
-    const Window root = x11_.root_window(display_, screen_);
-    prompt_width_ = PROMPT_WINDOW_WIDTH;
-    prompt_height_ = PROMPT_WINDOW_HEIGHT;
-    prompt_window_ = x11_.create_simple_window(
-        display_, root, DEFAULT_WINDOW_X + FLOATING_WINDOW_GAP,
-        DEFAULT_WINDOW_Y + FLOATING_WINDOW_GAP,
-        static_cast<unsigned int>(prompt_width_), static_cast<unsigned int>(prompt_height_), 1,
-        palette_.border, palette_.background);
-    const std::string title = config_.app_name + " Prompt";
-    x11_.store_name(display_, prompt_window_, title.c_str());
-    x11_.select_input(display_, prompt_window_,
-                      kExposureMask | kStructureNotifyMask | kKeyPressMask | kButtonPressMask);
-    x11_.set_wm_protocols(display_, prompt_window_, &wm_delete_, 1);
-    prompt_lines_.clear();
-    prompt_lines_.push_back("root: " + root_label());
-    prompt_lines_.push_back(prompt_context_line());
-    prompt_lines_.push_back(docker_hint_line());
-    prompt_lines_.push_back("host-launch: " + host_launch_command(root_path_));
-    prompt_lines_.push_back("Enter runs command. Esc closes this prompt.");
-    scroll_prompt_to_bottom();
-    x11_.map_window(display_, prompt_window_);
-    x11_.raise_window(display_, prompt_window_);
-    focus_pane_ = FocusPane::Prompt;
-    status_ = "prompt opened at " + root_label();
-    debug_log("prompt.open", "root=" + root_label() + " shell=" + shell_path());
-    debug_log("prompt.context", prompt_context_line() + " " + docker_hint_line());
+    status_ = "terminal input sent";
+    debug_log("prompt.input", "terminal=" + std::to_string(terminal.id) +
+                                  " bytes=" + std::to_string(written));
   }
 
-  void close_prompt_window() {
-    if (display_ == nullptr || prompt_window_ == 0) return;
-    x11_.destroy_window(display_, prompt_window_);
-    prompt_window_ = 0;
-    prompt_hits_.clear();
-    focus_pane_ = FocusPane::Editor;
-    debug_log("prompt.close", "closed");
-  }
-
-  void run_prompt_command() {
-    if (prompt_input_.empty()) return;
-    const std::string command = prompt_input_;
-    debug_log("prompt.command.start",
-              "cwd=" + root_path_.string() + " shell=" + shell_path() + " command=" + command);
-    append_prompt_line(shell_name() + " $ " + command);
-    std::string output = run_prompt_shell_command(command);
-    prompt_input_.clear();
-    std::size_t start = 0;
-    while (start <= output.size()) {
-      const std::size_t end = output.find('\n', start);
-      const std::string line =
-          end == std::string::npos ? output.substr(start) : output.substr(start, end - start);
-      if (!line.empty()) append_prompt_line(line);
-      if (end == std::string::npos) break;
-      start = end + 1;
-    }
-    status_ = "prompt command finished";
-    debug_log("prompt.command.finish", "bytes=" + std::to_string(output.size()));
-  }
-
-  std::string run_prompt_shell_command(const std::string& command) {
-    int pipe_fds[2]{};
-    if (pipe(pipe_fds) != 0) return "pipe failed";
-    const pid_t pid = fork();
+  bool start_prompt_shell(PromptTerminal& terminal) {
+    if (terminal.child_pid > 0) return true;
+    int master_fd = NO_PROCESS_STATUS;
+    const pid_t pid = forkpty(&master_fd, nullptr, nullptr, nullptr);
     if (pid < 0) {
-      close(pipe_fds[PIPE_READ_END]);
-      close(pipe_fds[PIPE_WRITE_END]);
-      return "fork failed";
+      append_prompt_line(terminal, "pty fork failed");
+      debug_log("prompt.shell.error", "terminal=" + std::to_string(terminal.id) + " forkpty");
+      return false;
     }
     if (pid == 0) {
-      close(pipe_fds[PIPE_READ_END]);
-      dup2(pipe_fds[PIPE_WRITE_END], STDOUT_FILENO);
-      dup2(pipe_fds[PIPE_WRITE_END], STDERR_FILENO);
-      close(pipe_fds[PIPE_WRITE_END]);
       std::error_code ec;
       std::filesystem::current_path(root_path_, ec);
-      const std::string runtime_bin = current_executable_path();
-      const std::filesystem::path runtime_dir = std::filesystem::path(runtime_bin).parent_path();
-      const char* old_path = std::getenv("PATH");
-      const std::string nested_path =
-          runtime_dir.string() + (old_path == nullptr ? "" : ":" + std::string(old_path));
-      setenv("PATH", nested_path.c_str(), 1);
-      setenv(std::string(MADO_HOST_BINARY_ENV).c_str(), runtime_bin.c_str(), 1);
-      setenv(std::string(MADO_HOST_ROOT_ENV).c_str(), root_path_.string().c_str(), 1);
-      const std::string host_launch = host_launch_command(root_path_);
-      setenv(std::string(MADO_HOST_LAUNCH_ENV).c_str(), host_launch.c_str(), 1);
+      prepare_prompt_child_environment();
+      setenv("TERM", "xterm", 0);
       const std::string shell = shell_path();
-      execlp(shell.c_str(), shell.c_str(), "-lc", command.c_str(), nullptr);
+      execlp(shell.c_str(), shell.c_str(), "-i", nullptr);
       _exit(COMMAND_EXEC_FAILURE_EXIT);
     }
 
-    close(pipe_fds[PIPE_WRITE_END]);
-    std::string output;
-    std::array<char, COMMAND_READ_BUFFER_SIZE> buffer{};
-    while (true) {
-      const ssize_t count = read(pipe_fds[PIPE_READ_END], buffer.data(), buffer.size());
-      if (count <= 0) break;
-      output.append(buffer.data(), static_cast<std::size_t>(count));
-    }
-    close(pipe_fds[PIPE_READ_END]);
-    int status = COMMAND_EXIT_STATUS_OK;
-    waitpid(pid, &status, 0);
-    if (WIFEXITED(status) && WEXITSTATUS(status) != COMMAND_EXIT_STATUS_OK) {
-      output += "exit " + std::to_string(WEXITSTATUS(status)) + "\n";
-    } else if (WIFSIGNALED(status)) {
-      output += "signal " + std::to_string(COMMAND_SIGNAL_STATUS_BASE + WTERMSIG(status)) + "\n";
-    }
-    return output.empty() ? "ok\n" : output;
+    terminal.child_pid = pid;
+    terminal.child_fd = master_fd;
+    const int flags = fcntl(terminal.child_fd, F_GETFL, 0);
+    if (flags >= 0) fcntl(terminal.child_fd, F_SETFL, flags | O_NONBLOCK);
+    append_prompt_line(terminal, shell_name() + " shell started");
+    debug_log("prompt.shell.start", "terminal=" + std::to_string(terminal.id) +
+                                      " cwd=" + root_path_.string() + " shell=" + shell_path());
+    return true;
   }
 
-  void append_prompt_line(std::string line) {
+  void stop_prompt_shell(PromptTerminal& terminal) {
+    if (terminal.child_fd >= 0) {
+      close(terminal.child_fd);
+      terminal.child_fd = NO_PROCESS_STATUS;
+    }
+    if (terminal.child_pid > 0) {
+      kill(terminal.child_pid, SIGHUP);
+      int status = COMMAND_EXIT_STATUS_OK;
+      waitpid(terminal.child_pid, &status, WNOHANG);
+      terminal.child_pid = NO_PROCESS_STATUS;
+    }
+  }
+
+  void prepare_prompt_child_environment() const {
+    const std::string runtime_bin = current_executable_path();
+    const std::filesystem::path runtime_dir = std::filesystem::path(runtime_bin).parent_path();
+    const char* old_path = std::getenv("PATH");
+    const std::string nested_path =
+        runtime_dir.string() + (old_path == nullptr ? "" : ":" + std::string(old_path));
+    setenv("PATH", nested_path.c_str(), 1);
+    setenv(std::string(MADO_HOST_BINARY_ENV).c_str(), runtime_bin.c_str(), 1);
+    setenv(std::string(MADO_HOST_ROOT_ENV).c_str(), root_path_.string().c_str(), 1);
+    const std::string host_launch = host_launch_command(root_path_);
+    setenv(std::string(MADO_HOST_LAUNCH_ENV).c_str(), host_launch.c_str(), 1);
+  }
+
+  bool poll_prompt_terminal(PromptTerminal& terminal) {
+    bool changed = false;
+    if (terminal.child_fd >= 0) {
+      std::array<char, COMMAND_READ_BUFFER_SIZE> buffer{};
+      while (true) {
+        const ssize_t count = read(terminal.child_fd, buffer.data(), buffer.size());
+        if (count > 0) {
+          append_prompt_output_text(
+              terminal, std::string_view(buffer.data(), static_cast<std::size_t>(count)));
+          changed = true;
+          continue;
+        }
+        if (count < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) break;
+        break;
+      }
+    }
+    if (terminal.child_pid > 0) {
+      int status = COMMAND_EXIT_STATUS_OK;
+      const pid_t done = waitpid(terminal.child_pid, &status, WNOHANG);
+      if (done == terminal.child_pid) {
+        if (terminal.child_fd >= 0) {
+          close(terminal.child_fd);
+          terminal.child_fd = NO_PROCESS_STATUS;
+        }
+        terminal.child_pid = NO_PROCESS_STATUS;
+        const std::string result =
+            WIFEXITED(status) ? "exit " + std::to_string(WEXITSTATUS(status))
+                              : "signal " +
+                                    std::to_string(COMMAND_SIGNAL_STATUS_BASE + WTERMSIG(status));
+        append_prompt_line(terminal, result);
+        status_ = "terminal process finished";
+        debug_log("prompt.shell.finish", "terminal=" + std::to_string(terminal.id) + " " + result);
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  void poll_prompt_terminals() {
+    for (PromptTerminal& terminal : terminals_) {
+      if (poll_prompt_terminal(terminal) && terminal.window != 0) draw_prompt_window(terminal);
+    }
+  }
+
+  bool wait_for_prompt_terminal_exit(PromptTerminal& terminal) {
+    for (int attempt = 0; attempt < LOG_TEST_PROMPT_EXIT_POLL_ATTEMPTS &&
+                          terminal.child_pid > 0;
+         ++attempt) {
+      poll_prompt_terminal(terminal);
+      std::this_thread::sleep_for(std::chrono::milliseconds(LOG_TEST_PROMPT_EXIT_POLL_MS));
+    }
+    poll_prompt_terminal(terminal);
+    return terminal.child_pid <= 0;
+  }
+
+  bool prompt_contains_text(const PromptTerminal& terminal, std::string_view needle) const {
+    for (const std::string& line : terminal.lines) {
+      if (line.find(needle) != std::string::npos) return true;
+    }
+    return terminal.partial_output.find(needle) != std::string::npos;
+  }
+
+  void append_prompt_output_text(PromptTerminal& terminal, std::string_view output) {
+    for (char ch : output) {
+      const unsigned char byte = static_cast<unsigned char>(ch);
+      if (terminal.escape_state == EscapeState::Escape) {
+        if (ch == '[') {
+          terminal.escape_state = EscapeState::Csi;
+        } else if (ch == ']') {
+          terminal.escape_state = EscapeState::Osc;
+        } else {
+          terminal.escape_state = EscapeState::None;
+        }
+        continue;
+      }
+      if (terminal.escape_state == EscapeState::Csi) {
+        if (byte >= ANSI_CSI_FINAL_MIN && byte <= ANSI_CSI_FINAL_MAX) {
+          terminal.escape_state = EscapeState::None;
+        }
+        continue;
+      }
+      if (terminal.escape_state == EscapeState::Osc) {
+        if (ch == ANSI_OSC_END_CHAR) {
+          terminal.escape_state = EscapeState::None;
+        } else if (ch == ANSI_ESCAPE_CHAR) {
+          terminal.escape_state = EscapeState::OscEscape;
+        }
+        continue;
+      }
+      if (terminal.escape_state == EscapeState::OscEscape) {
+        terminal.escape_state = ch == ANSI_STRING_TERMINATOR ? EscapeState::None
+                                                             : EscapeState::Osc;
+        continue;
+      }
+      if (ch == ANSI_ESCAPE_CHAR) {
+        terminal.escape_state = EscapeState::Escape;
+        continue;
+      }
+      if (ch == '\r') continue;
+      if (ch == '\b') {
+        if (!terminal.partial_output.empty()) terminal.partial_output.pop_back();
+        continue;
+      }
+      if (ch == '\n') {
+        if (!terminal.partial_output.empty()) {
+          if (terminal.partial_line_visible && !terminal.lines.empty()) {
+            terminal.lines.back() = terminal.partial_output;
+            debug_log("prompt.output", terminal.partial_output);
+          } else {
+            append_prompt_line(terminal, terminal.partial_output);
+          }
+          terminal.partial_output.clear();
+          terminal.partial_line_visible = false;
+        }
+        continue;
+      }
+      if (byte >= FIRST_PRINTABLE_ASCII || ch == '\t') {
+        terminal.partial_output.push_back(ch);
+      }
+    }
+    if (!terminal.partial_output.empty()) {
+      if (terminal.partial_line_visible && !terminal.lines.empty()) {
+        terminal.lines.back() = terminal.partial_output;
+        debug_log("prompt.output", terminal.partial_output);
+      } else {
+        append_prompt_line(terminal, terminal.partial_output);
+        terminal.partial_line_visible = true;
+      }
+    }
+  }
+
+  void append_prompt_line(PromptTerminal& terminal, std::string line) {
+    terminal.partial_line_visible = false;
     debug_log("prompt.output", line);
-    prompt_lines_.push_back(std::move(line));
-    if (prompt_lines_.size() > MAX_PROMPT_LINES) prompt_lines_.erase(prompt_lines_.begin());
-    scroll_prompt_to_bottom();
+    terminal.lines.push_back(std::move(line));
+    if (terminal.lines.size() > MAX_PROMPT_LINES) {
+      terminal.lines.erase(terminal.lines.begin());
+      terminal.selection_active = false;
+    }
+    scroll_prompt_to_bottom(terminal);
   }
 
   std::string shell_path() const {
@@ -1768,92 +2078,93 @@ class NativeEditorApp {
     return "shell: " + shell_name() + " (" + shell_path() + ")";
   }
 
-  int prompt_visible_rows() const {
-    return std::max(1, (prompt_height_ - PROMPT_OUTPUT_Y - PROMPT_OUTPUT_BOTTOM_PAD) /
+  int prompt_visible_rows(const PromptTerminal& terminal) const {
+    return std::max(1, (terminal.height - PROMPT_OUTPUT_Y - PROMPT_OUTPUT_BOTTOM_PAD) /
                            line_height());
   }
 
-  std::size_t max_prompt_scroll_offset() const {
-    const std::size_t visible = static_cast<std::size_t>(prompt_visible_rows());
-    return prompt_lines_.size() > visible ? prompt_lines_.size() - visible : 0U;
+  std::size_t max_prompt_scroll_offset(const PromptTerminal& terminal) const {
+    const std::size_t visible = static_cast<std::size_t>(prompt_visible_rows(terminal));
+    return terminal.lines.size() > visible ? terminal.lines.size() - visible : 0U;
   }
 
-  void scroll_prompt_to_bottom() { prompt_scroll_offset_ = 0U; }
+  void scroll_prompt_to_bottom(PromptTerminal& terminal) { terminal.scroll_offset = 0U; }
 
-  void scroll_prompt_output(int delta) {
-    const std::size_t max_offset = max_prompt_scroll_offset();
+  void scroll_prompt_output(PromptTerminal& terminal, int delta) {
+    const std::size_t max_offset = max_prompt_scroll_offset(terminal);
     if (delta > 0) {
-      prompt_scroll_offset_ =
-          std::min(max_offset, prompt_scroll_offset_ + static_cast<std::size_t>(delta));
+      terminal.scroll_offset =
+          std::min(max_offset, terminal.scroll_offset + static_cast<std::size_t>(delta));
       return;
     }
     const std::size_t amount = static_cast<std::size_t>(-delta);
-    prompt_scroll_offset_ = amount > prompt_scroll_offset_ ? 0U : prompt_scroll_offset_ - amount;
+    terminal.scroll_offset = amount > terminal.scroll_offset ? 0U : terminal.scroll_offset - amount;
   }
 
-  void move_prompt_selection(int delta, bool extend) {
-    if (prompt_lines_.empty()) return;
-    if (!prompt_selection_active_) {
-      prompt_selection_cursor_ = prompt_lines_.size() - 1U;
-      prompt_selection_anchor_ = prompt_selection_cursor_;
-      prompt_selection_active_ = true;
+  void move_prompt_selection(PromptTerminal& terminal, int delta, bool extend) {
+    if (terminal.lines.empty()) return;
+    if (!terminal.selection_active) {
+      terminal.selection_cursor = terminal.lines.size() - 1U;
+      terminal.selection_anchor = terminal.selection_cursor;
+      terminal.selection_active = true;
     }
     if (delta < 0) {
       const std::size_t amount = static_cast<std::size_t>(-delta);
-      prompt_selection_cursor_ =
-          amount > prompt_selection_cursor_ ? 0U : prompt_selection_cursor_ - amount;
+      terminal.selection_cursor =
+          amount > terminal.selection_cursor ? 0U : terminal.selection_cursor - amount;
     } else {
-      prompt_selection_cursor_ =
-          std::min(prompt_lines_.size() - 1U,
-                   prompt_selection_cursor_ + static_cast<std::size_t>(delta));
+      terminal.selection_cursor =
+          std::min(terminal.lines.size() - 1U,
+                   terminal.selection_cursor + static_cast<std::size_t>(delta));
     }
-    if (!extend) prompt_selection_anchor_ = prompt_selection_cursor_;
-    ensure_prompt_line_visible(prompt_selection_cursor_);
+    if (!extend) terminal.selection_anchor = terminal.selection_cursor;
+    ensure_prompt_line_visible(terminal, terminal.selection_cursor);
     status_ = "prompt output selected";
   }
 
-  void ensure_prompt_line_visible(std::size_t index) {
-    if (prompt_lines_.empty()) return;
-    const std::size_t visible = static_cast<std::size_t>(prompt_visible_rows());
-    const std::size_t end = prompt_lines_.size() - prompt_scroll_offset_;
+  void ensure_prompt_line_visible(PromptTerminal& terminal, std::size_t index) {
+    if (terminal.lines.empty()) return;
+    const std::size_t visible = static_cast<std::size_t>(prompt_visible_rows(terminal));
+    const std::size_t end = terminal.lines.size() - terminal.scroll_offset;
     const std::size_t start = end > visible ? end - visible : 0U;
     if (index >= start && index < end) return;
     const std::size_t wanted_end =
-        index < start ? std::min(prompt_lines_.size(), index + visible) : index + 1U;
-    prompt_scroll_offset_ = prompt_lines_.size() - wanted_end;
+        index < start ? std::min(terminal.lines.size(), index + visible) : index + 1U;
+    terminal.scroll_offset = terminal.lines.size() - wanted_end;
   }
 
-  std::pair<std::size_t, std::size_t> prompt_selection_range() const {
-    if (!prompt_selection_active_ || prompt_lines_.empty()) return {0U, 0U};
-    const std::size_t first = std::min(prompt_selection_anchor_, prompt_selection_cursor_);
-    const std::size_t last = std::max(prompt_selection_anchor_, prompt_selection_cursor_);
-    return {first, std::min(last, prompt_lines_.size() - 1U)};
+  std::pair<std::size_t, std::size_t> prompt_selection_range(
+      const PromptTerminal& terminal) const {
+    if (!terminal.selection_active || terminal.lines.empty()) return {0U, 0U};
+    const std::size_t first = std::min(terminal.selection_anchor, terminal.selection_cursor);
+    const std::size_t last = std::max(terminal.selection_anchor, terminal.selection_cursor);
+    return {first, std::min(last, terminal.lines.size() - 1U)};
   }
 
-  bool prompt_line_selected(std::size_t index) const {
-    if (!prompt_selection_active_ || prompt_lines_.empty()) return false;
-    const auto [first, last] = prompt_selection_range();
+  bool prompt_line_selected(const PromptTerminal& terminal, std::size_t index) const {
+    if (!terminal.selection_active || terminal.lines.empty()) return false;
+    const auto [first, last] = prompt_selection_range(terminal);
     return index >= first && index <= last;
   }
 
-  std::string selected_prompt_text() const {
-    if (!prompt_selection_active_ || prompt_lines_.empty()) return {};
-    const auto [first, last] = prompt_selection_range();
+  std::string selected_prompt_text(const PromptTerminal& terminal) const {
+    if (!terminal.selection_active || terminal.lines.empty()) return {};
+    const auto [first, last] = prompt_selection_range(terminal);
     std::ostringstream out;
     for (std::size_t index = first; index <= last; ++index) {
       if (index > first) out << '\n';
-      out << prompt_lines_[index];
+      out << terminal.lines[index];
     }
     return out.str();
   }
 
-  void copy_prompt_selection() {
-    std::string selected = selected_prompt_text();
-    if (selected.empty() && !prompt_lines_.empty()) {
-      selected = prompt_lines_.back();
-      prompt_selection_anchor_ = prompt_lines_.size() - 1U;
-      prompt_selection_cursor_ = prompt_selection_anchor_;
-      prompt_selection_active_ = true;
+  void copy_prompt_selection(PromptTerminal& terminal) {
+    std::string selected = selected_prompt_text(terminal);
+    if (selected.empty() && !terminal.lines.empty()) {
+      selected = terminal.lines.back();
+      terminal.selection_anchor = terminal.lines.size() - 1U;
+      terminal.selection_cursor = terminal.selection_anchor;
+      terminal.selection_active = true;
     }
     if (selected.empty()) return;
     prompt_clipboard_ = selected;
@@ -1942,12 +2253,17 @@ class NativeEditorApp {
   }
 
   void focus_prompt_window() {
-    open_prompt_window();
-    if (display_ == nullptr || prompt_window_ == 0) return;
-    x11_.set_input_focus(display_, prompt_window_, X_REVERT_TO_PARENT, X_CURRENT_TIME);
-    status_ = "prompt window focused";
-    debug_log("window.focus", "prompt");
-    draw_prompt_window();
+    if (terminals_.empty()) {
+      open_prompt_window();
+      return;
+    }
+    active_terminal_ = std::min(active_terminal_, terminals_.size() - 1U);
+    PromptTerminal& terminal = terminals_[active_terminal_];
+    if (display_ == nullptr || terminal.window == 0) return;
+    x11_.set_input_focus(display_, terminal.window, X_REVERT_TO_PARENT, X_CURRENT_TIME);
+    status_ = "terminal window focused";
+    debug_log("window.focus", "prompt terminal=" + std::to_string(terminal.id));
+    draw_prompt_window(terminal);
   }
 
   std::string pane_name(FocusPane pane) const {
@@ -2066,6 +2382,24 @@ class NativeEditorApp {
     return ok;
   }
 
+  bool verify_crash_log_ready() {
+    const std::string path = crash_log_path_text();
+    if (path.empty()) {
+      std::cerr << "crash-log: no configured path\n";
+      return false;
+    }
+    std::ifstream in(path);
+    if (!in) {
+      std::cerr << "crash-log: failed to read " << path << "\n";
+      return false;
+    }
+    const std::string content((std::istreambuf_iterator<char>(in)),
+                              std::istreambuf_iterator<char>());
+    const bool ok = content.find("event=crashlog.start") != std::string::npos;
+    std::cout << "crash-log: " << (ok ? "pass " : "fail ") << path << "\n";
+    return ok;
+  }
+
   void draw() {
     hits_.clear();
     fill(window_, {0, 0, width_, height_}, palette_.background);
@@ -2164,9 +2498,22 @@ class NativeEditorApp {
           end == std::string::npos
               ? std::string_view(file->content).substr(start)
               : std::string_view(file->content).substr(start, end - start);
+      const std::size_t line_end = end == std::string::npos ? file->content.size() : end;
       text(window_, rect.x + ui::EDITOR_LINE_NUMBER_X, y, std::to_string(line_no), palette_.muted);
       text(window_, rect.x + ui::EDITOR_TEXT_X, y,
            truncate(std::string(line_text), rect.width - ui::EDITOR_TEXT_WIDTH_PAD), palette_.text);
+      if (file->cursor >= start && file->cursor <= line_end) {
+        const std::size_t column = file->cursor - start;
+        const int max_cursor_columns =
+            std::max(0, (rect.width - ui::EDITOR_TEXT_WIDTH_PAD) / char_width());
+        const int cursor_column =
+            std::min(static_cast<int>(column), std::max(0, max_cursor_columns));
+        const int cursor_x = rect.x + ui::EDITOR_TEXT_X + cursor_column * char_width();
+        fill(window_,
+             {cursor_x, y - line_height() + ui::EDITOR_CURSOR_TOP_PAD, ui::EDITOR_CURSOR_WIDTH,
+              line_height() - ui::EDITOR_CURSOR_BOTTOM_PAD},
+             palette_.accent);
+      }
       if (end == std::string::npos) break;
       start = end + 1;
       y += line_height();
@@ -2228,55 +2575,56 @@ class NativeEditorApp {
     x11_.flush(display_);
   }
 
-  void draw_prompt_window() {
-    if (prompt_window_ == 0) return;
-    prompt_hits_.clear();
-    fill(prompt_window_, {0, 0, prompt_width_, prompt_height_}, palette_.panel);
-    text(prompt_window_, ui::TITLE_X, FILE_PICKER_STATUS_BASELINE,
-         pane_title(FocusPane::Prompt, "Prompt"), palette_.text);
+  void draw_prompt_window(PromptTerminal& terminal) {
+    if (terminal.window == 0) return;
+    terminal.hits.clear();
+    fill(terminal.window, {0, 0, terminal.width, terminal.height}, palette_.panel);
+    text(terminal.window, ui::TITLE_X, FILE_PICKER_STATUS_BASELINE,
+         pane_title(FocusPane::Prompt, "Terminal #" + std::to_string(terminal.id)), palette_.text);
 
     const int close_x =
-        std::max(ui::TITLE_X, prompt_width_ - PROMPT_CLOSE_WIDTH - PROMPT_BUTTON_RIGHT_PAD);
+        std::max(ui::TITLE_X, terminal.width - PROMPT_CLOSE_WIDTH - PROMPT_BUTTON_RIGHT_PAD);
     const int run_x = std::max(ui::TITLE_X, close_x - PROMPT_RUN_WIDTH - PROMPT_BUTTON_GAP);
-    button(prompt_window_, prompt_hits_,
+    button(terminal.window, terminal.hits,
            {run_x, ui::TOOLBAR_BUTTON_TOP, PROMPT_RUN_WIDTH, ui::TOOLBAR_BUTTON_HEIGHT}, "Run",
            HitAction::RunPrompt);
-    button(prompt_window_, prompt_hits_,
+    button(terminal.window, terminal.hits,
            {close_x, ui::TOOLBAR_BUTTON_TOP, PROMPT_CLOSE_WIDTH, ui::TOOLBAR_BUTTON_HEIGHT},
            "Close", HitAction::ClosePrompt);
-    line(prompt_window_, 0, ui::HEADER_BOTTOM, prompt_width_, ui::HEADER_BOTTOM, palette_.border);
-    line(prompt_window_, 0, ui::HEADER_BOTTOM - ui::BORDER_OFFSET, prompt_width_,
+    line(terminal.window, 0, ui::HEADER_BOTTOM, terminal.width, ui::HEADER_BOTTOM,
+         palette_.border);
+    line(terminal.window, 0, ui::HEADER_BOTTOM - ui::BORDER_OFFSET, terminal.width,
          ui::HEADER_BOTTOM - ui::BORDER_OFFSET, palette_.root_accent);
 
     const int content_width =
-        std::max(PROMPT_MIN_CONTENT_WIDTH, prompt_width_ - ui::TITLE_X - ui::TITLE_X);
-    text(prompt_window_, ui::TITLE_X, PROMPT_ROOT_Y, truncate("root: " + root_label(), content_width),
-         palette_.muted);
-    text(prompt_window_, ui::TITLE_X, PROMPT_SHELL_Y, truncate(shell_status_line(), content_width),
-         palette_.muted);
+        std::max(PROMPT_MIN_CONTENT_WIDTH, terminal.width - ui::TITLE_X - ui::TITLE_X);
+    text(terminal.window, ui::TITLE_X, PROMPT_ROOT_Y,
+         truncate("root: " + root_label(), content_width), palette_.muted);
+    text(terminal.window, ui::TITLE_X, PROMPT_SHELL_Y,
+         truncate(shell_status_line(), content_width), palette_.muted);
 
     const Rect input{ui::TITLE_X, PROMPT_INPUT_Y, content_width, PROMPT_INPUT_HEIGHT};
-    fill(prompt_window_, input, palette_.background);
-    line(prompt_window_, input.x, input.y, input.x + input.width, input.y, palette_.border);
-    line(prompt_window_, input.x, input.y + input.height - ui::BORDER_OFFSET,
+    fill(terminal.window, input, palette_.background);
+    line(terminal.window, input.x, input.y, input.x + input.width, input.y, palette_.border);
+    line(terminal.window, input.x, input.y + input.height - ui::BORDER_OFFSET,
          input.x + input.width, input.y + input.height - ui::BORDER_OFFSET, palette_.border);
-    text(prompt_window_, input.x + ui::BUTTON_LABEL_X,
-         input.y + ui::BUTTON_LABEL_BASELINE, truncate("> " + prompt_input_ + "_", content_width),
+    text(terminal.window, input.x + ui::BUTTON_LABEL_X,
+         input.y + ui::BUTTON_LABEL_BASELINE, truncate("> " + terminal.input + "_", content_width),
          palette_.text);
 
-    const int max_rows = prompt_visible_rows();
+    const int max_rows = prompt_visible_rows(terminal);
     const std::size_t visible =
-        std::min(prompt_lines_.size(), static_cast<std::size_t>(max_rows));
-    prompt_scroll_offset_ = std::min(prompt_scroll_offset_, max_prompt_scroll_offset());
-    const std::size_t end = prompt_lines_.size() - prompt_scroll_offset_;
+        std::min(terminal.lines.size(), static_cast<std::size_t>(max_rows));
+    terminal.scroll_offset = std::min(terminal.scroll_offset, max_prompt_scroll_offset(terminal));
+    const std::size_t end = terminal.lines.size() - terminal.scroll_offset;
     const std::size_t start = end > visible ? end - visible : 0U;
     int y = PROMPT_OUTPUT_Y;
     for (std::size_t i = start; i < end; ++i) {
       const Rect line_rect{ui::TITLE_X, y - line_height() + ui::BORDER_OFFSET, content_width,
                            line_height()};
-      if (prompt_line_selected(i)) fill(prompt_window_, line_rect, palette_.accent);
-      text(prompt_window_, ui::TITLE_X, y, truncate(prompt_lines_[i], content_width),
-           prompt_line_selected(i) ? palette_.text : palette_.muted);
+      if (prompt_line_selected(terminal, i)) fill(terminal.window, line_rect, palette_.accent);
+      text(terminal.window, ui::TITLE_X, y, truncate(terminal.lines[i], content_width),
+           prompt_line_selected(terminal, i) ? palette_.text : palette_.muted);
       y += line_height();
     }
     x11_.flush(display_);
@@ -2338,7 +2686,6 @@ class NativeEditorApp {
   int screen_{};
   Window window_{};
   Window picker_window_{};
-  Window prompt_window_{};
   GC gc_{};
   Colormap colormap_{};
   Atom wm_delete_{};
@@ -2353,26 +2700,21 @@ class NativeEditorApp {
   int height_{DEFAULT_WINDOW_HEIGHT};
   int picker_width_{FILE_PICKER_WIDTH};
   int picker_height_{FILE_PICKER_HEIGHT};
-  int prompt_width_{PROMPT_WINDOW_WIDTH};
-  int prompt_height_{PROMPT_WINDOW_HEIGHT};
   std::size_t active_file_{};
   std::size_t picker_selected_{};
-  std::size_t prompt_scroll_offset_{};
+  std::size_t active_terminal_{};
   FocusPane focus_pane_{FocusPane::Editor};
   std::vector<EditorFile> files_;
   std::vector<HitRegion> hits_;
   std::vector<HitRegion> picker_hits_;
-  std::vector<HitRegion> prompt_hits_;
   std::vector<std::size_t> open_tabs_;
-  std::vector<std::string> prompt_lines_;
-  std::string prompt_input_;
+  std::vector<PromptTerminal> terminals_;
   std::string prompt_clipboard_;
   std::string status_{"ready"};
   std::ofstream log_stream_;
   std::filesystem::path active_log_path_;
-  bool prompt_selection_active_{};
-  std::size_t prompt_selection_anchor_{};
-  std::size_t prompt_selection_cursor_{};
+  std::size_t next_terminal_id_{1U};
+  bool open_files_on_start_{};
   std::string last_notice_kind_{"file"};
   editor_proto::DuplicateNotice last_notice_;
   editor_proto::WorkspaceRegistry registry_;
@@ -2381,7 +2723,8 @@ class NativeEditorApp {
 void print_usage() {
   std::cout << "usage: mado [--config path] [--root path|--test-workspace] "
                "[--update] [--no-restart] [--smoke] [--log] [--log-test] "
-               "[--log-file path] [--no-log] [--host-launch] [--ssh-helper host]\n";
+               "[--log-file path] [--no-log] [--files] [--host-launch] "
+               "[--ssh-helper host]\n";
 }
 
 }  // namespace
@@ -2400,6 +2743,7 @@ int main(int argc, char** argv) {
     bool log_test = false;
     bool host_launch = false;
     bool ssh_helper = false;
+    bool open_files_on_start = false;
     std::string ssh_helper_host;
     std::filesystem::path log_file_path;
     std::filesystem::path root_path = std::filesystem::current_path();
@@ -2432,6 +2776,8 @@ int main(int argc, char** argv) {
         log_file_set = true;
       } else if (arg == "--no-log") {
         log_disabled = true;
+      } else if (arg == "--files" || arg == "--open-files") {
+        open_files_on_start = true;
       } else if (arg == "--host-launch") {
         host_launch = true;
       } else if (arg == "--ssh-helper") {
@@ -2467,6 +2813,7 @@ int main(int argc, char** argv) {
       std::error_code ec;
       std::filesystem::remove(config.log_file, ec);
     }
+    configure_crash_logging(config);
     if (smoke) {
       std::cout << config.app_name << " native smoke ok\n";
       std::cout << demo_text() << "\n";
@@ -2478,13 +2825,15 @@ int main(int argc, char** argv) {
           resolve_from_source(config.source_root, std::filesystem::path(std::string(TEST_WORKSPACE_DIR)));
     }
 
-    NativeEditorApp app(std::move(config), std::filesystem::absolute(root_path));
+    NativeEditorApp app(std::move(config), std::filesystem::absolute(root_path),
+                        open_files_on_start);
     if (host_launch) {
       std::cout << "Mado host launch root=" << std::filesystem::absolute(root_path) << "\n";
     }
     if (log_test) return app.run_log_test() ? 0 : 1;
     app.run();
   } catch (const std::exception& exc) {
+    append_crash_log_event("exception", exc.what());
     std::cerr << exc.what() << "\n";
     return 1;
   }

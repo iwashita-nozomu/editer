@@ -58,14 +58,14 @@ add_executable(
   editor_gui_proto
   src/editor_gui_proto.cpp
 )
-target_link_libraries(editor_gui_proto PRIVATE editor_proto ${CMAKE_DL_LIBS})
+target_link_libraries(editor_gui_proto PRIVATE editor_proto ${CMAKE_DL_LIBS} util)
 install(TARGETS editor_gui_proto RUNTIME DESTINATION bin)
 
 add_executable(
   mado
   src/editor_gui_proto.cpp
 )
-target_link_libraries(mado PRIVATE editor_proto ${CMAKE_DL_LIBS})
+target_link_libraries(mado PRIVATE editor_proto ${CMAKE_DL_LIBS} util)
 
 set(MADO_RUNTIME_BINARY "${CMAKE_CURRENT_SOURCE_DIR}/.state/cpp-install/mado/bin/mado")
 foreach(mado_target editor_gui_proto mado)
