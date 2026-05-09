@@ -69,6 +69,7 @@ PopupId PopupSessionChain::create_popup(PopupLaunchRequest request) {
   session.launch_context = std::move(request.launch_context);
   session.file_path = std::move(request.file_path);
   session.popup_window = request.popup_window;
+  session.launch_budget_ms = request.launch_budget_ms;
   session.log = PopupLogBuffer(log_config_);
 
   const PopupId id = session.id;
@@ -96,6 +97,7 @@ PopupId PopupSessionChain::create_file_popup(std::optional<PopupId> parent_id, s
   request.root = std::move(root);
   request.launch_context = "mado file";
   request.file_path = std::move(file_path);
+  request.launch_budget_ms = kDefaultPopupLaunchBudgetMs;
   const PopupId id = create_popup(std::move(request));
   append_log(id, PopupLogKind::FileOpen, "opened file popup");
   return id;
@@ -190,9 +192,7 @@ const char* popup_log_kind_name(PopupLogKind kind) noexcept {
   return "unknown";
 }
 
-const char* terminal_log_kind_name(TerminalLogKind kind) noexcept {
-  return popup_log_kind_name(kind);
-}
+const char* terminal_log_kind_name(TerminalLogKind kind) noexcept { return popup_log_kind_name(kind); }
 
 std::string make_child_popup_title(std::string_view parent_title, std::string_view child_context) {
   std::ostringstream title;
