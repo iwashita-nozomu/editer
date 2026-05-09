@@ -1,5 +1,5 @@
 // @dependency-start
-// responsibility Validates popup session links, cascade close, launch budget, and bounded logs.
+// responsibility Validates popup session links, cascade close, focus restore, launch budget, and bounded logs.
 // upstream implementation ../../../include/editor_proto/terminal_session.hpp declares popup session API
 // upstream implementation ../../../src/terminal_session.cpp implements popup sessions
 // downstream build ../../../CMakeLists.txt builds this executable as editor_proto_terminal_session_test
@@ -67,7 +67,13 @@ int main() {
   assert(remote_session != nullptr);
   assert(remote_session->log.entries().empty());
 
-  chain.close_terminal(local);
+  const editor_proto::PopupCloseResult file_close = chain.close_popup(file);
+  assert(chain.is_closed(file));
+  assert(!chain.is_closed(remote));
+  assert(file_close.focus_restore_id == remote);
+
+  const editor_proto::PopupCloseResult local_close = chain.close_terminal(local);
+  assert(local_close.focus_restore_id == std::nullopt);
   assert(chain.is_closed(local));
   assert(chain.is_closed(remote));
   assert(chain.is_closed(file));
