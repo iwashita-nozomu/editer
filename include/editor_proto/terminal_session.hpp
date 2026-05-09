@@ -1,8 +1,8 @@
 // @dependency-start
-// responsibility Defines terminal popup tree sessions and bounded per-terminal log storage.
+// responsibility Defines terminal popup sessions with direct up/down links and bounded per-terminal log storage.
 // upstream design ../../documents/mado_terminal_architecture.md terminal popup and log retention contract
 // downstream implementation ../../src/terminal_session.cpp implements terminal session behavior
-// downstream implementation ../../tests/cpp/prototype/terminal_session_test.cpp validates terminal tree and log pruning
+// downstream implementation ../../tests/cpp/prototype/terminal_session_test.cpp validates terminal links and log pruning
 // @dependency-end
 #pragma once
 
@@ -59,7 +59,7 @@ class TerminalLogBuffer {
 struct TerminalSession {
   TerminalId id{kInvalidTerminalId};
   std::optional<TerminalId> parent_id;
-  std::vector<TerminalId> child_ids;
+  std::optional<TerminalId> child_id;
   std::string title;
   std::string root;
   std::string launch_context;
@@ -75,15 +75,15 @@ struct TerminalLaunchRequest {
   bool popup_window{true};
 };
 
-class TerminalSessionTree {
+class TerminalSessionChain {
  public:
-  explicit TerminalSessionTree(TerminalLogConfig log_config = {});
+  explicit TerminalSessionChain(TerminalLogConfig log_config = {});
 
   [[nodiscard]] TerminalId create_terminal(TerminalLaunchRequest request);
   [[nodiscard]] TerminalSession* find(TerminalId id) noexcept;
   [[nodiscard]] const TerminalSession* find(TerminalId id) const noexcept;
-  [[nodiscard]] std::vector<TerminalId> roots() const;
-  [[nodiscard]] std::vector<TerminalId> children_of(TerminalId id) const;
+  [[nodiscard]] std::optional<TerminalId> parent_of(TerminalId id) const noexcept;
+  [[nodiscard]] std::optional<TerminalId> child_of(TerminalId id) const noexcept;
   [[nodiscard]] std::size_t size() const noexcept;
 
   void append_log(TerminalId id, TerminalLogKind kind, std::string message);
