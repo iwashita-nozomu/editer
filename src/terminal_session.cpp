@@ -145,17 +145,24 @@ void PopupSessionChain::append_log(PopupId id, PopupLogKind kind, std::string me
   session->log.append(kind, std::move(message));
 }
 
-void PopupSessionChain::close_popup(PopupId id) {
+PopupCloseResult PopupSessionChain::close_popup(PopupId id) {
+  const PopupSession* session = find(id);
+  const std::optional<PopupId> focus_restore_id = session == nullptr ? std::nullopt : session->parent_id;
+  close_popup_chain(id);
+  return PopupCloseResult{.closed_root = id, .focus_restore_id = focus_restore_id};
+}
+
+PopupCloseResult PopupSessionChain::close_terminal(PopupId id) { return close_popup(id); }
+
+void PopupSessionChain::close_popup_chain(PopupId id) {
   PopupSession* session = find(id);
   if (session == nullptr || session->closed) return;
 
   session->closed = true;
   session->log.append(PopupLogKind::Exit, "closed popup");
   const std::optional<PopupId> child_id = session->child_id;
-  if (child_id.has_value()) close_popup(*child_id);
+  if (child_id.has_value()) close_popup_chain(*child_id);
 }
-
-void PopupSessionChain::close_terminal(PopupId id) { close_popup(id); }
 
 void PopupSessionChain::set_log_config(PopupLogConfig config) {
   log_config_ = config;
