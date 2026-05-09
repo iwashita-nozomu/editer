@@ -1,5 +1,5 @@
 // @dependency-start
-// responsibility Implements terminal popup tree sessions and bounded per-terminal logs.
+// responsibility Implements terminal popup sessions with direct up/down links and bounded per-terminal logs.
 // upstream implementation ../include/editor_proto/terminal_session.hpp declares terminal session API
 // upstream design ../documents/mado_terminal_architecture.md terminal popup and log retention contract
 // downstream implementation ../tests/cpp/prototype/terminal_session_test.cpp validates terminal behavior
@@ -57,9 +57,9 @@ void TerminalLogBuffer::prune_old_entries() {
   }
 }
 
-TerminalSessionTree::TerminalSessionTree(TerminalLogConfig log_config) : log_config_(log_config) {}
+TerminalSessionChain::TerminalSessionChain(TerminalLogConfig log_config) : log_config_(log_config) {}
 
-TerminalId TerminalSessionTree::create_terminal(TerminalLaunchRequest request) {
+TerminalId TerminalSessionChain::create_terminal(TerminalLaunchRequest request) {
   TerminalSession session;
   session.id = next_id_++;
   session.parent_id = request.parent_id;
@@ -74,13 +74,13 @@ TerminalId TerminalSessionTree::create_terminal(TerminalLaunchRequest request) {
 
   if (request.parent_id.has_value()) {
     TerminalSession* parent = find(*request.parent_id);
-    if (parent != nullptr) parent->child_ids.push_back(id);
+    if (parent != nullptr) parent->child_id = id;
   }
 
   return id;
 }
 
-TerminalSession* TerminalSessionTree::find(TerminalId id) noexcept {
+TerminalSession* TerminalSessionChain::find(TerminalId id) noexcept {
   const auto found = std::find_if(sessions_.begin(), sessions_.end(), [id](const TerminalSession& session) {
     return session.id == id;
   });
@@ -88,7 +88,7 @@ TerminalSession* TerminalSessionTree::find(TerminalId id) noexcept {
   return &*found;
 }
 
-const TerminalSession* TerminalSessionTree::find(TerminalId id) const noexcept {
+const TerminalSession* TerminalSessionChain::find(TerminalId id) const noexcept {
   const auto found = std::find_if(sessions_.begin(), sessions_.end(), [id](const TerminalSession& session) {
     return session.id == id;
   });
@@ -96,29 +96,27 @@ const TerminalSession* TerminalSessionTree::find(TerminalId id) const noexcept {
   return &*found;
 }
 
-std::vector<TerminalId> TerminalSessionTree::roots() const {
-  std::vector<TerminalId> ids;
-  for (const TerminalSession& session : sessions_) {
-    if (!session.parent_id.has_value()) ids.push_back(session.id);
-  }
-  return ids;
-}
-
-std::vector<TerminalId> TerminalSessionTree::children_of(TerminalId id) const {
+std::optional<TerminalId> TerminalSessionChain::parent_of(TerminalId id) const noexcept {
   const TerminalSession* session = find(id);
-  if (session == nullptr) return {};
-  return session->child_ids;
+  if (session == nullptr) return std::nullopt;
+  return session->parent_id;
 }
 
-std::size_t TerminalSessionTree::size() const noexcept { return sessions_.size(); }
+std::optional<TerminalId> TerminalSessionChain::child_of(TerminalId id) const noexcept {
+  const TerminalSession* session = find(id);
+  if (session == nullptr) return std::nullopt;
+  return session->child_id;
+}
 
-void TerminalSessionTree::append_log(TerminalId id, TerminalLogKind kind, std::string message) {
+std::size_t TerminalSessionChain::size() const noexcept { return sessions_.size(); }
+
+void TerminalSessionChain::append_log(TerminalId id, TerminalLogKind kind, std::string message) {
   TerminalSession* session = find(id);
   if (session == nullptr) return;
   session->log.append(kind, std::move(message));
 }
 
-void TerminalSessionTree::set_log_config(TerminalLogConfig config) {
+void TerminalSessionChain::set_log_config(TerminalLogConfig config) {
   log_config_ = config;
   for (TerminalSession& session : sessions_) {
     session.log.set_config(config);
