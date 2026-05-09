@@ -1,8 +1,8 @@
 // @dependency-start
-// responsibility Defines terminal popup sessions with direct up/down links and bounded per-terminal log storage.
-// upstream design ../../documents/mado_terminal_architecture.md terminal popup and log retention contract
-// downstream implementation ../../src/terminal_session.cpp implements terminal session behavior
-// downstream implementation ../../tests/cpp/prototype/terminal_session_test.cpp validates terminal links and log pruning
+// responsibility Defines popup sessions with direct up/down links and bounded per-session log storage.
+// upstream design ../../documents/mado_terminal_architecture.md popup and log retention contract
+// downstream implementation ../../src/terminal_session.cpp implements popup session behavior
+// downstream implementation ../../tests/cpp/prototype/terminal_session_test.cpp validates popup links, cascade close, and log pruning
 // @dependency-end
 #pragma once
 
@@ -14,89 +14,127 @@
 
 namespace editor_proto {
 
-using TerminalId = std::size_t;
+using PopupId = std::size_t;
+using TerminalId = PopupId;
 
-constexpr TerminalId kInvalidTerminalId = 0;
+constexpr PopupId kInvalidPopupId = 0;
+constexpr TerminalId kInvalidTerminalId = kInvalidPopupId;
 
-struct TerminalLogConfig {
+struct PopupLogConfig {
   std::size_t max_bytes{64U * 1024U};
 };
 
-enum class TerminalLogKind {
+using TerminalLogConfig = PopupLogConfig;
+
+enum class PopupKind {
+  Terminal,
+  File,
+};
+
+enum class PopupLogKind {
   Info,
   Input,
   Output,
   Error,
   Exit,
+  FileOpen,
 };
 
-struct TerminalLogEntry {
-  TerminalLogKind kind{TerminalLogKind::Info};
+using TerminalLogKind = PopupLogKind;
+
+struct PopupLogEntry {
+  PopupLogKind kind{PopupLogKind::Info};
   std::string message;
   std::size_t bytes{};
 };
 
-class TerminalLogBuffer {
+using TerminalLogEntry = PopupLogEntry;
+
+class PopupLogBuffer {
  public:
-  explicit TerminalLogBuffer(TerminalLogConfig config = {});
+  explicit PopupLogBuffer(PopupLogConfig config = {});
 
-  void append(TerminalLogKind kind, std::string message);
+  void append(PopupLogKind kind, std::string message);
   void clear() noexcept;
-  void set_config(TerminalLogConfig config);
+  void set_config(PopupLogConfig config);
 
-  [[nodiscard]] const std::vector<TerminalLogEntry>& entries() const noexcept;
+  [[nodiscard]] const std::vector<PopupLogEntry>& entries() const noexcept;
   [[nodiscard]] std::size_t max_bytes() const noexcept;
   [[nodiscard]] std::size_t used_bytes() const noexcept;
 
  private:
   void prune_old_entries();
 
-  TerminalLogConfig config_{};
-  std::vector<TerminalLogEntry> entries_;
+  PopupLogConfig config_{};
+  std::vector<PopupLogEntry> entries_;
   std::size_t used_bytes_{};
 };
 
-struct TerminalSession {
-  TerminalId id{kInvalidTerminalId};
-  std::optional<TerminalId> parent_id;
-  std::optional<TerminalId> child_id;
+using TerminalLogBuffer = PopupLogBuffer;
+
+struct PopupSession {
+  PopupId id{kInvalidPopupId};
+  PopupKind kind{PopupKind::Terminal};
+  std::optional<PopupId> parent_id;
+  std::optional<PopupId> child_id;
   std::string title;
   std::string root;
   std::string launch_context;
+  std::string file_path;
   bool popup_window{true};
-  TerminalLogBuffer log;
+  bool closed{};
+  PopupLogBuffer log;
 };
 
-struct TerminalLaunchRequest {
-  std::optional<TerminalId> parent_id;
+using TerminalSession = PopupSession;
+
+struct PopupLaunchRequest {
+  PopupKind kind{PopupKind::Terminal};
+  std::optional<PopupId> parent_id;
   std::string title;
   std::string root;
   std::string launch_context;
+  std::string file_path;
   bool popup_window{true};
 };
 
-class TerminalSessionChain {
+using TerminalLaunchRequest = PopupLaunchRequest;
+
+class PopupSessionChain {
  public:
-  explicit TerminalSessionChain(TerminalLogConfig log_config = {});
+  explicit PopupSessionChain(PopupLogConfig log_config = {});
 
-  [[nodiscard]] TerminalId create_terminal(TerminalLaunchRequest request);
-  [[nodiscard]] TerminalSession* find(TerminalId id) noexcept;
-  [[nodiscard]] const TerminalSession* find(TerminalId id) const noexcept;
-  [[nodiscard]] std::optional<TerminalId> parent_of(TerminalId id) const noexcept;
-  [[nodiscard]] std::optional<TerminalId> child_of(TerminalId id) const noexcept;
+  [[nodiscard]] PopupId create_popup(PopupLaunchRequest request);
+  [[nodiscard]] PopupId create_terminal(PopupLaunchRequest request);
+  [[nodiscard]] PopupId create_file_popup(std::optional<PopupId> parent_id, std::string root,
+                                          std::string file_path);
+  [[nodiscard]] PopupSession* find(PopupId id) noexcept;
+  [[nodiscard]] const PopupSession* find(PopupId id) const noexcept;
+  [[nodiscard]] std::optional<PopupId> parent_of(PopupId id) const noexcept;
+  [[nodiscard]] std::optional<PopupId> child_of(PopupId id) const noexcept;
+  [[nodiscard]] bool is_closed(PopupId id) const noexcept;
   [[nodiscard]] std::size_t size() const noexcept;
 
-  void append_log(TerminalId id, TerminalLogKind kind, std::string message);
-  void set_log_config(TerminalLogConfig config);
+  void append_log(PopupId id, PopupLogKind kind, std::string message);
+  void close_popup(PopupId id);
+  void close_terminal(PopupId id);
+  void set_log_config(PopupLogConfig config);
 
  private:
-  TerminalLogConfig log_config_{};
-  TerminalId next_id_{1};
-  std::vector<TerminalSession> sessions_;
+  PopupLogConfig log_config_{};
+  PopupId next_id_{1};
+  std::vector<PopupSession> sessions_;
 };
 
+using TerminalSessionChain = PopupSessionChain;
+
+[[nodiscard]] const char* popup_kind_name(PopupKind kind) noexcept;
+[[nodiscard]] const char* popup_log_kind_name(PopupLogKind kind) noexcept;
 [[nodiscard]] const char* terminal_log_kind_name(TerminalLogKind kind) noexcept;
+[[nodiscard]] std::string make_child_popup_title(std::string_view parent_title,
+                                                 std::string_view child_context);
 [[nodiscard]] std::string make_child_terminal_title(std::string_view parent_title,
                                                     std::string_view child_context);
+[[nodiscard]] std::string make_file_popup_title(std::string_view file_path);
 
 }  // namespace editor_proto
