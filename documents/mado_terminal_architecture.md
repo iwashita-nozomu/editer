@@ -13,6 +13,10 @@ downstream design mado_command_list.md lists user-facing terminal commands
 Mado terminal integration should keep the current screen stable when entering another environment.
 SSH, WSL, devcontainer, Docker shell, and file open flows should create a new lightweight popup instead of replacing the current terminal view.
 
+Keyboard-only reachability is part of this architecture. Terminal popups, file popups, command output, error output, and editor buffers must be reachable, selectable, and copyable without a mouse.
+
+Neovim may be used as the editor backend, but Mado keeps ownership of windows, popups, navigation, command routing, and logs.
+
 ## Popup Chain Model
 
 Mado uses direct up/down links, not a full tree traversal model.
