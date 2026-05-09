@@ -28,17 +28,13 @@ const PluginManifest* PluginRegistry::find_plugin(std::string_view id) const noe
 const PluginCommand* PluginRegistry::find_command(std::string_view id) const noexcept {
   for (const PluginManifest& plugin : plugins_) {
     const auto found = std::find_if(plugin.commands.begin(), plugin.commands.end(),
-                                    [id](const PluginCommand& command) {
-                                      return command.id == id;
-                                    });
+                                    [id](const PluginCommand& command) { return command.id == id; });
     if (found != plugin.commands.end()) return &*found;
   }
   return nullptr;
 }
 
-bool PluginRegistry::command_exists(std::string_view id) const noexcept {
-  return find_command(id) != nullptr;
-}
+bool PluginRegistry::command_exists(std::string_view id) const noexcept { return find_command(id) != nullptr; }
 
 const char* plugin_kind_name(PluginKind kind) noexcept {
   switch (kind) {
@@ -102,6 +98,8 @@ PluginManifest make_terminal_plugin_manifest() {
       .commands = {
           PluginCommand{"mado.terminal.open", "Open Floating Terminal", "mado.terminal"},
           PluginCommand{"mado.terminal.run", "Run Terminal Input", "mado.terminal"},
+          PluginCommand{"mado.terminal.open_file", "Open File From Terminal", "mado.terminal"},
+          PluginCommand{"mado.terminal.close_chain", "Close Terminal Chain", "mado.terminal"},
           PluginCommand{"mado.terminal.clear", "Clear Terminal Output", "mado.terminal"},
           PluginCommand{"mado.terminal.copy_selection", "Copy Terminal Selection", "mado.terminal"},
       },
