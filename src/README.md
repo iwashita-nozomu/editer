@@ -4,6 +4,8 @@
 responsibility Documents src for this repository.
 upstream implementation ../include/editor_proto/workspace_registry.hpp workspace registry API
 upstream implementation ../include/editor_proto/duplicate_policy.hpp duplicate policy API
+upstream implementation ../include/editor_proto/plugin_registry.hpp plugin boundary and builtin manifest API
+upstream design ../documents/mado_plugin_policy.md Mado core/plugin ownership boundary
 upstream design ../cmake/README.md CMake layout guidance
 @dependency-end
 -->
@@ -16,15 +18,22 @@ public API は `include/editor_proto/` に置き、実装は root `CMakeLists.tx
 
 - `workspace_registry.cpp`: open file / directory root duplicate detection and scroll calculation
 - `duplicate_policy.cpp`: duplicate notice default decision policy
+- `plugin_registry.cpp`: Mado core/plugin boundary, builtin plugin manifests, and command ownership registry
 - `editor_proto_cli.cpp`: runnable CLI prototype with `demo`, duplicate-open, directory, and scroll commands
 - `editor_gui_proto.cpp`: runnable native X11 GUI prototype loaded from the system runtime
+
+Mado の core/plugin 境界は [Mado Plugin Policy](../documents/mado_plugin_policy.md) を正本にします。
+現時点では dynamic plugin loading ではなく、`editor_proto` に linked される builtin plugin manifest で
+`mado.core`、`mado.terminal`、`mado.ssh`、`mado.devcontainer` の command ownership と permissions を固定します。
+SSH、devcontainer、Docker、host launch のような外部連携は core に直接増やさず、builtin plugin の command owner を通して拡張します。
 
 prototype smoke は次で実行します。
 
 ```bash
 cmake -S . -B build/cpp/dev -G Ninja
-cmake --build build/cpp/dev --target editor_proto_cli editor_gui_proto mado
+cmake --build build/cpp/dev --target editor_proto_cli editor_gui_proto mado editor_proto_plugin_registry_test
 build/cpp/dev/bin/editor_proto_cli demo
+build/cpp/dev/bin/editor_proto_plugin_registry_test
 build/cpp/dev/bin/editor_gui_proto
 build/cpp/dev/bin/mado --test-workspace
 ```
