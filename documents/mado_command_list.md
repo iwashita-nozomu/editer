@@ -29,8 +29,8 @@ Mado runtime commands are now grouped by plugin owner. The current registry is b
 
 | Owner | Command IDs |
 | --- | --- |
-| `mado.core` | `mado.files.open`, `mado.file.save`, `mado.demo.run`, `mado.window.quit`, `mado.focus.editor`, `mado.focus.notice`, `mado.focus.files` |
-| `mado.terminal` | `mado.terminal.open`, `mado.terminal.run`, `mado.terminal.clear`, `mado.terminal.copy_selection` |
+| `mado.core` | `mado.files.open`, `mado.file.save`, `mado.demo.run`, `mado.window.quit`, `mado.focus.enter`, `mado.focus.leave`, `mado.focus.cycle_next`, `mado.focus.cycle_prev`, `mado.focus.editor`, `mado.focus.notice`, `mado.focus.files`, `mado.cursor.up`, `mado.cursor.down`, `mado.cursor.left`, `mado.cursor.right`, `mado.selection.copy` |
+| `mado.terminal` | `mado.terminal.open`, `mado.terminal.run`, `mado.terminal.clear`, `mado.log.scroll_up`, `mado.log.scroll_down`, `mado.log.select_line`, `mado.terminal.copy_selection` |
 | `mado.ssh` | `mado.ssh.print_helper`, `mado.ssh.host_launch` |
 | `mado.devcontainer` | `mado.devcontainer.open`, `mado.devcontainer.rebuild` |
 

@@ -43,11 +43,15 @@ int main() {
   assert(core->kind == editor_proto::PluginKind::Core);
   assert(core->permissions.empty());
   assert_command_owner(registry, "mado.file.save", "mado.core");
+  assert_command_owner(registry, "mado.focus.cycle_next", "mado.core");
+  assert_command_owner(registry, "mado.cursor.right", "mado.core");
+  assert_command_owner(registry, "mado.selection.copy", "mado.core");
 
   const editor_proto::PluginManifest* terminal = registry.find_plugin("mado.terminal");
   assert(terminal != nullptr);
   assert(has_permission(*terminal, editor_proto::PluginPermission::TerminalPty));
   assert_command_owner(registry, "mado.terminal.open", "mado.terminal");
+  assert_command_owner(registry, "mado.log.select_line", "mado.terminal");
 
   const editor_proto::PluginManifest* ssh = registry.find_plugin("mado.ssh");
   assert(ssh != nullptr);
