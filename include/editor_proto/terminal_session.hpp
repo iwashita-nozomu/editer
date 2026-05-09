@@ -2,7 +2,7 @@
 // responsibility Defines popup sessions with direct up/down links and bounded per-session log storage.
 // upstream design ../../documents/mado_terminal_architecture.md popup and log retention contract
 // downstream implementation ../../src/terminal_session.cpp implements popup session behavior
-// downstream implementation ../../tests/cpp/prototype/terminal_session_test.cpp validates popup links, cascade close, and log pruning
+// downstream implementation ../../tests/cpp/prototype/terminal_session_test.cpp validates popup links, cascade close, launch budget, and log pruning
 // @dependency-end
 #pragma once
 
@@ -19,6 +19,7 @@ using TerminalId = PopupId;
 
 constexpr PopupId kInvalidPopupId = 0;
 constexpr TerminalId kInvalidTerminalId = kInvalidPopupId;
+constexpr std::size_t kDefaultPopupLaunchBudgetMs = 100;
 
 struct PopupLogConfig {
   std::size_t max_bytes{64U * 1024U};
@@ -83,6 +84,7 @@ struct PopupSession {
   std::string file_path;
   bool popup_window{true};
   bool closed{};
+  std::size_t launch_budget_ms{kDefaultPopupLaunchBudgetMs};
   PopupLogBuffer log;
 };
 
@@ -96,6 +98,7 @@ struct PopupLaunchRequest {
   std::string launch_context;
   std::string file_path;
   bool popup_window{true};
+  std::size_t launch_budget_ms{kDefaultPopupLaunchBudgetMs};
 };
 
 using TerminalLaunchRequest = PopupLaunchRequest;
