@@ -4,6 +4,7 @@
 # downstream implementation tests/cpp/prototype/workspace_registry_test.cpp validates editor workspace behavior
 # downstream implementation tests/cpp/prototype/duplicate_policy_test.cpp validates duplicate policy behavior
 # downstream implementation tests/cpp/prototype/plugin_registry_test.cpp validates Mado plugin boundary behavior
+# downstream implementation tests/cpp/prototype/terminal_session_test.cpp validates terminal popup tree and log retention behavior
 # @dependency-end
 cmake_minimum_required(VERSION 3.22)
 project(editor_make LANGUAGES CXX)
@@ -20,7 +21,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 include(CTest)
-add_library(editor_proto src/workspace_registry.cpp src/duplicate_policy.cpp src/plugin_registry.cpp)
+add_library(editor_proto src/workspace_registry.cpp src/duplicate_policy.cpp src/plugin_registry.cpp src/terminal_session.cpp)
 target_include_directories(editor_proto PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_compile_features(editor_proto PUBLIC cxx_std_20)
 add_executable(editor_proto_cli src/editor_proto_cli.cpp)
@@ -61,4 +62,9 @@ if(BUILD_TESTING)
   add_executable(editor_proto_plugin_registry_test tests/cpp/prototype/plugin_registry_test.cpp)
   target_link_libraries(editor_proto_plugin_registry_test PRIVATE editor_proto)
   add_test(NAME editor_proto_plugin_registry_test COMMAND editor_proto_plugin_registry_test)
+endif()
+if(BUILD_TESTING)
+  add_executable(editor_proto_terminal_session_test tests/cpp/prototype/terminal_session_test.cpp)
+  target_link_libraries(editor_proto_terminal_session_test PRIVATE editor_proto)
+  add_test(NAME editor_proto_terminal_session_test COMMAND editor_proto_terminal_session_test)
 endif()
