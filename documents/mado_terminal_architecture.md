@@ -3,8 +3,9 @@
 @dependency-start
 responsibility Defines Mado terminal/file popup launch, parent restore, and bounded log retention behavior.
 upstream implementation ../include/editor_proto/terminal_session.hpp declares popup session model
+upstream implementation ../include/editor_proto/mado_command_router.hpp declares terminal command routing
 upstream implementation ../src/terminal_session.cpp implements popup session model
-upstream design mado_plugin_policy.md defines plugin ownership boundaries
+upstream implementation ../src/mado_command_router.cpp implements `mado <filename>` routing
 downstream design mado_command_list.md lists user-facing terminal commands
 @dependency-end
 -->
@@ -28,6 +29,18 @@ local terminal -> remote terminal -> mado <filename> file popup
 
 The chain may contain both terminal popups and file popups.
 A terminal can launch a file popup with `mado <filename>`; the file popup records the parent terminal and should be raised as a new popup window.
+
+## Command Routing
+
+`parse_mado_command()` recognizes the lightweight terminal form:
+
+```bash
+mado <filename>
+```
+
+The router maps that command to `mado.terminal.open_file` by creating a file popup under the invoking terminal. Option-style invocations such as `mado --test-workspace` remain outside this router so existing CLI behavior is not stolen.
+
+The X11 runtime should call `route_mado_command()` before sending a terminal input line to the PTY when the command begins with `mado` and the current terminal has a popup ID. If routing succeeds, the runtime should create/raise the file popup and skip PTY execution for that line.
 
 ## Close And Focus Restore
 
@@ -83,4 +96,4 @@ The terminal plugin owns popup-oriented terminal commands:
 - `mado.terminal.clear`
 - `mado.terminal.copy_selection`
 
-`mado <filename>` should route to `mado.terminal.open_file` when invoked from a Mado terminal context.
+`mado <filename>` routes to `mado.terminal.open_file` when invoked from a Mado terminal context.
