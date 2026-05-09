@@ -2,7 +2,7 @@
 // responsibility Defines popup sessions with direct up/down links and bounded per-session log storage.
 // upstream design ../../documents/mado_terminal_architecture.md popup and log retention contract
 // downstream implementation ../../src/terminal_session.cpp implements popup session behavior
-// downstream implementation ../../tests/cpp/prototype/terminal_session_test.cpp validates popup links, cascade close, launch budget, and log pruning
+// downstream implementation ../../tests/cpp/prototype/terminal_session_test.cpp validates popup links, cascade close, focus restore, launch budget, and log pruning
 // @dependency-end
 #pragma once
 
@@ -103,6 +103,11 @@ struct PopupLaunchRequest {
 
 using TerminalLaunchRequest = PopupLaunchRequest;
 
+struct PopupCloseResult {
+  PopupId closed_root{kInvalidPopupId};
+  std::optional<PopupId> focus_restore_id;
+};
+
 class PopupSessionChain {
  public:
   explicit PopupSessionChain(PopupLogConfig log_config = {});
@@ -119,11 +124,13 @@ class PopupSessionChain {
   [[nodiscard]] std::size_t size() const noexcept;
 
   void append_log(PopupId id, PopupLogKind kind, std::string message);
-  void close_popup(PopupId id);
-  void close_terminal(PopupId id);
+  [[nodiscard]] PopupCloseResult close_popup(PopupId id);
+  [[nodiscard]] PopupCloseResult close_terminal(PopupId id);
   void set_log_config(PopupLogConfig config);
 
  private:
+  void close_popup_chain(PopupId id);
+
   PopupLogConfig log_config_{};
   PopupId next_id_{1};
   std::vector<PopupSession> sessions_;
