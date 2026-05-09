@@ -24,9 +24,13 @@ bool has_text_cursor_commands(const FocusCommandTable& commands) noexcept {
          has_text(commands.cursor_left) && has_text(commands.cursor_right);
 }
 
+bool has_vertical_cursor_commands(const FocusCommandTable& commands) noexcept {
+  return has_text(commands.cursor_up) && has_text(commands.cursor_down);
+}
+
 bool has_log_selection_commands(const FocusCommandTable& commands) noexcept {
   return has_text(commands.log_scroll_up) && has_text(commands.log_scroll_down) &&
-         has_text(commands.cursor_up) && has_text(commands.cursor_down) &&
+         has_vertical_cursor_commands(commands) &&
          has_text(commands.log_select_line) && has_text(commands.selection_copy);
 }
 

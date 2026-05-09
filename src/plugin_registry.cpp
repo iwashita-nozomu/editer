@@ -110,10 +110,10 @@ PluginManifest make_terminal_plugin_manifest() {
           PluginCommand{"mado.terminal.open_file", "Open File From Terminal", "mado.terminal"},
           PluginCommand{"mado.terminal.close_chain", "Close Terminal Chain", "mado.terminal"},
           PluginCommand{"mado.terminal.clear", "Clear Terminal Output", "mado.terminal"},
+          PluginCommand{"mado.terminal.copy_selection", "Copy Terminal Selection", "mado.terminal"},
           PluginCommand{"mado.log.scroll_up", "Scroll Log Up", "mado.terminal"},
           PluginCommand{"mado.log.scroll_down", "Scroll Log Down", "mado.terminal"},
           PluginCommand{"mado.log.select_line", "Select Log Line", "mado.terminal"},
-          PluginCommand{"mado.terminal.copy_selection", "Copy Terminal Selection", "mado.terminal"},
       },
   };
 }
