@@ -80,9 +80,18 @@ PluginManifest make_core_plugin_manifest() {
           PluginCommand{"mado.file.save", "Save Active File", "mado.core"},
           PluginCommand{"mado.demo.run", "Run Core Demo", "mado.core"},
           PluginCommand{"mado.window.quit", "Quit Active Window", "mado.core"},
+          PluginCommand{"mado.focus.enter", "Enter Focused Surface", "mado.core"},
+          PluginCommand{"mado.focus.leave", "Leave Focused Surface", "mado.core"},
+          PluginCommand{"mado.focus.cycle_next", "Cycle Focus Next", "mado.core"},
+          PluginCommand{"mado.focus.cycle_prev", "Cycle Focus Previous", "mado.core"},
           PluginCommand{"mado.focus.editor", "Focus Editor", "mado.core"},
           PluginCommand{"mado.focus.notice", "Focus Notice", "mado.core"},
           PluginCommand{"mado.focus.files", "Focus Files", "mado.core"},
+          PluginCommand{"mado.cursor.up", "Move Cursor Up", "mado.core"},
+          PluginCommand{"mado.cursor.down", "Move Cursor Down", "mado.core"},
+          PluginCommand{"mado.cursor.left", "Move Cursor Left", "mado.core"},
+          PluginCommand{"mado.cursor.right", "Move Cursor Right", "mado.core"},
+          PluginCommand{"mado.selection.copy", "Copy Active Selection", "mado.core"},
       },
   };
 }
@@ -102,6 +111,9 @@ PluginManifest make_terminal_plugin_manifest() {
           PluginCommand{"mado.terminal.close_chain", "Close Terminal Chain", "mado.terminal"},
           PluginCommand{"mado.terminal.clear", "Clear Terminal Output", "mado.terminal"},
           PluginCommand{"mado.terminal.copy_selection", "Copy Terminal Selection", "mado.terminal"},
+          PluginCommand{"mado.log.scroll_up", "Scroll Log Up", "mado.terminal"},
+          PluginCommand{"mado.log.scroll_down", "Scroll Log Down", "mado.terminal"},
+          PluginCommand{"mado.log.select_line", "Select Log Line", "mado.terminal"},
       },
   };
 }
